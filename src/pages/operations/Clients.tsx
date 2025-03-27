@@ -51,17 +51,19 @@ const ClientsPage = () => {
     industry: ''
   });
 
-  // Use react-query to fetch clients data
+  // Use react-query to fetch clients data with proper error handling
   const { data: clients, isLoading, error } = useQuery({
     queryKey: ['clients', searchTerm, filters],
     queryFn: () => fetchClients(searchTerm, filters),
-    onError: (err) => {
-      console.error('Failed to fetch clients:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load clients data. Please try again.',
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('Failed to fetch clients:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load clients data. Please try again.',
+        });
+      }
     }
   });
 

@@ -70,9 +70,17 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
 }
 
 export async function updateClient(id: string, updates: Partial<Client>) {
+  // Ensure we're only sending database-compatible values
+  const dbUpdates = {
+    ...updates,
+    // Remove these fields if they exist to prevent format conflicts
+    created_at: undefined,
+    updated_at: undefined,
+  };
+  
   const { data, error } = await supabase
     .from('clients')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
 

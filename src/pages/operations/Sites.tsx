@@ -58,17 +58,19 @@ const SitesPage = () => {
     siteType: ''
   });
 
-  // Use react-query to fetch sites data
+  // Use react-query to fetch sites data with proper error handling
   const { data: sites, isLoading, error } = useQuery({
     queryKey: ['sites', searchTerm, filters],
     queryFn: () => fetchSites(searchTerm, filters),
-    onError: (err) => {
-      console.error('Failed to fetch sites:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load sites data. Please try again.',
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('Failed to fetch sites:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load sites data. Please try again.',
+        });
+      }
     }
   });
 
@@ -177,7 +179,7 @@ const SitesPage = () => {
                       <StatusBadge status={site.status} />
                     </TableCell>
                     <TableCell>
-                      {format(new Date(site.service_start_date), 'PP')}
+                      {site.service_start_date ? format(new Date(site.service_start_date), 'PP') : '-'}
                     </TableCell>
                   </TableRow>
                 ))}

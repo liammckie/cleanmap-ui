@@ -59,13 +59,15 @@ const EmployeesPage = () => {
   const { data: employees, isLoading, error } = useQuery({
     queryKey: ['employees', searchTerm, filters],
     queryFn: () => fetchEmployees(searchTerm, filters),
-    onError: (err) => {
-      console.error('Failed to fetch employees:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load employees data. Please try again.',
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('Failed to fetch employees:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load employees data. Please try again.',
+        });
+      }
     }
   });
 

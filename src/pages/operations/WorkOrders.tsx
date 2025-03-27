@@ -84,17 +84,19 @@ const WorkOrdersPage = () => {
     toDate: ''
   });
 
-  // Use react-query to fetch work orders data
+  // Use react-query to fetch work orders data with proper error handling
   const { data: workOrders, isLoading, error } = useQuery({
     queryKey: ['workOrders', searchTerm, filters],
     queryFn: () => fetchWorkOrders(searchTerm, filters),
-    onError: (err) => {
-      console.error('Failed to fetch work orders:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load work orders data. Please try again.',
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('Failed to fetch work orders:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load work orders data. Please try again.',
+        });
+      }
     }
   });
 
@@ -118,9 +120,10 @@ const WorkOrdersPage = () => {
     
     return workOrder.assignments
       .map((assignment: any) => 
-        `${assignment.employee.first_name} ${assignment.employee.last_name}`
+        `${assignment.employee?.first_name || ''} ${assignment.employee?.last_name || ''}`
       )
-      .join(', ');
+      .filter((name: string) => name.trim() !== '')
+      .join(', ') || '-';
   };
 
   return (
@@ -204,7 +207,7 @@ const WorkOrdersPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{workOrder.site?.site_name}</div>
+                        <div>{workOrder.site?.site_name || '-'}</div>
                         {workOrder.site?.client && (
                           <div className="text-muted-foreground">{workOrder.site.client.company_name}</div>
                         )}

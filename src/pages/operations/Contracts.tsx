@@ -57,17 +57,19 @@ const ContractsPage = () => {
     contractType: ''
   });
 
-  // Use react-query to fetch contracts data
+  // Use react-query to fetch contracts data with proper error handling
   const { data: contracts, isLoading, error } = useQuery({
     queryKey: ['contracts', searchTerm, filters],
     queryFn: () => fetchContracts(searchTerm, filters),
-    onError: (err) => {
-      console.error('Failed to fetch contracts:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load contracts data. Please try again.',
-      });
+    meta: {
+      onError: (err: Error) => {
+        console.error('Failed to fetch contracts:', err);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load contracts data. Please try again.',
+        });
+      }
     }
   });
 
