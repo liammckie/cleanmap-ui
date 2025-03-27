@@ -34,8 +34,13 @@ export async function fetchClients(
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
     }
+    // Only add region filter if the column exists (handled separately in fetchRegions)
     if (filters.region) {
-      query = query.eq('region', filters.region);
+      try {
+        query = query.eq('region', filters.region);
+      } catch (error) {
+        console.warn('Region filter not applied - column may not exist');
+      }
     }
   }
 
@@ -140,42 +145,53 @@ export async function fetchIndustries() {
 export async function fetchRegions() {
   try {
     // Check if the region column exists in the clients table first
-    // If not, we'll just return an empty array
-    const { data, error } = await supabase
-      .from('clients')
-      .select('region')
-      .limit(1);
+    let hasRegionColumn = true;
+    
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('region')
+        .limit(1);
 
-    if (error) {
-      // If column doesn't exist, return empty array
-      if (error.message && error.message.includes("column 'region' does not exist")) {
-        console.warn('Region column does not exist in clients table');
-        return [];
+      if (error) {
+        // Check if error is about the column not existing
+        if (error.message && error.message.includes("column 'region' does not exist")) {
+          console.warn('Region column does not exist in clients table');
+          hasRegionColumn = false;
+          return []; // Return empty array if column doesn't exist
+        }
+        throw error; // Re-throw other errors
       }
-      console.error('Error fetching regions:', error);
-      throw error;
+    } catch (error) {
+      console.error('Error checking region column:', error);
+      return []; // Return empty array on errors
+    }
+    
+    // Only proceed if the column exists
+    if (!hasRegionColumn) {
+      return [];
     }
 
-    // If we get here, the column exists, so fetch all regions
-    const { data: regionsData, error: regionsError } = await supabase
+    // If column exists, fetch all regions
+    const { data, error } = await supabase
       .from('clients')
       .select('region')
       .order('region');
 
-    if (regionsError) {
-      console.error('Error fetching regions:', regionsError);
-      throw regionsError;
+    if (error) {
+      console.error('Error fetching regions:', error);
+      throw error;
     }
 
     // Extract unique regions, handle potential null values and type issues
-    const regions = regionsData
+    const regions = data
       .map(client => client.region)
       .filter((region): region is string => typeof region === 'string' && region.trim() !== '');
     
     return [...new Set(regions)];
   } catch (error) {
     console.error('Error fetching regions:', error);
-    throw error;
+    return []; // Return empty array on errors
   }
 }
 
