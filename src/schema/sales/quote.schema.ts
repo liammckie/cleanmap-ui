@@ -38,7 +38,6 @@ export interface Quote {
   quote_number: string;
   client_id: string | null;  // Null if for a prospect
   lead_id: string | null;    // Null if for existing client
-  site_ids: string[] | null; // Null if sites not yet specified
   issue_date: Date;
   valid_until: Date;
   status: QuoteStatus;
@@ -65,7 +64,6 @@ export const quoteSchema = z.object({
   quote_number: z.string().min(1, "Quote number is required"),
   client_id: z.string().nullable(),
   lead_id: z.string().nullable(),
-  site_ids: z.array(z.string()).nullable(),
   issue_date: z.date(),
   valid_until: z.date(),
   status: z.enum(['Draft', 'Sent', 'Accepted', 'Rejected']),

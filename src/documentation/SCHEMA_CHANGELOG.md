@@ -44,3 +44,11 @@ This file tracks significant schema changes that may impact application function
 - Added @origin and @field-locked annotations to services
 - Created utility functions to enforce safe query patterns
 - Improved error handling to prevent field type drift
+
+## 2024-06-06
+
+### Fixed
+- Updated TypeScript interfaces for Quote schema to match database structure
+- Fixed type inconsistencies between frontend models and database tables
+- Improved Date handling in service functions to properly convert between Date objects and ISO strings
+- Fixed CRUD operations to respect required fields in the database

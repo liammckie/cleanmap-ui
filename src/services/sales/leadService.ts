@@ -50,9 +50,18 @@ export const fetchLeads = async (searchTerm?: string): Promise<Lead[]> => {
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const leadData = {
+      ...lead,
+      next_action_date: lead.next_action_date instanceof Date ? lead.next_action_date.toISOString() : lead.next_action_date,
+      // Remove created_at and updated_at as they're set by the database
+      created_at: undefined,
+      updated_at: undefined
+    };
+
     const { data, error } = await supabase
       .from('leads')
-      .insert([lead])
+      .insert(leadData)
       .select()
       .single();
 
@@ -110,9 +119,18 @@ export const getLead = async (leadId: string): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const leadData = {
+      ...lead,
+      next_action_date: lead.next_action_date instanceof Date ? lead.next_action_date.toISOString() : lead.next_action_date,
+      // Remove created_at and updated_at as they're managed by the database
+      created_at: undefined,
+      updated_at: undefined
+    };
+
     const { data, error } = await supabase
       .from('leads')
-      .update(lead)
+      .update(leadData)
       .eq('id', leadId)
       .select()
       .single();

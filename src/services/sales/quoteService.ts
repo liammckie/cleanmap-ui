@@ -85,12 +85,15 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
     const quoteData = {
       ...quote,
       issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
-      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until
+      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until,
+      // Remove created_at and updated_at as they're managed by the database
+      created_at: undefined,
+      updated_at: undefined
     };
 
     const { data, error } = await supabase
       .from('quotes')
-      .insert([quoteData])
+      .insert(quoteData)
       .select()
       .single();
 
@@ -124,7 +127,10 @@ export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promi
     const quoteData = {
       ...quote,
       issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
-      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until
+      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until,
+      // Remove created_at and updated_at as they're managed by the database
+      created_at: undefined, 
+      updated_at: undefined
     };
 
     const { data, error } = await supabase
@@ -148,7 +154,7 @@ export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promi
     };
   } catch (error) {
     console.error('Unexpected error in updateQuote:', error);
-    return false;
+    return null;
   }
 };
 
@@ -234,14 +240,14 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
   try {
     const lineItemData = {
       ...lineItem,
-      // Convert any Date objects to ISO strings for Supabase
-      created_at: lineItem.created_at instanceof Date ? lineItem.created_at.toISOString() : undefined,
-      updated_at: lineItem.updated_at instanceof Date ? lineItem.updated_at.toISOString() : undefined
+      // Remove created_at and updated_at as they're managed by the database
+      created_at: undefined,
+      updated_at: undefined
     };
 
     const { data, error } = await supabase
       .from('quote_line_items')
-      .insert([lineItemData])
+      .insert(lineItemData)
       .select()
       .single();
 
@@ -271,9 +277,9 @@ export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<
   try {
     const lineItemData = {
       ...lineItem,
-      // Convert any Date objects to ISO strings for Supabase
-      created_at: lineItem.created_at instanceof Date ? lineItem.created_at.toISOString() : undefined,
-      updated_at: lineItem.updated_at instanceof Date ? lineItem.updated_at.toISOString() : undefined
+      // Remove created_at and updated_at as they're managed by the database
+      created_at: undefined,
+      updated_at: undefined
     };
 
     const { data, error } = await supabase
