@@ -1,218 +1,154 @@
+
 import { z } from 'zod';
 
 /**
- * Create a validation schema for a form field
- * @param field Field configuration object
- * @returns Zod schema for the field
+ * Common validation error messages
  */
-export function createFieldSchema(field: {
-  type: 'string' | 'number' | 'date' | 'email' | 'phone' | 'select';
-  required?: boolean;
+export const ValidationErrors = {
+  REQUIRED: 'This field is required',
+  INVALID_EMAIL: 'Please enter a valid email address',
+  INVALID_PHONE: 'Please enter a valid phone number',
+  INVALID_DATE: 'Please enter a valid date',
+  MIN_LENGTH: (min: number) => `Must be at least ${min} characters`,
+  MAX_LENGTH: (max: number) => `Must be at most ${max} characters`,
+  MIN_VALUE: (min: number) => `Must be at least ${min}`,
+  MAX_VALUE: (max: number) => `Must be at most ${max}`,
+  FUTURE_DATE: 'Date must be in the future',
+  PAST_DATE: 'Date must be in the past',
+  PASSWORDS_MATCH: 'Passwords must match',
+  INVALID_URL: 'Please enter a valid URL',
+  INVALID_ZIP: 'Please enter a valid ZIP code',
+  INVALID_CURRENCY: 'Please enter a valid amount',
+};
+
+/**
+ * Parse validation error message from the schema
+ */
+export function parseValidationError(error: z.ZodIssue) {
+  if (error.code === 'too_small' && 'minimum' in error) {
+    if (error.type === 'string') {
+      return ValidationErrors.MIN_LENGTH(error.minimum);
+    } else {
+      return ValidationErrors.MIN_VALUE(error.minimum);
+    }
+  }
+  
+  if (error.code === 'too_big' && 'maximum' in error) {
+    if (error.type === 'string') {
+      return ValidationErrors.MAX_LENGTH(error.maximum);
+    } else {
+      return ValidationErrors.MAX_VALUE(error.maximum);
+    }
+  }
+  
+  return error.message;
+}
+
+/**
+ * String validation schema builder
+ */
+export function createStringSchema(options: {
   min?: number;
   max?: number;
-  options?: string[];
-  pattern?: RegExp;
-  errorMessage?: string;
-}): z.ZodType<any> {
-  let schema: z.ZodType<any>;
-
-  // Create base schema based on type
-  switch (field.type) {
-    case 'string':
-      schema = z.string();
-      if (field.min !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
-      }
-      if (field.max !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
-      }
-      break;
-    case 'number':
-      schema = z.number();
-      if (field.min !== undefined) {
-        schema = schema as z.ZodNumber;
-        schema = schema.min(field.min, `Must be at least ${field.min}`);
-      }
-      if (field.max !== undefined) {
-        schema = schema as z.ZodNumber;
-        schema = schema.max(field.max, `Must be at most ${field.max}`);
-      }
-      break;
-    case 'date':
-      schema = z.date();
-      break;
-    case 'email':
-      schema = z.string().email(field.errorMessage || 'Invalid email address');
-      if (field.min !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
-      }
-      if (field.max !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
-      }
-      break;
-    case 'phone':
-      schema = z.string().regex(
-        field.pattern || /^[0-9\s\+\-\(\)]{8,15}$/,
-        field.errorMessage || 'Invalid phone number'
-      );
-      if (field.min !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
-      }
-      if (field.max !== undefined) {
-        schema = schema as z.ZodString;
-        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
-      }
-      break;
-    case 'select':
-      if (field.options && field.options.length > 0) {
-        schema = z.enum([...field.options as [string, ...string[]]]);
-      } else {
-        schema = z.string();
-      }
-      break;
-    default:
-      schema = z.string();
+  required?: boolean;
+  email?: boolean;
+  url?: boolean;
+  regex?: RegExp;
+  customError?: string;
+}) {
+  let schema = z.string();
+  
+  if (options.min !== undefined) {
+    schema = schema.min(options.min, ValidationErrors.MIN_LENGTH(options.min));
   }
-
-  // Make optional if not required
-  if (!field.required) {
+  
+  if (options.max !== undefined) {
+    schema = schema.max(options.max, ValidationErrors.MAX_LENGTH(options.max));
+  }
+  
+  if (options.email) {
+    schema = schema.email(ValidationErrors.INVALID_EMAIL);
+  }
+  
+  if (options.url) {
+    schema = schema.url(ValidationErrors.INVALID_URL);
+  }
+  
+  if (options.regex) {
+    schema = schema.regex(options.regex, options.customError || 'Invalid format');
+  }
+  
+  if (options.required === false) {
     schema = schema.optional();
+  } else {
+    schema = schema.min(1, ValidationErrors.REQUIRED);
   }
-
+  
   return schema;
 }
 
 /**
- * Generate a Zod schema from a configuration object
- * @param config Schema configuration object
- * @returns Zod schema for form validation
+ * Number validation schema builder
  */
-export function createFormSchema<T extends Record<string, any>>(config: Record<keyof T, {
-  type: 'string' | 'number' | 'date' | 'email' | 'phone' | 'select';
-  required?: boolean;
+export function createNumberSchema(options: {
   min?: number;
   max?: number;
-  options?: string[];
-  pattern?: RegExp;
-  errorMessage?: string;
-}>): z.ZodObject<any> {
-  const shape: Record<string, z.ZodType<any>> = {};
-
-  for (const [key, field] of Object.entries(config)) {
-    shape[key] = createFieldSchema(field);
+  required?: boolean;
+  integer?: boolean;
+  positive?: boolean;
+}) {
+  let schema = options.integer ? z.number().int() : z.number();
+  
+  if (options.min !== undefined) {
+    schema = schema.min(options.min, ValidationErrors.MIN_VALUE(options.min));
   }
-
-  return z.object(shape);
+  
+  if (options.max !== undefined) {
+    schema = schema.max(options.max, ValidationErrors.MAX_VALUE(options.max));
+  }
+  
+  if (options.positive) {
+    schema = schema.positive(ValidationErrors.MIN_VALUE(0));
+  }
+  
+  if (options.required === false) {
+    schema = schema.optional();
+  }
+  
+  return schema;
 }
 
 /**
- * Creates field validation errors from Zod validation errors
+ * Date validation schema builder
  */
-export function parseZodErrors(error: z.ZodError) {
-  const fieldErrors: Record<string, string> = {};
+export function createDateSchema(options: {
+  min?: Date;
+  max?: Date;
+  required?: boolean;
+  future?: boolean;
+  past?: boolean;
+}) {
+  let schema = z.date();
   
-  for (const issue of error.errors) {
-    if (issue.path.length > 0) {
-      const path = issue.path.join('.');
-      fieldErrors[path] = issue.message;
-    }
+  if (options.min) {
+    schema = schema.min(options.min, `Date must be after ${options.min.toLocaleDateString()}`);
   }
   
-  return fieldErrors;
+  if (options.max) {
+    schema = schema.max(options.max, `Date must be before ${options.max.toLocaleDateString()}`);
+  }
+  
+  if (options.future) {
+    schema = schema.min(new Date(), ValidationErrors.FUTURE_DATE);
+  }
+  
+  if (options.past) {
+    schema = schema.max(new Date(), ValidationErrors.PAST_DATE);
+  }
+  
+  if (options.required === false) {
+    schema = schema.optional();
+  }
+  
+  return schema;
 }
-
-/**
- * Generate proper error message for string validation errors
- */
-export function stringValidationMessages(
-  fieldName: string, 
-  schema: z.ZodType<any>,
-  options?: { 
-    required?: boolean,
-    minLength?: number,
-    maxLength?: number
-  }
-) {
-  const meta = (schema as any)._def?.typeName === 'ZodString' ? (schema as any)._def : null;
-  
-  if (options?.required || (meta && meta.checks && meta.checks.some((c: any) => c.kind === 'min'))) {
-    return `${fieldName} is required`;
-  }
-  
-  if (meta && meta.checks) {
-    const minCheck = meta.checks.find((c: any) => c.kind === 'min');
-    if (minCheck) {
-      return `${fieldName} must be at least ${minCheck.value} characters`;
-    }
-    
-    const maxCheck = meta.checks.find((c: any) => c.kind === 'max');
-    if (maxCheck) {
-      return `${fieldName} cannot exceed ${maxCheck.value} characters`;
-    }
-  }
-  
-  return `${fieldName} is invalid`;
-}
-
-/**
- * Generate proper error message for number validation errors
- */
-export function numberValidationMessages(
-  fieldName: string, 
-  schema: z.ZodType<any>,
-  options?: {
-    required?: boolean,
-    min?: number,
-    max?: number
-  }
-) {
-  const meta = (schema as any)._def?.typeName === 'ZodNumber' ? (schema as any)._def : null;
-  
-  if (options?.required) {
-    return `${fieldName} is required`;
-  }
-  
-  if (meta && meta.checks) {
-    const minCheck = meta.checks.find((c: any) => c.kind === 'min');
-    if (minCheck) {
-      return `${fieldName} must be at least ${minCheck.value}`;
-    }
-    
-    const maxCheck = meta.checks.find((c: any) => c.kind === 'max');
-    if (maxCheck) {
-      return `${fieldName} cannot exceed ${maxCheck.value}`;
-    }
-  }
-  
-  return `${fieldName} is invalid`;
-}
-
-/**
- * Common validation patterns
- */
-export const ValidationPatterns = {
-  EMAIL: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  PHONE: /^[0-9\s\+\-\(\)]{8,15}$/,
-  POSTAL_CODE: /^\d{4,5}$/,
-  TAX_ID: /^\d{9}$/,
-  BSB: /^\d{3}-\d{3}$/,
-  BANK_ACCOUNT: /^\d{6,10}$/,
-};
-
-/**
- * Common error messages
- */
-export const ErrorMessages = {
-  REQUIRED: 'This field is required',
-  EMAIL: 'Please enter a valid email address',
-  PHONE: 'Please enter a valid phone number',
-  POSTAL_CODE: 'Please enter a valid postal code',
-  TAX_ID: 'Please enter a valid tax ID',
-  BSB: 'Please enter a valid BSB (format: XXX-XXX)',
-  BANK_ACCOUNT: 'Please enter a valid bank account number',
-};

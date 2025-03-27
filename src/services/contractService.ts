@@ -1,26 +1,31 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { Contract } from '@/schema/operations';
+import type { Contract } from '@/schema/operations/contract.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { isContractStatus } from '@/schema/operations/contract.schema';
 
 export async function fetchContracts(
   searchTerm?: string,
   filters?: {
     clientId?: string;
-    status?: string;
+    status?: Contract['status'];
     contractType?: string;
+    fromDate?: string;
+    toDate?: string;
   }
 ) {
   let query = supabase
     .from('contracts')
     .select(`
       *,
-      client:clients(company_name)
+      client:client_id (
+        company_name
+      )
     `);
 
   // Apply search if provided
   if (searchTerm) {
     query = query.or(
-      `contract_number.ilike.%${searchTerm}%,scope_of_work.ilike.%${searchTerm}%`
+      `contract_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,contract_number.ilike.%${searchTerm}%`
     );
   }
 
@@ -29,12 +34,17 @@ export async function fetchContracts(
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
     }
-    if (filters.status) {
-      // Type assertion for enum safety
+    if (filters.status && isContractStatus(filters.status)) {
       query = query.eq('status', filters.status);
     }
     if (filters.contractType) {
       query = query.eq('contract_type', filters.contractType);
+    }
+    if (filters.fromDate) {
+      query = query.gte('start_date', filters.fromDate);
+    }
+    if (filters.toDate) {
+      query = query.lte('end_date', filters.toDate);
     }
   }
 
@@ -168,66 +178,78 @@ export async function deleteContract(id: string) {
   return true;
 }
 
-// Fetch contract status options for filters
-export async function fetchContractStatuses() {
-  // Use a query to get unique status values
-  const { data, error } = await supabase
-    .from('contracts')
-    .select('status')
-    .is('status', 'not.null');
+// Log a contract change
+export async function logContractChange(
+  contractId: string, 
+  changes: Record<string, any>, 
+  reason: string, 
+  changedBy: string
+) {
+  try {
+    const changeLogEntry = {
+      contract_id: contractId,
+      change_date: new Date(),
+      changes: JSON.stringify(changes),
+      reason,
+      changed_by: changedBy
+    };
 
-  if (error) {
-    console.error('Error fetching contract statuses:', error);
+    const { data, error } = await supabase
+      .from('contract_change_logs')
+      .insert(changeLogEntry)
+      .select();
+
+    if (error) {
+      console.error('Error logging contract change:', error);
+      throw error;
+    }
+
+    return data[0];
+  } catch (error) {
+    console.error('Error logging contract change:', error);
     throw error;
   }
-
-  return [...new Set(data.map(item => item.status))];
 }
 
 // Fetch contract types for filters
 export async function fetchContractTypes() {
-  const { data, error } = await supabase
-    .from('contracts')
-    .select('contract_type')
-    .order('contract_type');
+  try {
+    const { data, error } = await supabase
+      .from('contracts')
+      .select('contract_type')
+      .order('contract_type');
 
-  if (error) {
+    if (error) {
+      console.error('Error fetching contract types:', error);
+      throw error;
+    }
+
+    // Extract unique contract types
+    const types = [...new Set(data.map(contract => contract.contract_type))].filter(Boolean);
+    return types;
+  } catch (error) {
     console.error('Error fetching contract types:', error);
     throw error;
   }
-
-  // Extract unique contract types
-  const contractTypes = [...new Set(data.map(contract => contract.contract_type))];
-  return contractTypes;
 }
 
-// Log contract change
-export async function logContractChange(
-  contractId: string,
-  changeType: string,
-  oldValue: string,
-  newValue: string,
-  effectiveDate: string,
-  changedBy?: string,
-  approvalStatus?: string
-) {
-  const { data, error } = await supabase
-    .from('contract_change_logs')
-    .insert({
-      contract_id: contractId,
-      change_type: changeType,
-      old_value: oldValue,
-      new_value: newValue,
-      effective_date: effectiveDate,
-      changed_by: changedBy,
-      approval_status: approvalStatus
-    })
-    .select();
+// Fetch contract statuses for filters
+export async function fetchContractStatuses() {
+  try {
+    const { data, error } = await supabase
+      .from('contracts')
+      .select('status');
 
-  if (error) {
-    console.error('Error logging contract change:', error);
+    if (error) {
+      console.error('Error fetching contract statuses:', error);
+      throw error;
+    }
+
+    // Extract unique statuses
+    const statuses = [...new Set(data.map(contract => contract.status))].filter(Boolean);
+    return statuses as Contract['status'][];
+  } catch (error) {
+    console.error('Error fetching contract statuses:', error);
     throw error;
   }
-
-  return data[0];
 }

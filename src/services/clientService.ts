@@ -1,12 +1,13 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { Client } from '@/schema/operations';
+import type { Client } from '@/schema/operations/client.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { isClientStatus } from '@/schema/operations/client.schema';
 
 export async function fetchClients(
-  searchTerm?: string,
-  filters?: {
-    status?: string;
+  searchTerm?: string, 
+  filters?: { 
+    status?: Client['status'];
+    region?: string;
     industry?: string;
   }
 ) {
@@ -17,15 +18,17 @@ export async function fetchClients(
   // Apply search if provided
   if (searchTerm) {
     query = query.or(
-      `company_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%,business_number.ilike.%${searchTerm}%`
+      `company_name.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`
     );
   }
 
   // Apply filters if provided
   if (filters) {
-    if (filters.status) {
-      // Type assertion to handle string to enum conversion safely
+    if (filters.status && isClientStatus(filters.status)) {
       query = query.eq('status', filters.status);
+    }
+    if (filters.region) {
+      query = query.eq('region', filters.region);
     }
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
@@ -106,37 +109,67 @@ export async function deleteClient(id: string) {
   return true;
 }
 
-// Fetch status options for filters
-export async function fetchClientStatuses() {
-  // Use a direct query to get status values
-  const { data, error } = await supabase
-    .from('clients')
-    .select('status')
-    .is('status', 'not.null');
-
-  if (error) {
-    console.error('Error fetching client statuses:', error);
-    throw error;
-  }
-
-  // Extract unique statuses
-  const statuses = [...new Set(data.map(item => item.status))];
-  return statuses;
-}
-
-// Fetch industries for filters
+// Fetch industry options for filters
 export async function fetchIndustries() {
-  const { data, error } = await supabase
-    .from('clients')
-    .select('industry')
-    .order('industry');
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('industry')
+      .order('industry');
 
-  if (error) {
+    if (error) {
+      console.error('Error fetching industries:', error);
+      throw error;
+    }
+
+    // Extract unique industries
+    const industries = [...new Set(data.map(client => client.industry))].filter(Boolean);
+    return industries;
+  } catch (error) {
     console.error('Error fetching industries:', error);
     throw error;
   }
+}
 
-  // Extract unique industries (excluding nulls)
-  const industries = [...new Set(data.map(client => client.industry).filter(Boolean))];
-  return industries;
+// Fetch regions for filters
+export async function fetchRegions() {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('region')
+      .order('region');
+
+    if (error) {
+      console.error('Error fetching regions:', error);
+      throw error;
+    }
+
+    // Extract unique regions
+    const regions = [...new Set(data.map(client => client.region))].filter(Boolean);
+    return regions;
+  } catch (error) {
+    console.error('Error fetching regions:', error);
+    throw error;
+  }
+}
+
+// Fetch client statuses for filters
+export async function fetchClientStatuses() {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('status');
+
+    if (error) {
+      console.error('Error fetching client statuses:', error);
+      throw error;
+    }
+
+    // Extract unique statuses
+    const statuses = [...new Set(data.map(client => client.status))].filter(Boolean);
+    return statuses as Client['status'][];
+  } catch (error) {
+    console.error('Error fetching client statuses:', error);
+    throw error;
+  }
 }

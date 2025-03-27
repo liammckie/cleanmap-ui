@@ -1,91 +1,66 @@
 
+import { z } from 'zod';
+
 /**
  * Work Order Schema
  * 
- * This file defines the data structures for work order-related entities.
+ * This file defines the data structures for work order entities.
  */
 
-// Import references to other schema types
-import type { Site } from './site.schema';
-import type { Client } from './client.schema';
-import type { Contract } from './contract.schema';
-import type { Employee } from '../hr.schema';
-
 /**
- * RecurringTemplate - Template for generating recurring work orders
- */
-export interface RecurringTemplate {
-  id: string;
-  site_id: string;
-  task_description: string;
-  recurrence_rule: string;
-  preferred_time: string | null;
-  default_assignee: string | null;
-  next_occurrence_date: Date;
-  created_at: Date;
-  updated_at: Date;
-}
-
-/**
- * WorkOrder - A scheduled job or task to be performed
+ * WorkOrder - A scheduled task or job for a site
  */
 export interface WorkOrder {
   id: string;
-  site_id: string;
-  contract_id: string | null;
+  work_order_number: string;
   title: string;
   description: string;
-  category: 'Routine Clean' | 'Ad-hoc Request' | 'Audit';
-  scheduled_start: Date;
-  due_date: Date;
+  site_id: string;
+  client_id: string;
+  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled' | 'Overdue' | 'On Hold';
   priority: 'Low' | 'Medium' | 'High';
-  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Overdue' | 'Cancelled';
-  recurring_template_id: string | null;
-  completed_by: string | null;
-  completion_timestamp: Date | null;
-  actual_duration: number | null;
-  outcome_notes: string | null;
-  client_signoff: boolean | null;
-  completion_status: string | null;
-  audit_score: number | null;
-  audit_followup_required: boolean | null;
-  created_at: Date;
-  updated_at: Date;
-  
-  // Joined fields
-  site?: Pick<Site, 'site_name' | 'client_id'> & {
-    client?: Pick<Client, 'company_name'>
-  };
-  contract?: Pick<Contract, 'contract_number'>;
-  completed_by_employee?: Pick<Employee, 'first_name' | 'last_name'>;
-  assignments?: Array<WorkOrderAssignment & {
-    employee: Pick<Employee, 'id' | 'first_name' | 'last_name'>;
-  }>;
-  checklist_items?: AuditChecklistItem[];
-}
-
-/**
- * WorkOrderAssignment - Assignment of an employee to a work order
- */
-export interface WorkOrderAssignment {
-  id: string;
-  work_order_id: string;
-  employee_id: string;
-  assignment_type: string;
+  category: string;
+  scheduled_start: Date;
+  scheduled_end: Date | null;
+  due_date: Date;
+  estimated_hours: number | null;
+  actual_hours: number | null;
+  completion_date: Date | null;
+  notes: string | null;
+  created_by: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-/**
- * AuditChecklistItem - Item in an audit checklist for quality control
- */
-export interface AuditChecklistItem {
-  id: string;
-  work_order_id: string;
-  question: string;
-  answer: string | null;
-  score: number | null;
-  comments: string | null;
-  created_at: Date;
-  updated_at: Date;
+// Type guard for WorkOrder status
+export function isWorkOrderStatus(value: string): value is WorkOrder['status'] {
+  return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'].includes(value);
 }
+
+// Type guard for WorkOrder priority
+export function isWorkOrderPriority(value: string): value is WorkOrder['priority'] {
+  return ['Low', 'Medium', 'High'].includes(value);
+}
+
+// Zod schema for run-time validation
+export const workOrderSchema = z.object({
+  id: z.string().optional(),
+  work_order_number: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  site_id: z.string().min(1, "Site is required"),
+  client_id: z.string().min(1, "Client is required"),
+  status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']),
+  priority: z.enum(['Low', 'Medium', 'High']),
+  category: z.string().min(1, "Category is required"),
+  scheduled_start: z.date(),
+  scheduled_end: z.date().nullable(),
+  due_date: z.date(),
+  estimated_hours: z.number().nullable(),
+  actual_hours: z.number().nullable(),
+  completion_date: z.date().nullable(),
+  notes: z.string().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional()
+});

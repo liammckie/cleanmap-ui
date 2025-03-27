@@ -1,46 +1,55 @@
 
+import { z } from 'zod';
+
 /**
  * Client Schema
  * 
- * This file defines the data structures for client-related entities
- * including clients and contacts.
+ * This file defines the data structures for client entities.
  */
 
 /**
- * Client - Represents a client organization that receives services
+ * Client - A customer organization that contracts cleaning services
  */
 export interface Client {
   id: string;
   company_name: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
   billing_address_street: string;
   billing_address_city: string;
   billing_address_state: string;
-  billing_address_postcode: string;
-  contact_phone: string | null;
-  contact_email: string | null;
-  payment_terms: string;
+  billing_address_zip: string;
+  billing_address_country: string;
   status: 'Active' | 'On Hold';
   industry: string | null;
+  region: string | null;
   notes: string | null;
-  business_number: string | null;
-  on_hold_reason: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
-/**
- * Contact - Represents a contact person at a client organization
- */
-export interface Contact {
-  id: string;
-  client_id: string | null;
-  first_name: string;
-  last_name: string;
-  position: string | null;
-  phone: string | null;
-  email: string;
-  is_primary: boolean | null;
-  notes: string | null;
-  created_at: Date;
-  updated_at: Date;
+// Type guard for Client status
+export function isClientStatus(value: string): value is Client['status'] {
+  return ['Active', 'On Hold'].includes(value);
 }
+
+// Zod schema for run-time validation
+export const clientSchema = z.object({
+  id: z.string().optional(),
+  company_name: z.string().min(1, "Company name is required"),
+  contact_name: z.string().min(1, "Contact name is required"),
+  contact_email: z.string().email("Valid email is required"),
+  contact_phone: z.string().min(1, "Contact phone is required"),
+  billing_address_street: z.string().min(1, "Street address is required"),
+  billing_address_city: z.string().min(1, "City is required"),
+  billing_address_state: z.string().min(1, "State is required"),
+  billing_address_zip: z.string().min(1, "ZIP code is required"),
+  billing_address_country: z.string().min(1, "Country is required"),
+  status: z.enum(['Active', 'On Hold']),
+  industry: z.string().nullable(),
+  region: z.string().nullable(),
+  notes: z.string().nullable(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional()
+});
