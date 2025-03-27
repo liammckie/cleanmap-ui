@@ -20,43 +20,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { UserPlus, Search, FilterX } from 'lucide-react';
-
-// Temporary mock data - will be replaced with actual API calls
-const mockEmployees = [
-  {
-    id: '1',
-    first_name: 'John',
-    last_name: 'Doe',
-    job_title: 'Cleaning Supervisor',
-    department: 'Operations',
-    employment_type: 'Full-time',
-    status: 'Active',
-    contact_email: 'john.doe@example.com',
-    contact_phone: '0412 345 678'
-  },
-  {
-    id: '2',
-    first_name: 'Jane',
-    last_name: 'Smith',
-    job_title: 'Cleaner',
-    department: 'Operations',
-    employment_type: 'Part-time',
-    status: 'Onboarding',
-    contact_email: 'jane.smith@example.com',
-    contact_phone: '0423 456 789'
-  },
-  {
-    id: '3',
-    first_name: 'Michael',
-    last_name: 'Brown',
-    job_title: 'HR Specialist',
-    department: 'Human Resources',
-    employment_type: 'Full-time',
-    status: 'Active',
-    contact_email: 'michael.brown@example.com',
-    contact_phone: '0434 567 890'
-  }
-];
+import { useToast } from '@/hooks/use-toast';
+import { fetchEmployees } from '@/services/employeeService';
+import { format } from 'date-fns';
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -81,6 +47,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 const EmployeesPage = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     department: '',
@@ -88,18 +55,19 @@ const EmployeesPage = () => {
     employmentType: ''
   });
 
-  // This will be replaced with an actual API call using react-query
-  // const { data: employees, isLoading, error } = useQuery({
-  //   queryKey: ['employees', searchTerm, filters],
-  //   queryFn: () => fetchEmployees(searchTerm, filters)
-  // });
-
-  // For now, we're using mock data
-  const employees = mockEmployees.filter(emp => 
-    (emp.first_name.toLowerCase() + ' ' + emp.last_name.toLowerCase()).includes(searchTerm.toLowerCase()) ||
-    emp.contact_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.job_title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Use react-query to fetch employees data
+  const { data: employees, isLoading, error } = useQuery({
+    queryKey: ['employees', searchTerm, filters],
+    queryFn: () => fetchEmployees(searchTerm, filters),
+    onError: (err) => {
+      console.error('Failed to fetch employees:', err);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load employees data. Please try again.',
+      });
+    }
+  });
 
   const clearFilters = () => {
     setFilters({
@@ -156,43 +124,55 @@ const EmployeesPage = () => {
         <CardHeader className="pb-3">
           <CardTitle>Employee Directory</CardTitle>
           <CardDescription>
-            {employees.length} employees found
+            {isLoading ? 'Loading...' : `${employees?.length || 0} employees found`}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id} className="cursor-pointer hover:bg-muted">
-                  <TableCell className="font-medium">
-                    {employee.first_name} {employee.last_name}
-                  </TableCell>
-                  <TableCell>{employee.job_title}</TableCell>
-                  <TableCell>{employee.department}</TableCell>
-                  <TableCell>{employee.employment_type}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={employee.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div>{employee.contact_email}</div>
-                      <div className="text-muted-foreground">{employee.contact_phone}</div>
-                    </div>
-                  </TableCell>
+          {error ? (
+            <div className="text-center py-4 text-red-500">
+              Failed to load employees data. Please try again.
+            </div>
+          ) : isLoading ? (
+            <div className="text-center py-4">Loading employee data...</div>
+          ) : employees?.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No employees found. Try adjusting your search or filters.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Contact</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {employees?.map((employee) => (
+                  <TableRow key={employee.id} className="cursor-pointer hover:bg-muted">
+                    <TableCell className="font-medium">
+                      {employee.first_name} {employee.last_name}
+                    </TableCell>
+                    <TableCell>{employee.job_title}</TableCell>
+                    <TableCell>{employee.department}</TableCell>
+                    <TableCell>{employee.employment_type}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={employee.status} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{employee.contact_email}</div>
+                        <div className="text-muted-foreground">{employee.contact_phone}</div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
