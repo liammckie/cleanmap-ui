@@ -12,6 +12,8 @@ import ClientsPage from "@/pages/operations/Clients";
 import SitesPage from "@/pages/operations/Sites";
 import ContractsPage from "@/pages/operations/Contracts";
 import WorkOrdersPage from "@/pages/operations/WorkOrders";
+import LeadsPage from "@/pages/sales/Leads";
+import QuotesPage from "@/pages/sales/Quotes";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
             <Route path="/operations/sites" element={<SitesPage />} />
             <Route path="/operations/contracts" element={<ContractsPage />} />
             <Route path="/operations/work-orders" element={<WorkOrdersPage />} />
+            <Route path="/sales/leads" element={<LeadsPage />} />
+            <Route path="/sales/quotes" element={<QuotesPage />} />
             {/* Add more routes as you build more pages */}
           </Route>
           {/* Pages outside the main layout (like auth pages) would go here */}
