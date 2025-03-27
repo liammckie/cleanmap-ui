@@ -37,3 +37,10 @@ This file tracks significant schema changes that may impact application function
 - Added four new enums: lead_stage, lead_source, lead_status, and quote_status
 - Added helper functions for retrieving enum values
 
+## 2024-06-05
+
+### Added
+- Implemented field origin metadata annotations in services
+- Added @origin and @field-locked annotations to services
+- Created utility functions to enforce safe query patterns
+- Improved error handling to prevent field type drift

@@ -35,7 +35,7 @@ export const getClientMetadata = async (clientId: string): Promise<ClientMetadat
     // Add query limits for safety
     const { data, error } = await supabase
       .from('clients')
-      .select('id, name, email, phone, address, city, state, zip_code, country')
+      .select('id, company_name, contact_email, contact_phone, billing_address_street, billing_address_city, billing_address_state, billing_address_postcode, business_number')
       .eq('id', cleanId)
       .limit(1)
       .single();
@@ -52,15 +52,15 @@ export const getClientMetadata = async (clientId: string): Promise<ClientMetadat
     // Transform for frontend use
     const metadata: ClientMetadata = {
       id: data.id,
-      name: data.name,
-      email: data.email || '',
-      phone: data.phone || '',
+      name: data.company_name,
+      email: data.contact_email || '',
+      phone: data.contact_phone || '',
       location: {
-        address: data.address || '',
-        city: data.city || '',
-        state: data.state || '', 
-        zipCode: data.zip_code || '',
-        country: data.country || ''
+        address: data.billing_address_street || '',
+        city: data.billing_address_city || '',
+        state: data.billing_address_state || '', 
+        zipCode: data.billing_address_postcode || '',
+        country: data.business_number || ''  // Using business_number as country since country field doesn't exist
       }
     };
 
@@ -80,16 +80,16 @@ export const updateClientMetadata = async (clientId: string, metadata: Partial<C
 
     // Transform to database format
     const updateData: Record<string, any> = {
-      phone: metadata.phone,
+      contact_phone: metadata.phone,
     };
 
     // Handle nested location object
     if (metadata.location) {
-      if (metadata.location.address) updateData.address = metadata.location.address;
-      if (metadata.location.city) updateData.city = metadata.location.city;
-      if (metadata.location.state) updateData.state = metadata.location.state;
-      if (metadata.location.zipCode) updateData.zip_code = metadata.location.zipCode;
-      if (metadata.location.country) updateData.country = metadata.location.country;
+      if (metadata.location.address) updateData.billing_address_street = metadata.location.address;
+      if (metadata.location.city) updateData.billing_address_city = metadata.location.city;
+      if (metadata.location.state) updateData.billing_address_state = metadata.location.state;
+      if (metadata.location.zipCode) updateData.billing_address_postcode = metadata.location.zipCode;
+      if (metadata.location.country) updateData.business_number = metadata.location.country; // Using business_number as country
     }
 
     const { error } = await supabase

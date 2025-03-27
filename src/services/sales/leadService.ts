@@ -1,221 +1,219 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import type { Lead, LeadStage, LeadStatus } from '@/schema/sales/lead.schema';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { Lead, LeadSource, LeadStage, LeadStatus } from '@/schema/sales/lead.schema';
 
 /**
- * Fetch all leads with optional filtering
+ * Fetch all leads with optional search
+ * @origin {source: "internal", module: "salesService", author: "system"}
+ * @field-locked id:uuid, lead_name:string, company_name:string
  */
-export async function fetchLeads(
-  searchTerm?: string,
-  filters?: {
-    stage?: LeadStage;
-    status?: LeadStatus;
-    fromDate?: string;
-    toDate?: string;
-    source?: string;
-  }
-) {
-  let query = supabase
-    .from('leads')
-    .select('*');
+export const fetchLeads = async (searchTerm?: string): Promise<Lead[]> => {
+  try {
+    let query = supabase.from('leads').select('*');
 
-  // Apply search if provided
-  if (searchTerm) {
-    query = query.or(
-      `lead_name.ilike.%${searchTerm}%,company_name.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%`
-    );
-  }
-
-  // Apply filters if provided
-  if (filters) {
-    if (filters.stage) {
-      query = query.eq('stage', filters.stage);
+    // Add search filter if provided
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`;
+      query = query.or(`lead_name.ilike.${term},company_name.ilike.${term},contact_name.ilike.${term}`);
     }
-    if (filters.status) {
-      query = query.eq('status', filters.status);
+
+    // Add query limit for safety
+    query = query.limit(100);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching leads:', error);
+      return [];
     }
-    if (filters.source) {
-      query = query.eq('source', filters.source);
-    }
-    if (filters.fromDate) {
-      query = query.gte('created_at', filters.fromDate);
-    }
-    if (filters.toDate) {
-      query = query.lte('created_at', filters.toDate);
-    }
+
+    // Convert date strings to Date objects
+    return data.map(lead => ({
+      ...lead,
+      next_action_date: lead.next_action_date ? new Date(lead.next_action_date) : null,
+      created_at: new Date(lead.created_at),
+      updated_at: new Date(lead.updated_at),
+      // Ensure source is properly typed
+      source: lead.source as LeadSource | null
+    }));
+  } catch (error) {
+    console.error('Unexpected error in fetchLeads:', error);
+    return [];
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching leads:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
- * Fetch a lead by ID
- */
-export async function fetchLeadById(id: string) {
-  const { data, error } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching lead:', error);
-    throw error;
-  }
-
-  return data;
-}
+};
 
 /**
  * Create a new lead
+ * @param lead The lead data
+ * @returns The created lead or null if an error occurred
+ * @origin {source: "internal", module: "salesService", author: "system"}
  */
-export async function createLead(lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) {
-  // Convert Date objects to ISO strings for Supabase
-  const dbLead = prepareObjectForDb(lead);
-  
-  const { data, error } = await supabase
-    .from('leads')
-    .insert(dbLead as any)
-    .select();
+export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .insert([lead])
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error creating lead:', error);
-    throw error;
+    if (error) {
+      console.error('Error creating lead:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in createLead:', error);
+    return null;
   }
-
-  return data[0];
-}
+};
 
 /**
- * Update an existing lead
+ * Get a lead by ID
+ * @field-locked id:uuid, created_at:timestamp
  */
-export async function updateLead(id: string, updates: Partial<Lead>) {
-  // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates);
-  
-  const { data, error } = await supabase
-    .from('leads')
-    .update(dbUpdates as any)
-    .eq('id', id)
-    .select();
+export const getLead = async (leadId: string): Promise<Lead | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', leadId)
+      .single();
 
-  if (error) {
-    console.error('Error updating lead:', error);
-    throw error;
+    if (error) {
+      console.error('Error fetching lead:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in getLead:', error);
+    return null;
   }
+};
 
-  return data[0];
-}
+/**
+ * Update a lead
+ * @param leadId ID of the lead to update
+ * @param lead Updated lead data
+ * @returns The updated lead or null if an error occurred
+ */
+export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .update(lead)
+      .eq('id', leadId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating lead:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in updateLead:', error);
+    return null;
+  }
+};
 
 /**
  * Delete a lead
+ * @param leadId ID of the lead to delete
+ * @returns True if the lead was deleted successfully, false otherwise
  */
-export async function deleteLead(id: string) {
-  const { error } = await supabase
-    .from('leads')
-    .delete()
-    .eq('id', id);
+export const deleteLead = async (leadId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', leadId);
 
-  if (error) {
-    console.error('Error deleting lead:', error);
-    throw error;
+    if (error) {
+      console.error('Error deleting lead:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in deleteLead:', error);
+    return false;
   }
-
-  return true;
-}
+};
 
 /**
- * Convert a lead to a client
- * This creates a new client record and updates the lead with the client ID
+ * Get all possible lead stages
  */
-export async function convertLeadToClient(leadId: string, clientData: any) {
-  // Start a transaction (sort of - Supabase doesn't have true transactions yet)
-  
-  // 1. Create the client record
-  const { data: client, error: clientError } = await supabase
-    .from('clients')
-    .insert(clientData)
-    .select()
-    .single();
-
-  if (clientError) {
-    console.error('Error creating client from lead:', clientError);
-    throw clientError;
-  }
-
-  // 2. Update the lead with the new client ID and status
-  const { data: updatedLead, error: leadError } = await supabase
-    .from('leads')
-    .update({
-      status: 'Closed-Won',
-      converted_client_id: client.id,
-      stage: 'Won'
-    })
-    .eq('id', leadId)
-    .select();
-
-  if (leadError) {
-    console.error('Error updating lead after conversion:', leadError);
-    throw leadError;
-  }
-
-  return {
-    client,
-    lead: updatedLead[0]
-  };
-}
-
-/**
- * Fetch lead stages for filters
- */
-export async function fetchLeadStages() {
+export const getLeadStages = async (): Promise<LeadStage[]> => {
   try {
     const { data, error } = await supabase
-      .from('leads')
-      .select('stage')
-      .order('stage');
+      .rpc('get_lead_stage_enum');
 
     if (error) {
       console.error('Error fetching lead stages:', error);
-      throw error;
+      return [];
     }
 
-    // Extract unique stages
-    const stages = [...new Set(data.map(lead => lead.stage))].filter(Boolean);
-    return stages as Lead['stage'][];
+    return data as LeadStage[];
   } catch (error) {
-    console.error('Error fetching lead stages:', error);
-    throw error;
+    console.error('Unexpected error in getLeadStages:', error);
+    return [];
   }
-}
+};
 
 /**
- * Fetch lead sources for filters
+ * Get all possible lead sources
  */
-export async function fetchLeadSources() {
+export const getLeadSources = async (): Promise<LeadSource[]> => {
   try {
     const { data, error } = await supabase
-      .from('leads')
-      .select('source')
-      .order('source');
+      .rpc('get_lead_source_enum');
 
     if (error) {
       console.error('Error fetching lead sources:', error);
-      throw error;
+      return [];
     }
 
-    // Extract unique sources
-    const sources = [...new Set(data.map(lead => lead.source))].filter(Boolean);
-    return sources as Lead['source'][];
+    return data as LeadSource[];
   } catch (error) {
-    console.error('Error fetching lead sources:', error);
-    throw error;
+    console.error('Unexpected error in getLeadSources:', error);
+    return [];
   }
-}
+};
+
+/**
+ * Get all possible lead statuses
+ */
+export const getLeadStatuses = async (): Promise<LeadStatus[]> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_lead_status_enum');
+
+    if (error) {
+      console.error('Error fetching lead statuses:', error);
+      return [];
+    }
+
+    return data as LeadStatus[];
+  } catch (error) {
+    console.error('Unexpected error in getLeadStatuses:', error);
+    return [];
+  }
+};

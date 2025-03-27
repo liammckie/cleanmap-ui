@@ -1,386 +1,324 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Quote, QuoteStatus, QuoteLineItem } from '@/schema/sales/quote.schema';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { Quote, QuoteLineItem, QuoteStatus } from '@/schema/sales/quote.schema';
 
 /**
- * Fetch all quotes with optional filtering
+ * @function fetchQuotes
+ * @description Fetch all quotes with optional search
+ * @param searchTerm Optional search term to filter quotes
+ * @returns Array of quotes
+ * @origin {source: "internal", module: "salesService", author: "system"}
+ * @field-locked id:uuid, created_at:timestamp, updated_at:timestamp
  */
-export async function fetchQuotes(
-  searchTerm?: string,
-  filters?: {
-    status?: QuoteStatus;
-    leadId?: string;
-    clientId?: string;
-    fromDate?: string;
-    toDate?: string;
-  }
-) {
-  let query = supabase
-    .from('quotes')
-    .select('*, client:client_id(*), lead:lead_id(*), quote_line_items(*)');
-
-  // Apply search if provided
-  if (searchTerm) {
-    query = query.or(
-      `quote_number.ilike.%${searchTerm}%,service_description.ilike.%${searchTerm}%`
-    );
-  }
-
-  // Apply filters if provided
-  if (filters) {
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
-    if (filters.leadId) {
-      query = query.eq('lead_id', filters.leadId);
-    }
-    if (filters.clientId) {
-      query = query.eq('client_id', filters.clientId);
-    }
-    if (filters.fromDate) {
-      query = query.gte('issue_date', filters.fromDate);
-    }
-    if (filters.toDate) {
-      query = query.lte('issue_date', filters.toDate);
-    }
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching quotes:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
- * Fetch a quote by ID, including line items and related data
- */
-export async function fetchQuoteById(id: string) {
-  const { data, error } = await supabase
-    .from('quotes')
-    .select(`
-      *,
-      client:client_id(*),
-      lead:lead_id(*),
-      quote_line_items(*),
-      quote_sites(*, site:site_id(*))
-    `)
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching quote:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
- * Create a new quote with its line items
- */
-export async function createQuote(
-  quote: Omit<Quote, 'id' | 'created_at' | 'updated_at'>,
-  lineItems: Omit<QuoteLineItem, 'id' | 'quote_id' | 'created_at' | 'updated_at'>[],
-  siteIds?: string[]
-) {
-  // Start a transaction-like operation
-  // Convert Date objects to ISO strings for Supabase
-  const dbQuote = prepareObjectForDb(quote);
-  
-  // 1. Insert the quote
-  const { data: newQuote, error: quoteError } = await supabase
-    .from('quotes')
-    .insert(dbQuote as any)
-    .select()
-    .single();
-
-  if (quoteError) {
-    console.error('Error creating quote:', quoteError);
-    throw quoteError;
-  }
-
-  // 2. Insert line items
-  if (lineItems.length > 0) {
-    const formattedLineItems = lineItems.map(item => ({
-      ...item,
-      quote_id: newQuote.id
-    }));
-
-    const { error: lineItemsError } = await supabase
-      .from('quote_line_items')
-      .insert(formattedLineItems as any);
-
-    if (lineItemsError) {
-      console.error('Error creating quote line items:', lineItemsError);
-      // Consider handling this better - perhaps delete the quote or mark it as problematic
-      throw lineItemsError;
-    }
-  }
-
-  // 3. Link to sites if provided
-  if (siteIds && siteIds.length > 0) {
-    const siteMappings = siteIds.map(siteId => ({
-      quote_id: newQuote.id,
-      site_id: siteId
-    }));
-
-    const { error: sitesError } = await supabase
-      .from('quote_sites')
-      .insert(siteMappings);
-
-    if (sitesError) {
-      console.error('Error linking quote to sites:', sitesError);
-      throw sitesError;
-    }
-  }
-
-  // If we get here, everything succeeded
-  return newQuote;
-}
-
-/**
- * Update an existing quote
- */
-export async function updateQuote(
-  id: string, 
-  updates: Partial<Quote>,
-  lineItemChanges?: {
-    add?: Omit<QuoteLineItem, 'id' | 'quote_id' | 'created_at' | 'updated_at'>[],
-    update?: (Partial<QuoteLineItem> & { id: string })[],
-    delete?: string[]
-  },
-  siteChanges?: {
-    add?: string[],
-    delete?: string[]
-  }
-) {
-  // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates);
-  
-  // 1. Update the quote
-  const { data: updatedQuote, error: quoteError } = await supabase
-    .from('quotes')
-    .update(dbUpdates as any)
-    .eq('id', id)
-    .select();
-
-  if (quoteError) {
-    console.error('Error updating quote:', quoteError);
-    throw quoteError;
-  }
-
-  // 2. Handle line item changes if provided
-  if (lineItemChanges) {
-    // Add new line items
-    if (lineItemChanges.add && lineItemChanges.add.length > 0) {
-      const formattedLineItems = lineItemChanges.add.map(item => ({
-        ...item,
-        quote_id: id
-      }));
-
-      const { error: addError } = await supabase
-        .from('quote_line_items')
-        .insert(formattedLineItems as any);
-
-      if (addError) {
-        console.error('Error adding quote line items:', addError);
-        throw addError;
-      }
-    }
-
-    // Update existing line items
-    if (lineItemChanges.update && lineItemChanges.update.length > 0) {
-      // Process each update individually to avoid issues
-      for (const item of lineItemChanges.update) {
-        const { id: itemId, ...updates } = item;
-        const { error: updateError } = await supabase
-          .from('quote_line_items')
-          .update(updates)
-          .eq('id', itemId)
-          .eq('quote_id', id); // Extra safety check
-
-        if (updateError) {
-          console.error(`Error updating line item ${itemId}:`, updateError);
-          throw updateError;
-        }
-      }
-    }
-
-    // Delete line items
-    if (lineItemChanges.delete && lineItemChanges.delete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('quote_line_items')
-        .delete()
-        .in('id', lineItemChanges.delete)
-        .eq('quote_id', id); // Extra safety check
-
-      if (deleteError) {
-        console.error('Error deleting quote line items:', deleteError);
-        throw deleteError;
-      }
-    }
-  }
-
-  // 3. Handle site changes if provided
-  if (siteChanges) {
-    // Add new site links
-    if (siteChanges.add && siteChanges.add.length > 0) {
-      const siteMappings = siteChanges.add.map(siteId => ({
-        quote_id: id,
-        site_id: siteId
-      }));
-
-      const { error: addError } = await supabase
-        .from('quote_sites')
-        .insert(siteMappings);
-
-      if (addError) {
-        console.error('Error linking quote to new sites:', addError);
-        throw addError;
-      }
-    }
-
-    // Remove site links
-    if (siteChanges.delete && siteChanges.delete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('quote_sites')
-        .delete()
-        .eq('quote_id', id)
-        .in('site_id', siteChanges.delete);
-
-      if (deleteError) {
-        console.error('Error unlinking quote from sites:', deleteError);
-        throw deleteError;
-      }
-    }
-  }
-
-  // If we get here, everything succeeded
-  return updatedQuote[0];
-}
-
-/**
- * Delete a quote and its related data (line items, site links)
- * This is cascading thanks to the database constraints
- */
-export async function deleteQuote(id: string) {
-  const { error } = await supabase
-    .from('quotes')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting quote:', error);
-    throw error;
-  }
-
-  return true;
-}
-
-/**
- * Convert a quote to a contract or work order
- */
-export async function convertQuoteToContract(quoteId: string, contractData: any) {
-  // Start a transaction-like operation
-  
-  // 1. Create the contract record
-  const { data: contract, error: contractError } = await supabase
-    .from('contracts')
-    .insert(contractData)
-    .select();
-
-  if (contractError) {
-    console.error('Error creating contract from quote:', contractError);
-    throw contractError;
-  }
-
-  // 2. Update the quote with the new contract ID and status
-  const { data: updatedQuote, error: quoteError } = await supabase
-    .from('quotes')
-    .update({
-      status: 'Accepted',
-      converted_contract_id: contract[0].id
-    })
-    .eq('id', quoteId)
-    .select();
-
-  if (quoteError) {
-    console.error('Error updating quote after conversion:', quoteError);
-    throw quoteError;
-  }
-
-  // 3. If this quote was for a lead, update the lead status
-  const { data: quote } = await supabase
-    .from('quotes')
-    .select('lead_id')
-    .eq('id', quoteId)
-    .single();
-
-  if (quote && quote.lead_id) {
-    const { error: leadError } = await supabase
-      .from('leads')
-      .update({
-        status: 'Closed-Won',
-        stage: 'Won'
-      })
-      .eq('id', quote.lead_id);
-
-    if (leadError) {
-      console.error('Error updating lead after quote conversion:', leadError);
-      // Continue anyway, this is not critical
-    }
-  }
-
-  return {
-    contract: contract[0],
-    quote: updatedQuote[0]
-  };
-}
-
-/**
- * Fetch available quote statuses for filtering
- */
-export async function fetchQuoteStatuses() {
+export const fetchQuotes = async (searchTerm?: string): Promise<Quote[]> => {
   try {
-    const { data, error } = await supabase.rpc('get_quote_status_enum');
+    let query = supabase.from('quotes').select('*');
+
+    // Add search filter if provided
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`;
+      query = query.or(`quote_number.ilike.${term},service_description.ilike.${term}`);
+    }
+
+    // Add query limit for safety
+    query = query.limit(100);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching quotes:', error);
+      return [];
+    }
+
+    // Convert date strings to Date objects
+    return data.map(quote => ({
+      ...quote,
+      issue_date: new Date(quote.issue_date),
+      valid_until: new Date(quote.valid_until),
+      created_at: new Date(quote.created_at),
+      updated_at: new Date(quote.updated_at)
+    }));
+  } catch (error) {
+    console.error('Unexpected error in fetchQuotes:', error);
+    return [];
+  }
+};
+
+/**
+ * Get a quote by ID
+ * @field-locked id:uuid, created_at:timestamp
+ */
+export const getQuote = async (quoteId: string): Promise<Quote | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('quotes')
+      .select('*')
+      .eq('id', quoteId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching quote:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      issue_date: new Date(data.issue_date),
+      valid_until: new Date(data.valid_until),
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in getQuote:', error);
+    return null;
+  }
+};
+
+/**
+ * Create a new quote
+ * @param quote The quote data
+ * @returns The created quote or null if an error occurred
+ */
+export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
+  try {
+    // Ensure dates are strings before sending to Supabase
+    const quoteData = {
+      ...quote,
+      issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
+      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until
+    };
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .insert([quoteData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating quote:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      issue_date: new Date(data.issue_date),
+      valid_until: new Date(data.valid_until),
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in createQuote:', error);
+    return null;
+  }
+};
+
+/**
+ * Update a quote
+ * @param quoteId ID of the quote to update
+ * @param quote Updated quote data
+ * @returns The updated quote or null if an error occurred
+ */
+export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
+  try {
+    // Ensure dates are strings before sending to Supabase
+    const quoteData = {
+      ...quote,
+      issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
+      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until
+    };
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .update(quoteData)
+      .eq('id', quoteId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating quote:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      issue_date: new Date(data.issue_date),
+      valid_until: new Date(data.valid_until),
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in updateQuote:', error);
+    return false;
+  }
+};
+
+/**
+ * Delete a quote
+ * @param quoteId ID of the quote to delete
+ * @returns True if the quote was deleted successfully, false otherwise
+ */
+export const deleteQuote = async (quoteId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('quotes')
+      .delete()
+      .eq('id', quoteId);
+
+    if (error) {
+      console.error('Error deleting quote:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in deleteQuote:', error);
+    return false;
+  }
+};
+
+/**
+ * Get all possible quote statuses
+ */
+export const getQuoteStatuses = async (): Promise<QuoteStatus[]> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_quote_status_enum');
 
     if (error) {
       console.error('Error fetching quote statuses:', error);
-      throw error;
+      return [];
     }
 
     return data as QuoteStatus[];
   } catch (error) {
-    console.error('Error fetching quote statuses:', error);
-    throw error;
+    console.error('Unexpected error in getQuoteStatuses:', error);
+    return [];
   }
-}
+};
 
 /**
- * Generate a new quote number based on a pattern
+ * Get all line items for a quote
+ * @param quoteId ID of the quote
+ * @returns Array of line items
  */
-export async function generateQuoteNumber() {
-  const today = new Date();
-  const year = today.getFullYear().toString().substring(2); // Get last 2 digits of year
-  const month = (today.getMonth() + 1).toString().padStart(2, '0');
-  
-  // Get count of quotes for this month to generate sequential number
-  const { count, error } = await supabase
-    .from('quotes')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', `${today.getFullYear()}-${month}-01`);
-  
-  if (error) {
-    console.error('Error generating quote number:', error);
-    throw error;
+export const getQuoteLineItems = async (quoteId: string): Promise<QuoteLineItem[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('quote_line_items')
+      .select('*')
+      .eq('quote_id', quoteId)
+      .limit(100);
+
+    if (error) {
+      console.error('Error fetching quote line items:', error);
+      return [];
+    }
+
+    return data.map(item => ({
+      ...item,
+      created_at: new Date(item.created_at),
+      updated_at: new Date(item.updated_at)
+    }));
+  } catch (error) {
+    console.error('Unexpected error in getQuoteLineItems:', error);
+    return [];
   }
-  
-  // Format: QT-YY-MM-XXXX where XXXX is sequential
-  const sequential = ((count || 0) + 1).toString().padStart(4, '0');
-  return `QT-${year}-${month}-${sequential}`;
-}
+};
+
+/**
+ * Add a line item to a quote
+ * @param lineItem The line item data
+ * @returns The created line item or null if an error occurred
+ */
+export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
+  try {
+    const lineItemData = {
+      ...lineItem,
+      // Convert any Date objects to ISO strings for Supabase
+      created_at: lineItem.created_at instanceof Date ? lineItem.created_at.toISOString() : undefined,
+      updated_at: lineItem.updated_at instanceof Date ? lineItem.updated_at.toISOString() : undefined
+    };
+
+    const { data, error } = await supabase
+      .from('quote_line_items')
+      .insert([lineItemData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding quote line item:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in addQuoteLineItem:', error);
+    return null;
+  }
+};
+
+/**
+ * Update a quote line item
+ * @param lineItemId ID of the line item to update
+ * @param lineItem Updated line item data
+ * @returns The updated line item or null if an error occurred
+ */
+export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
+  try {
+    const lineItemData = {
+      ...lineItem,
+      // Convert any Date objects to ISO strings for Supabase
+      created_at: lineItem.created_at instanceof Date ? lineItem.created_at.toISOString() : undefined,
+      updated_at: lineItem.updated_at instanceof Date ? lineItem.updated_at.toISOString() : undefined
+    };
+
+    const { data, error } = await supabase
+      .from('quote_line_items')
+      .update(lineItemData)
+      .eq('id', lineItemId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating quote line item:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in updateQuoteLineItem:', error);
+    return null;
+  }
+};
+
+/**
+ * Delete a quote line item
+ * @param lineItemId ID of the line item to delete
+ * @returns True if the line item was deleted successfully, false otherwise
+ */
+export const deleteQuoteLineItem = async (lineItemId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('quote_line_items')
+      .delete()
+      .eq('id', lineItemId);
+
+    if (error) {
+      console.error('Error deleting quote line item:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in deleteQuoteLineItem:', error);
+    return false;
+  }
+};
