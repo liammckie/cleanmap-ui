@@ -9,6 +9,311 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_checklist_items: {
+        Row: {
+          answer: string | null
+          comments: string | null
+          created_at: string
+          id: string
+          question: string
+          score: number | null
+          updated_at: string
+          work_order_id: string
+        }
+        Insert: {
+          answer?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          question: string
+          score?: number | null
+          updated_at?: string
+          work_order_id: string
+        }
+        Update: {
+          answer?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          question?: string
+          score?: number | null
+          updated_at?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_checklist_items_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          billing_address_city: string
+          billing_address_postcode: string
+          billing_address_state: string
+          billing_address_street: string
+          business_number: string | null
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          industry: string | null
+          notes: string | null
+          on_hold_reason: string | null
+          payment_terms: string
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+        }
+        Insert: {
+          billing_address_city: string
+          billing_address_postcode: string
+          billing_address_state: string
+          billing_address_street: string
+          business_number?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          on_hold_reason?: string | null
+          payment_terms: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Update: {
+          billing_address_city?: string
+          billing_address_postcode?: string
+          billing_address_state?: string
+          billing_address_street?: string
+          business_number?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          on_hold_reason?: string | null
+          payment_terms?: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_change_logs: {
+        Row: {
+          approval_status: string | null
+          change_date: string
+          change_type: string
+          changed_by: string | null
+          contract_id: string
+          created_at: string
+          effective_date: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          approval_status?: string | null
+          change_date?: string
+          change_type: string
+          changed_by?: string | null
+          contract_id: string
+          created_at?: string
+          effective_date: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approval_status?: string | null
+          change_date?: string
+          change_type?: string
+          changed_by?: string | null
+          contract_id?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_change_logs_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_sites: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_sites_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          base_fee: number
+          billing_frequency: string
+          client_id: string
+          contract_number: string
+          contract_type: string
+          created_at: string
+          end_date: string | null
+          id: string
+          next_review_date: string | null
+          payment_terms: string | null
+          renewal_terms: string | null
+          scope_of_work: string
+          sla_kpi: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["contract_status"]
+          under_negotiation: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          base_fee: number
+          billing_frequency: string
+          client_id: string
+          contract_number: string
+          contract_type: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          next_review_date?: string | null
+          payment_terms?: string | null
+          renewal_terms?: string | null
+          scope_of_work: string
+          sla_kpi?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          under_negotiation?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          base_fee?: number
+          billing_frequency?: string
+          client_id?: string
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          next_review_date?: string | null
+          payment_terms?: string | null
+          renewal_terms?: string | null
+          scope_of_work?: string
+          sla_kpi?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          under_negotiation?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           address_city: string
@@ -203,6 +508,209 @@ export type Database = {
           },
         ]
       }
+      recurring_templates: {
+        Row: {
+          created_at: string
+          default_assignee: string | null
+          id: string
+          next_occurrence_date: string
+          preferred_time: string | null
+          recurrence_rule: string
+          site_id: string
+          task_description: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_assignee?: string | null
+          id?: string
+          next_occurrence_date: string
+          preferred_time?: string | null
+          recurrence_rule: string
+          site_id: string
+          task_description: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_assignee?: string | null
+          id?: string
+          next_occurrence_date?: string
+          preferred_time?: string | null
+          recurrence_rule?: string
+          site_id?: string
+          task_description?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_templates_default_assignee_fkey"
+            columns: ["default_assignee"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_templates_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          billable: boolean | null
+          client_id: string
+          client_notes: string | null
+          created_at: string
+          decision_notes: string | null
+          id: string
+          preferred_date: string | null
+          quote_id: string | null
+          request_date: string
+          reviewed_by: string | null
+          service_details: string
+          site_id: string
+          status: Database["public"]["Enums"]["service_request_status"]
+          updated_at: string
+          work_order_id: string | null
+        }
+        Insert: {
+          billable?: boolean | null
+          client_id: string
+          client_notes?: string | null
+          created_at?: string
+          decision_notes?: string | null
+          id?: string
+          preferred_date?: string | null
+          quote_id?: string | null
+          request_date?: string
+          reviewed_by?: string | null
+          service_details: string
+          site_id: string
+          status?: Database["public"]["Enums"]["service_request_status"]
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Update: {
+          billable?: boolean | null
+          client_id?: string
+          client_notes?: string | null
+          created_at?: string
+          decision_notes?: string | null
+          id?: string
+          preferred_date?: string | null
+          quote_id?: string | null
+          request_date?: string
+          reviewed_by?: string | null
+          service_details?: string
+          site_id?: string
+          status?: Database["public"]["Enums"]["service_request_status"]
+          updated_at?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          address_city: string
+          address_postcode: string
+          address_state: string
+          address_street: string
+          client_id: string
+          created_at: string
+          id: string
+          region: string | null
+          service_start_date: string
+          site_manager_id: string | null
+          site_name: string
+          site_type: string
+          special_instructions: string | null
+          status: Database["public"]["Enums"]["site_status"]
+          updated_at: string
+        }
+        Insert: {
+          address_city: string
+          address_postcode: string
+          address_state: string
+          address_street: string
+          client_id: string
+          created_at?: string
+          id?: string
+          region?: string | null
+          service_start_date: string
+          site_manager_id?: string | null
+          site_name: string
+          site_type: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["site_status"]
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string
+          address_postcode?: string
+          address_state?: string
+          address_street?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          region?: string | null
+          service_start_date?: string
+          site_manager_id?: string | null
+          site_name?: string
+          site_type?: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["site_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sites_site_manager_id_fkey"
+            columns: ["site_manager_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       timesheets: {
         Row: {
           approved_by: string | null
@@ -319,6 +827,149 @@ export type Database = {
           },
         ]
       }
+      work_order_assignments: {
+        Row: {
+          assignment_type: string
+          created_at: string
+          employee_id: string
+          id: string
+          updated_at: string
+          work_order_id: string
+        }
+        Insert: {
+          assignment_type: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          updated_at?: string
+          work_order_id: string
+        }
+        Update: {
+          assignment_type?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          updated_at?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_assignments_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          actual_duration: number | null
+          audit_followup_required: boolean | null
+          audit_score: number | null
+          category: Database["public"]["Enums"]["work_order_category"]
+          client_signoff: boolean | null
+          completed_by: string | null
+          completion_status: string | null
+          completion_timestamp: string | null
+          contract_id: string | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          outcome_notes: string | null
+          priority: Database["public"]["Enums"]["work_order_priority"]
+          recurring_template_id: string | null
+          scheduled_start: string
+          site_id: string
+          status: Database["public"]["Enums"]["work_order_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_duration?: number | null
+          audit_followup_required?: boolean | null
+          audit_score?: number | null
+          category: Database["public"]["Enums"]["work_order_category"]
+          client_signoff?: boolean | null
+          completed_by?: string | null
+          completion_status?: string | null
+          completion_timestamp?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          outcome_notes?: string | null
+          priority?: Database["public"]["Enums"]["work_order_priority"]
+          recurring_template_id?: string | null
+          scheduled_start: string
+          site_id: string
+          status?: Database["public"]["Enums"]["work_order_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_duration?: number | null
+          audit_followup_required?: boolean | null
+          audit_score?: number | null
+          category?: Database["public"]["Enums"]["work_order_category"]
+          client_signoff?: boolean | null
+          completed_by?: string | null
+          completion_status?: string | null
+          completion_timestamp?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          outcome_notes?: string | null
+          priority?: Database["public"]["Enums"]["work_order_priority"]
+          recurring_template_id?: string | null
+          scheduled_start?: string
+          site_id?: string
+          status?: Database["public"]["Enums"]["work_order_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_recurring_template_id_fkey"
+            columns: ["recurring_template_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -327,12 +978,29 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      client_status: "Active" | "On Hold"
+      contract_status: "Active" | "Expiring" | "Expired" | "Terminated"
       employee_status: "Onboarding" | "Active" | "Terminated"
       employment_type: "Full-time" | "Part-time" | "Contractor"
       pay_cycle: "Weekly" | "Fortnightly" | "Monthly"
       review_type: "Probation" | "Quarterly" | "Annual" | "Special"
+      service_request_status:
+        | "Pending Review"
+        | "Quoted"
+        | "Approved"
+        | "Scheduled"
+        | "Rejected"
+      site_status: "Active" | "Inactive" | "Pending Launch" | "Suspended"
       task_status: "Pending" | "In Progress" | "Completed"
       timesheet_status: "Pending Approval" | "Approved" | "Rejected"
+      work_order_category: "Routine Clean" | "Ad-hoc Request" | "Audit"
+      work_order_priority: "Low" | "Medium" | "High"
+      work_order_status:
+        | "Scheduled"
+        | "In Progress"
+        | "Completed"
+        | "Overdue"
+        | "Cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
