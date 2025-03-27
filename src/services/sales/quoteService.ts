@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Quote, QuoteLineItem, QuoteStatus } from '@/schema/sales/quote.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
  * @function fetchQuotes
@@ -81,15 +82,25 @@ export const getQuote = async (quoteId: string): Promise<Quote | null> => {
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Ensure dates are strings before sending to Supabase
-    const quoteData = {
-      ...quote,
-      issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
-      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until,
-      // Remove created_at and updated_at as they're managed by the database
-      created_at: undefined,
-      updated_at: undefined
-    };
+    // Validate required fields
+    if (!quote.quote_number) {
+      throw new Error('Quote number is required');
+    }
+    if (!quote.service_description) {
+      throw new Error('Service description is required');
+    }
+    if (!quote.created_by) {
+      throw new Error('Created by is required');
+    }
+    if (!quote.issue_date) {
+      throw new Error('Issue date is required');
+    }
+    if (!quote.valid_until) {
+      throw new Error('Valid until date is required');
+    }
+
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const quoteData = prepareObjectForDb(quote);
 
     const { data, error } = await supabase
       .from('quotes')
@@ -123,15 +134,8 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
  */
 export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Ensure dates are strings before sending to Supabase
-    const quoteData = {
-      ...quote,
-      issue_date: quote.issue_date instanceof Date ? quote.issue_date.toISOString() : quote.issue_date,
-      valid_until: quote.valid_until instanceof Date ? quote.valid_until.toISOString() : quote.valid_until,
-      // Remove created_at and updated_at as they're managed by the database
-      created_at: undefined, 
-      updated_at: undefined
-    };
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const quoteData = prepareObjectForDb(quote);
 
     const { data, error } = await supabase
       .from('quotes')
@@ -238,12 +242,16 @@ export const getQuoteLineItems = async (quoteId: string): Promise<QuoteLineItem[
  */
 export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
   try {
-    const lineItemData = {
-      ...lineItem,
-      // Remove created_at and updated_at as they're managed by the database
-      created_at: undefined,
-      updated_at: undefined
-    };
+    // Validate required fields
+    if (!lineItem.quote_id) {
+      throw new Error('Quote ID is required for line item');
+    }
+    if (!lineItem.description) {
+      throw new Error('Description is required for line item');
+    }
+
+    // Prepare data for Supabase
+    const lineItemData = prepareObjectForDb(lineItem);
 
     const { data, error } = await supabase
       .from('quote_line_items')
@@ -275,12 +283,8 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
  */
 export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
   try {
-    const lineItemData = {
-      ...lineItem,
-      // Remove created_at and updated_at as they're managed by the database
-      created_at: undefined,
-      updated_at: undefined
-    };
+    // Prepare data for Supabase
+    const lineItemData = prepareObjectForDb(lineItem);
 
     const { data, error } = await supabase
       .from('quote_line_items')

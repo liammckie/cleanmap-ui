@@ -52,3 +52,11 @@ This file tracks significant schema changes that may impact application function
 - Fixed type inconsistencies between frontend models and database tables
 - Improved Date handling in service functions to properly convert between Date objects and ISO strings
 - Fixed CRUD operations to respect required fields in the database
+
+## 2024-06-07
+
+### Fixed
+- Ensured type safety in Lead and Quote services by validating required fields
+- Fixed issue with Date handling by consistently using prepareObjectForDb utility
+- Enforced required fields validation for better error handling and database integrity
+- Removed site_ids field from Quote interface to match database structure

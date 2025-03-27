@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, LeadSource, LeadStage, LeadStatus } from '@/schema/sales/lead.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
  * Fetch all leads with optional search
@@ -50,14 +51,25 @@ export const fetchLeads = async (searchTerm?: string): Promise<Lead[]> => {
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare data for Supabase by converting Date objects to ISO strings
-    const leadData = {
-      ...lead,
-      next_action_date: lead.next_action_date instanceof Date ? lead.next_action_date.toISOString() : lead.next_action_date,
-      // Remove created_at and updated_at as they're set by the database
-      created_at: undefined,
-      updated_at: undefined
-    };
+    // Validate required fields
+    if (!lead.lead_name) {
+      throw new Error('Lead name is required');
+    }
+    if (!lead.company_name) {
+      throw new Error('Company name is required');
+    }
+    if (!lead.created_by) {
+      throw new Error('Created by is required');
+    }
+    if (lead.stage === undefined) {
+      lead.stage = 'Discovery';
+    }
+    if (lead.status === undefined) {
+      lead.status = 'Open';
+    }
+
+    // Prepare data for Supabase using the utility function
+    const leadData = prepareObjectForDb(lead);
 
     const { data, error } = await supabase
       .from('leads')
@@ -119,14 +131,8 @@ export const getLead = async (leadId: string): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare data for Supabase by converting Date objects to ISO strings
-    const leadData = {
-      ...lead,
-      next_action_date: lead.next_action_date instanceof Date ? lead.next_action_date.toISOString() : lead.next_action_date,
-      // Remove created_at and updated_at as they're managed by the database
-      created_at: undefined,
-      updated_at: undefined
-    };
+    // Prepare data for Supabase using the utility function
+    const leadData = prepareObjectForDb(lead);
 
     const { data, error } = await supabase
       .from('leads')
