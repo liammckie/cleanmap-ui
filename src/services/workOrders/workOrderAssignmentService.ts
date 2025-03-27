@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { WorkOrderAssignment } from '@/schema/operations.schema';
+import type { WorkOrderAssignment } from '@/schema/operations';
 
 /**
  * Fetch assignments for a specific work order

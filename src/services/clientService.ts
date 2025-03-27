@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Client } from '@/schema/operations.schema';
+import type { Client } from '@/schema/operations';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchClients(

@@ -22,18 +22,22 @@ export function createFieldSchema(field: {
     case 'string':
       schema = z.string();
       if (field.min !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.min(field.min, `Must be at least ${field.min} characters`);
       }
       if (field.max !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.max(field.max, `Must be at most ${field.max} characters`);
       }
       break;
     case 'number':
       schema = z.number();
       if (field.min !== undefined) {
+        schema = schema as z.ZodNumber;
         schema = schema.min(field.min, `Must be at least ${field.min}`);
       }
       if (field.max !== undefined) {
+        schema = schema as z.ZodNumber;
         schema = schema.max(field.max, `Must be at most ${field.max}`);
       }
       break;
@@ -43,9 +47,11 @@ export function createFieldSchema(field: {
     case 'email':
       schema = z.string().email(field.errorMessage || 'Invalid email address');
       if (field.min !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.min(field.min, `Must be at least ${field.min} characters`);
       }
       if (field.max !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.max(field.max, `Must be at most ${field.max} characters`);
       }
       break;
@@ -55,9 +61,11 @@ export function createFieldSchema(field: {
         field.errorMessage || 'Invalid phone number'
       );
       if (field.min !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.min(field.min, `Must be at least ${field.min} characters`);
       }
       if (field.max !== undefined) {
+        schema = schema as z.ZodString;
         schema = schema.max(field.max, `Must be at most ${field.max} characters`);
       }
       break;

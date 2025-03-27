@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { WorkOrder } from '@/schema/operations.schema';
+import type { WorkOrder } from '@/schema/operations';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 import { fetchWorkOrderAssignments, createWorkOrderAssignments, deleteWorkOrderAssignments } from './workOrderAssignmentService';
 import { fetchWorkOrderChecklistItems, createWorkOrderChecklistItems, deleteWorkOrderChecklistItems } from './workOrderChecklistService';

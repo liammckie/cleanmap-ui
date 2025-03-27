@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { AuditChecklistItem } from '@/schema/operations.schema';
+import type { AuditChecklistItem } from '@/schema/operations';
 
 /**
  * Fetch checklist items for a specific work order

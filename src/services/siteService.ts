@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Site } from '@/schema/operations.schema';
+import type { Site } from '@/schema/operations';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchSites(
