@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Client } from '@/schema/operations/client.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -6,7 +7,7 @@ import { isClientStatus } from '@/schema/operations/client.schema';
 export async function fetchClients(
   searchTerm?: string, 
   filters?: { 
-    status?: Client['status'] | string;
+    status?: string;
     region?: string;
     industry?: string;
   }
@@ -69,7 +70,7 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
   
   const { data, error } = await supabase
     .from('clients')
-    .insert(dbClient as any)
+    .insert(dbClient)
     .select();
 
   if (error) {
@@ -86,7 +87,7 @@ export async function updateClient(id: string, updates: Partial<Client>) {
   
   const { data, error } = await supabase
     .from('clients')
-    .update(dbUpdates as any)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
 
@@ -147,9 +148,12 @@ export async function fetchRegions() {
       throw error;
     }
 
-    // Extract unique regions
-    const regions = [...new Set(data.map(client => client.region))].filter(Boolean);
-    return regions;
+    // Extract unique regions, handle potential null values and type issues
+    const regions = data
+      .map(client => client.region)
+      .filter((region): region is string => region !== null && region !== undefined);
+    
+    return [...new Set(regions)];
   } catch (error) {
     console.error('Error fetching regions:', error);
     throw error;

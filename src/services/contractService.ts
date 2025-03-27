@@ -8,7 +8,7 @@ export async function fetchContracts(
   searchTerm?: string,
   filters?: {
     clientId?: string;
-    status?: Contract['status'] | string;
+    status?: string;
     contractType?: string;
     fromDate?: string;
     toDate?: string;
@@ -190,13 +190,14 @@ export async function logContractChange(
   changedBy: string
 ) {
   try {
+    // Prepare data for database - convert Date objects to ISO strings
     const changeLogEntry = {
       contract_id: contractId,
-      change_date: new Date(),
-      changes_json: JSON.stringify(changes), // Changed to match DB schema
-      change_type: reason, // Added required field
+      change_date: new Date().toISOString(), // Convert to string format for Supabase
+      changes_json: JSON.stringify(changes),
+      change_type: reason,
       changed_by: changedBy,
-      effective_date: new Date() // Added required field
+      effective_date: new Date().toISOString() // Convert to string format for Supabase
     };
 
     const { data, error } = await supabase
