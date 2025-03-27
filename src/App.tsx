@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "@/components/Layout/MainLayout";
 import Dashboard from "@/pages/Dashboard";
 import Locations from "@/pages/Locations";
+import EmployeesPage from "@/pages/hr/Employees";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/locations" element={<Locations />} />
+            <Route path="/hr/employees" element={<EmployeesPage />} />
             {/* Add more routes as you build more pages */}
           </Route>
           {/* Pages outside the main layout (like auth pages) would go here */}
