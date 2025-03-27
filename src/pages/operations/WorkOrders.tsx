@@ -208,8 +208,10 @@ const WorkOrdersPage = () => {
                     <TableCell>
                       <div className="text-sm">
                         <div>{workOrder.site?.site_name || '-'}</div>
-                        {workOrder.site?.client && (
-                          <div className="text-muted-foreground">{workOrder.site.client.company_name}</div>
+                        {workOrder.site && workOrder.site.client && (
+                          <div className="text-muted-foreground">
+                            {workOrder.site.client.company_name}
+                          </div>
                         )}
                       </div>
                     </TableCell>

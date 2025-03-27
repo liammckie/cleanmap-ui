@@ -230,18 +230,3 @@ export interface AuditChecklistItem {
 
 // Import Employee type for references
 import { Employee } from './hr.schema';
-
-// Export schema types
-export type {
-  Client,
-  Contact,
-  Site,
-  Contract,
-  ContractSite,
-  ContractChangeLog,
-  RecurringTemplate,
-  WorkOrder,
-  WorkOrderAssignment,
-  ServiceRequest,
-  AuditChecklistItem
-};

@@ -51,19 +51,19 @@ export function createFieldSchema(field: {
   // Apply constraints
   if (field.type === 'string' || field.type === 'email' || field.type === 'phone') {
     if (field.min !== undefined) {
-      schema = schema.min(field.min, `Must be at least ${field.min} characters`);
+      schema = (schema as z.ZodString).min(field.min, `Must be at least ${field.min} characters`);
     }
     if (field.max !== undefined) {
-      schema = schema.max(field.max, `Must be at most ${field.max} characters`);
+      schema = (schema as z.ZodString).max(field.max, `Must be at most ${field.max} characters`);
     }
   }
 
   if (field.type === 'number') {
     if (field.min !== undefined) {
-      schema = schema.min(field.min, `Must be at least ${field.min}`);
+      schema = (schema as z.ZodNumber).min(field.min, `Must be at least ${field.min}`);
     }
     if (field.max !== undefined) {
-      schema = schema.max(field.max, `Must be at most ${field.max}`);
+      schema = (schema as z.ZodNumber).max(field.max, `Must be at most ${field.max}`);
     }
   }
 

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Client } from '@/schema/operations.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchClients(
   searchTerm?: string,
@@ -23,7 +24,8 @@ export async function fetchClients(
   // Apply filters if provided
   if (filters) {
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Use type assertion to match the enum
+      query = query.eq('status', filters.status as 'Active' | 'On Hold');
     }
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
@@ -56,9 +58,12 @@ export async function fetchClientById(id: string) {
 }
 
 export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'updated_at'>) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbClient = prepareObjectForDb(client);
+  
   const { data, error } = await supabase
     .from('clients')
-    .insert(client)
+    .insert(dbClient)
     .select();
 
   if (error) {
@@ -70,13 +75,8 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
 }
 
 export async function updateClient(id: string, updates: Partial<Client>) {
-  // Ensure we're only sending database-compatible values
-  const dbUpdates = {
-    ...updates,
-    // Remove these fields if they exist to prevent format conflicts
-    created_at: undefined,
-    updated_at: undefined,
-  };
+  // Convert Date objects to ISO strings for Supabase
+  const dbUpdates = prepareObjectForDb(updates);
   
   const { data, error } = await supabase
     .from('clients')
@@ -108,15 +108,18 @@ export async function deleteClient(id: string) {
 
 // Fetch status options for filters
 export async function fetchClientStatuses() {
+  // Use a direct query instead of rpc to get enum values
   const { data, error } = await supabase
-    .rpc('get_client_status_enum');
+    .from('clients')
+    .select('status')
+    .distinct();
 
   if (error) {
     console.error('Error fetching client statuses:', error);
     throw error;
   }
 
-  return data;
+  return data.map(item => item.status);
 }
 
 // Fetch industries for filters

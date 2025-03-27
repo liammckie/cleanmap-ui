@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { WorkOrder, WorkOrderAssignment, AuditChecklistItem } from '@/schema/operations.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchWorkOrders(
   searchTerm?: string,
@@ -19,7 +20,7 @@ export async function fetchWorkOrders(
     .from('work_orders')
     .select(`
       *,
-      site:sites(site_name, client_id),
+      site:sites(site_name, client_id, client:clients(company_name)),
       contract:contracts(contract_number),
       assignments:work_order_assignments(
         employee:employees(id, first_name, last_name)
@@ -42,13 +43,16 @@ export async function fetchWorkOrders(
       query = query.eq('contract_id', filters.contractId);
     }
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Type casting for enums
+      query = query.eq('status', filters.status as 'Scheduled' | 'In Progress' | 'Completed' | 'Overdue' | 'Cancelled');
     }
     if (filters.category) {
-      query = query.eq('category', filters.category);
+      // Type casting for enums
+      query = query.eq('category', filters.category as 'Routine Clean' | 'Ad-hoc Request' | 'Audit');
     }
     if (filters.priority) {
-      query = query.eq('priority', filters.priority);
+      // Type casting for enums
+      query = query.eq('priority', filters.priority as 'Low' | 'Medium' | 'High');
     }
     if (filters.fromDate) {
       query = query.gte('scheduled_start', filters.fromDate);
@@ -111,10 +115,13 @@ export async function createWorkOrder(
   assignments: Omit<WorkOrderAssignment, 'id' | 'work_order_id' | 'created_at' | 'updated_at'>[],
   checklistItems?: Omit<AuditChecklistItem, 'id' | 'work_order_id' | 'created_at' | 'updated_at'>[]
 ) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbWorkOrder = prepareObjectForDb(workOrder);
+  
   // Create the work order
   const { data, error } = await supabase
     .from('work_orders')
-    .insert(workOrder)
+    .insert(dbWorkOrder)
     .select();
 
   if (error) {
@@ -167,10 +174,13 @@ export async function updateWorkOrder(
   assignments?: Omit<WorkOrderAssignment, 'id' | 'work_order_id' | 'created_at' | 'updated_at'>[],
   checklistItems?: Omit<AuditChecklistItem, 'id' | 'work_order_id' | 'created_at' | 'updated_at'>[]
 ) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbUpdates = prepareObjectForDb(updates);
+  
   // Update the work order
   const { data, error } = await supabase
     .from('work_orders')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
 
@@ -260,39 +270,48 @@ export async function deleteWorkOrder(id: string) {
 
 // Fetch work order status options for filters
 export async function fetchWorkOrderStatuses() {
+  // Use a direct query instead of rpc to get enum values
   const { data, error } = await supabase
-    .rpc('get_work_order_status_enum');
+    .from('work_orders')
+    .select('status')
+    .distinct();
 
   if (error) {
     console.error('Error fetching work order statuses:', error);
     throw error;
   }
 
-  return data;
+  return data.map(item => item.status);
 }
 
 // Fetch work order categories for filters
 export async function fetchWorkOrderCategories() {
+  // Use a direct query instead of rpc to get enum values
   const { data, error } = await supabase
-    .rpc('get_work_order_category_enum');
+    .from('work_orders')
+    .select('category')
+    .distinct();
 
   if (error) {
     console.error('Error fetching work order categories:', error);
     throw error;
   }
 
-  return data;
+  return data.map(item => item.category);
 }
 
 // Fetch work order priorities for filters
 export async function fetchWorkOrderPriorities() {
+  // Use a direct query instead of rpc to get enum values
   const { data, error } = await supabase
-    .rpc('get_work_order_priority_enum');
+    .from('work_orders')
+    .select('priority')
+    .distinct();
 
   if (error) {
     console.error('Error fetching work order priorities:', error);
     throw error;
   }
 
-  return data;
+  return data.map(item => item.priority);
 }

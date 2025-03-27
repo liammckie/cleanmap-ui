@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Contract } from '@/schema/operations.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchContracts(
   searchTerm?: string,
@@ -30,7 +31,8 @@ export async function fetchContracts(
       query = query.eq('client_id', filters.clientId);
     }
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Use type assertion for enum
+      query = query.eq('status', filters.status as 'Active' | 'Expiring' | 'Expired' | 'Terminated');
     }
     if (filters.contractType) {
       query = query.eq('contract_type', filters.contractType);
@@ -70,10 +72,13 @@ export async function fetchContractById(id: string) {
 }
 
 export async function createContract(contract: Omit<Contract, 'id' | 'created_at' | 'updated_at'>, siteIds: string[]) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbContract = prepareObjectForDb(contract);
+  
   // Start a transaction
   const { data, error } = await supabase
     .from('contracts')
-    .insert(contract)
+    .insert(dbContract)
     .select();
 
   if (error) {
@@ -102,9 +107,12 @@ export async function createContract(contract: Omit<Contract, 'id' | 'created_at
 }
 
 export async function updateContract(id: string, updates: Partial<Contract>, siteIds?: string[]) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbUpdates = prepareObjectForDb(updates);
+  
   const { data, error } = await supabase
     .from('contracts')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
 
@@ -163,15 +171,18 @@ export async function deleteContract(id: string) {
 
 // Fetch contract status options for filters
 export async function fetchContractStatuses() {
+  // Use a direct query instead of rpc to get enum values
   const { data, error } = await supabase
-    .rpc('get_contract_status_enum');
+    .from('contracts')
+    .select('status')
+    .distinct();
 
   if (error) {
     console.error('Error fetching contract statuses:', error);
     throw error;
   }
 
-  return data;
+  return data.map(item => item.status);
 }
 
 // Fetch contract types for filters
