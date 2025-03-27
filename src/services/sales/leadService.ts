@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Lead, LeadStage, LeadStatus } from '@/schema/sales/lead.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';

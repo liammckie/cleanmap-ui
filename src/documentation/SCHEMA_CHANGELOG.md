@@ -26,3 +26,14 @@ This file tracks significant schema changes that may impact application function
 - Modified billing_address_postcode field type to ensure consistency with validation
 - Added payment_terms field as required for billing processes
 
+## 2024-06-04
+
+### Added
+- Added sales module tables
+- Created leads table for tracking sales pipeline
+- Created quotes table for service quotations
+- Created quote_line_items table for detailed quote pricing
+- Created quote_sites junction table for associating quotes with multiple sites
+- Added four new enums: lead_stage, lead_source, lead_status, and quote_status
+- Added helper functions for retrieving enum values
+

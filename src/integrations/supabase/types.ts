@@ -404,6 +404,84 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          converted_client_id: string | null
+          converted_quote_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          lead_name: string
+          next_action: string | null
+          next_action_date: string | null
+          notes: string | null
+          potential_value: number
+          source: Database["public"]["Enums"]["lead_source"] | null
+          stage: Database["public"]["Enums"]["lead_stage"]
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          converted_client_id?: string | null
+          converted_quote_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          lead_name: string
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          potential_value?: number
+          source?: Database["public"]["Enums"]["lead_source"] | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          converted_client_id?: string | null
+          converted_quote_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          lead_name?: string
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          potential_value?: number
+          source?: Database["public"]["Enums"]["lead_source"] | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_client_id_fkey"
+            columns: ["converted_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_quote_id_fkey"
+            columns: ["converted_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_tasks: {
         Row: {
           approval_needed: boolean
@@ -504,6 +582,182 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_line_items: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          quantity: number
+          quote_id: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          description: string
+          id?: string
+          quantity?: number
+          quote_id: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          quantity?: number
+          quote_id?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_line_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_sites: {
+        Row: {
+          created_at: string
+          id: string
+          quote_id: string
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quote_id: string
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quote_id?: string
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_sites_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          client_id: string | null
+          converted_contract_id: string | null
+          converted_work_order_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          internal_cost_estimate: number | null
+          issue_date: string
+          lead_id: string | null
+          notes: string | null
+          quote_number: string
+          service_description: string
+          service_request_id: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          total_amount: number
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          client_id?: string | null
+          converted_contract_id?: string | null
+          converted_work_order_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          internal_cost_estimate?: number | null
+          issue_date: string
+          lead_id?: string | null
+          notes?: string | null
+          quote_number: string
+          service_description: string
+          service_request_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          total_amount?: number
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          client_id?: string | null
+          converted_contract_id?: string | null
+          converted_work_order_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          internal_cost_estimate?: number | null
+          issue_date?: string
+          lead_id?: string | null
+          notes?: string | null
+          quote_number?: string
+          service_description?: string
+          service_request_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_contract_id_fkey"
+            columns: ["converted_contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_work_order_id_fkey"
+            columns: ["converted_work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -975,14 +1229,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_lead_source_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_lead_stage_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_lead_status_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_quote_status_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
     }
     Enums: {
       client_status: "Active" | "On Hold"
       contract_status: "Active" | "Expiring" | "Expired" | "Terminated"
       employee_status: "Onboarding" | "Active" | "Terminated"
       employment_type: "Full-time" | "Part-time" | "Contractor"
+      lead_source:
+        | "Referral"
+        | "Website"
+        | "Cold Call"
+        | "Event"
+        | "Partner"
+        | "Other"
+      lead_stage: "Discovery" | "Proposal" | "Negotiation" | "Won" | "Lost"
+      lead_status: "Open" | "Closed-Won" | "Closed-Lost"
       pay_cycle: "Weekly" | "Fortnightly" | "Monthly"
+      quote_status: "Draft" | "Sent" | "Accepted" | "Rejected"
       review_type: "Probation" | "Quarterly" | "Annual" | "Special"
       service_request_status:
         | "Pending Review"
