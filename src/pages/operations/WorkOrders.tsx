@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ClipboardList, Search, FilterX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchWorkOrders } from '@/services/workOrderService';
+import { fetchWorkOrders } from '@/services/workOrders';
 import { format } from 'date-fns';
 
 // Status badge component

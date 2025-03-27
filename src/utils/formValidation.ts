@@ -21,21 +21,45 @@ export function createFieldSchema(field: {
   switch (field.type) {
     case 'string':
       schema = z.string();
+      if (field.min !== undefined) {
+        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
+      }
+      if (field.max !== undefined) {
+        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
+      }
       break;
     case 'number':
       schema = z.number();
+      if (field.min !== undefined) {
+        schema = schema.min(field.min, `Must be at least ${field.min}`);
+      }
+      if (field.max !== undefined) {
+        schema = schema.max(field.max, `Must be at most ${field.max}`);
+      }
       break;
     case 'date':
       schema = z.date();
       break;
     case 'email':
       schema = z.string().email(field.errorMessage || 'Invalid email address');
+      if (field.min !== undefined) {
+        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
+      }
+      if (field.max !== undefined) {
+        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
+      }
       break;
     case 'phone':
       schema = z.string().regex(
         field.pattern || /^[0-9\s\+\-\(\)]{8,15}$/,
         field.errorMessage || 'Invalid phone number'
       );
+      if (field.min !== undefined) {
+        schema = schema.min(field.min, `Must be at least ${field.min} characters`);
+      }
+      if (field.max !== undefined) {
+        schema = schema.max(field.max, `Must be at most ${field.max} characters`);
+      }
       break;
     case 'select':
       if (field.options && field.options.length > 0) {
@@ -46,25 +70,6 @@ export function createFieldSchema(field: {
       break;
     default:
       schema = z.string();
-  }
-
-  // Apply constraints
-  if (field.type === 'string' || field.type === 'email' || field.type === 'phone') {
-    if (field.min !== undefined) {
-      schema = (schema as z.ZodString).min(field.min, `Must be at least ${field.min} characters`);
-    }
-    if (field.max !== undefined) {
-      schema = (schema as z.ZodString).max(field.max, `Must be at most ${field.max} characters`);
-    }
-  }
-
-  if (field.type === 'number') {
-    if (field.min !== undefined) {
-      schema = (schema as z.ZodNumber).min(field.min, `Must be at least ${field.min}`);
-    }
-    if (field.max !== undefined) {
-      schema = (schema as z.ZodNumber).max(field.max, `Must be at most ${field.max}`);
-    }
   }
 
   // Make optional if not required
