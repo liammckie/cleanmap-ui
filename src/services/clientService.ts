@@ -68,9 +68,10 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
   // Convert Date objects to ISO strings for Supabase
   const dbClient = prepareObjectForDb(client);
   
+  // Use type assertion to match Supabase's expected type for the clients table
   const { data, error } = await supabase
     .from('clients')
-    .insert(dbClient)
+    .insert(dbClient as any)
     .select();
 
   if (error) {
@@ -87,7 +88,7 @@ export async function updateClient(id: string, updates: Partial<Client>) {
   
   const { data, error } = await supabase
     .from('clients')
-    .update(dbUpdates)
+    .update(dbUpdates as any)
     .eq('id', id)
     .select();
 
@@ -138,20 +139,38 @@ export async function fetchIndustries() {
 // Fetch regions for filters
 export async function fetchRegions() {
   try {
+    // Check if the region column exists in the clients table first
+    // If not, we'll just return an empty array
     const { data, error } = await supabase
       .from('clients')
       .select('region')
-      .order('region');
+      .limit(1);
 
     if (error) {
+      // If column doesn't exist, return empty array
+      if (error.message && error.message.includes("column 'region' does not exist")) {
+        console.warn('Region column does not exist in clients table');
+        return [];
+      }
       console.error('Error fetching regions:', error);
       throw error;
     }
 
+    // If we get here, the column exists, so fetch all regions
+    const { data: regionsData, error: regionsError } = await supabase
+      .from('clients')
+      .select('region')
+      .order('region');
+
+    if (regionsError) {
+      console.error('Error fetching regions:', regionsError);
+      throw regionsError;
+    }
+
     // Extract unique regions, handle potential null values and type issues
-    const regions = data
+    const regions = regionsData
       .map(client => client.region)
-      .filter((region): region is string => region !== null && region !== undefined);
+      .filter((region): region is string => typeof region === 'string' && region.trim() !== '');
     
     return [...new Set(regions)];
   } catch (error) {
