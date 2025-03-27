@@ -1,37 +1,32 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Fetch work orders with optional filtering and search
- */
 export async function fetchWorkOrders(
   searchTerm?: string,
   filters?: {
+    clientId?: string;
     siteId?: string;
-    contractId?: string;
     status?: string;
     category?: string;
     priority?: string;
-    assignedTo?: string;
-    fromDate?: string;
-    toDate?: string;
+    startDate?: Date;
+    endDate?: Date;
   }
 ) {
   let query = supabase
     .from('work_orders')
     .select(`
       *,
-      site:sites(site_name, client_id, client:clients(company_name)),
-      contract:contracts(contract_number),
-      assignments:work_order_assignments(
-        employee:employees(id, first_name, last_name)
+      site:sites(
+        site_name,
+        client_id,
+        client:clients(company_name)
       )
     `);
 
   // Apply search if provided
   if (searchTerm) {
     query = query.or(
-      `title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
+      `description.ilike.%${searchTerm}%,work_order_number.ilike.%${searchTerm}%`
     );
   }
 
@@ -40,23 +35,37 @@ export async function fetchWorkOrders(
     if (filters.siteId) {
       query = query.eq('site_id', filters.siteId);
     }
-    if (filters.contractId) {
-      query = query.eq('contract_id', filters.contractId);
-    }
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Type safe casting for enum values
+      query = query.eq('status', filters.status as any);
     }
     if (filters.category) {
-      query = query.eq('category', filters.category);
+      query = query.eq('category', filters.category as any);
     }
     if (filters.priority) {
-      query = query.eq('priority', filters.priority);
+      query = query.eq('priority', filters.priority as any);
     }
-    if (filters.fromDate) {
-      query = query.gte('scheduled_start', filters.fromDate);
+    if (filters.startDate) {
+      query = query.gte('scheduled_start', filters.startDate.toISOString());
     }
-    if (filters.toDate) {
-      query = query.lte('scheduled_start', filters.toDate);
+    if (filters.endDate) {
+      query = query.lte('scheduled_end', filters.endDate.toISOString());
+    }
+    // If clientId is provided, we need to filter through the site's client_id
+    if (filters.clientId) {
+      // This requires a more complex query - first get all sites for this client
+      const { data: sitesData } = await supabase
+        .from('sites')
+        .select('id')
+        .eq('client_id', filters.clientId);
+      
+      if (sitesData && sitesData.length > 0) {
+        const siteIds = sitesData.map(site => site.id);
+        query = query.in('site_id', siteIds);
+      } else {
+        // If no sites found for this client, return empty result
+        return [];
+      }
     }
   }
 
@@ -67,68 +76,87 @@ export async function fetchWorkOrders(
     throw error;
   }
 
-  // Filter by assignedTo if necessary (client-side filtering for this relationship)
-  if (filters?.assignedTo && data) {
-    return data.filter(workOrder =>
-      workOrder.assignments.some(assignment =>
-        assignment.employee.id === filters.assignedTo
+  return data;
+}
+
+export async function fetchWorkOrderById(id: string) {
+  const { data, error } = await supabase
+    .from('work_orders')
+    .select(`
+      *,
+      site:sites(
+        site_name,
+        client_id,
+        client:clients(company_name)
       )
-    );
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching work order:', error);
+    throw error;
   }
 
   return data;
 }
 
-/**
- * Fetch work order status options for filters
- */
-export async function fetchWorkOrderStatuses() {
+export async function fetchWorkOrdersBySiteId(siteId: string) {
   const { data, error } = await supabase
     .from('work_orders')
-    .select('status');
+    .select(`
+      *,
+      site:sites(
+        site_name,
+        client_id,
+        client:clients(company_name)
+      )
+    `)
+    .eq('site_id', siteId);
 
   if (error) {
-    console.error('Error fetching work order statuses:', error);
+    console.error('Error fetching work orders by site ID:', error);
     throw error;
   }
 
-  // Extract unique statuses
-  const statuses = [...new Set(data.map(item => item.status))];
-  return statuses;
+  return data;
 }
 
-/**
- * Fetch work order categories for filters
- */
-export async function fetchWorkOrderCategories() {
-  const { data, error } = await supabase
-    .from('work_orders')
-    .select('category');
+export async function fetchWorkOrdersByClientId(clientId: string) {
+  // This requires a more complex query - first get all sites for this client
+  const { data: sitesData, error: sitesError } = await supabase
+    .from('sites')
+    .select('id')
+    .eq('client_id', clientId);
 
-  if (error) {
-    console.error('Error fetching work order categories:', error);
-    throw error;
+  if (sitesError) {
+    console.error('Error fetching sites for client:', sitesError);
+    return [];
   }
+  
+  if (sitesData && sitesData.length > 0) {
+    const siteIds = sitesData.map(site => site.id);
 
-  // Extract unique categories
-  const categories = [...new Set(data.map(item => item.category))];
-  return categories;
-}
+    const { data, error } = await supabase
+      .from('work_orders')
+      .select(`
+        *,
+        site:sites(
+          site_name,
+          client_id,
+          client:clients(company_name)
+        )
+      `)
+      .in('site_id', siteIds);
 
-/**
- * Fetch work order priorities for filters
- */
-export async function fetchWorkOrderPriorities() {
-  const { data, error } = await supabase
-    .from('work_orders')
-    .select('priority');
+    if (error) {
+      console.error('Error fetching work orders for sites:', error);
+      throw error;
+    }
 
-  if (error) {
-    console.error('Error fetching work order priorities:', error);
-    throw error;
+    return data;
+  } else {
+    // If no sites found for this client, return empty result
+    return [];
   }
-
-  // Extract unique priorities
-  const priorities = [...new Set(data.map(item => item.priority))];
-  return priorities;
 }

@@ -25,3 +25,8 @@ export interface ServiceRequest {
   created_at: Date;
   updated_at: Date;
 }
+
+// Type guards for runtime type checking
+export function isServiceRequestStatus(value: string): value is ServiceRequest['status'] {
+  return ['Pending Review', 'Quoted', 'Approved', 'Scheduled', 'Rejected'].includes(value);
+}

@@ -24,8 +24,8 @@ export async function fetchClients(
   // Apply filters if provided
   if (filters) {
     if (filters.status) {
-      // Use type assertion to match the enum
-      query = query.eq('status', filters.status as 'Active' | 'On Hold');
+      // Type assertion to handle string to enum conversion safely
+      query = query.eq('status', filters.status);
     }
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
@@ -63,7 +63,7 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
   
   const { data, error } = await supabase
     .from('clients')
-    .insert(dbClient)
+    .insert(dbClient as any)
     .select();
 
   if (error) {
@@ -80,7 +80,7 @@ export async function updateClient(id: string, updates: Partial<Client>) {
   
   const { data, error } = await supabase
     .from('clients')
-    .update(dbUpdates)
+    .update(dbUpdates as any)
     .eq('id', id)
     .select();
 
@@ -108,18 +108,20 @@ export async function deleteClient(id: string) {
 
 // Fetch status options for filters
 export async function fetchClientStatuses() {
-  // Use a direct query instead of rpc to get enum values
+  // Use a direct query to get status values
   const { data, error } = await supabase
     .from('clients')
     .select('status')
-    .distinct();
+    .is('status', 'not.null');
 
   if (error) {
     console.error('Error fetching client statuses:', error);
     throw error;
   }
 
-  return data.map(item => item.status);
+  // Extract unique statuses
+  const statuses = [...new Set(data.map(item => item.status))];
+  return statuses;
 }
 
 // Fetch industries for filters

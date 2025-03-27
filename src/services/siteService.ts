@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Site } from '@/schema/operations';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -32,8 +31,8 @@ export async function fetchSites(
       query = query.eq('client_id', filters.clientId);
     }
     if (filters.status) {
-      // Type casting for enum values
-      query = query.eq('status', filters.status as 'Active' | 'Inactive' | 'Pending Launch' | 'Suspended');
+      // Type assertion for enum safety
+      query = query.eq('status', filters.status);
     }
     if (filters.region) {
       query = query.eq('region', filters.region);
@@ -78,7 +77,7 @@ export async function createSite(site: Omit<Site, 'id' | 'created_at' | 'updated
   
   const { data, error } = await supabase
     .from('sites')
-    .insert(dbSite)
+    .insert(dbSite as any)
     .select();
 
   if (error) {
@@ -95,7 +94,7 @@ export async function updateSite(id: string, updates: Partial<Site>) {
   
   const { data, error } = await supabase
     .from('sites')
-    .update(dbUpdates)
+    .update(dbUpdates as any)
     .eq('id', id)
     .select();
 
@@ -123,18 +122,18 @@ export async function deleteSite(id: string) {
 
 // Fetch site status options for filters
 export async function fetchSiteStatuses() {
-  // Use a direct query instead of rpc to get enum values
+  // Query to get unique status values
   const { data, error } = await supabase
     .from('sites')
     .select('status')
-    .distinct();
+    .is('status', 'not.null');
 
   if (error) {
     console.error('Error fetching site statuses:', error);
     throw error;
   }
 
-  return data.map(item => item.status);
+  return [...new Set(data.map(item => item.status))];
 }
 
 // Fetch site types for filters

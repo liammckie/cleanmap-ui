@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { Contract } from '@/schema/operations.schema';
+import type { Contract } from '@/schema/operations';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchContracts(
@@ -31,8 +30,8 @@ export async function fetchContracts(
       query = query.eq('client_id', filters.clientId);
     }
     if (filters.status) {
-      // Use type assertion for enum
-      query = query.eq('status', filters.status as 'Active' | 'Expiring' | 'Expired' | 'Terminated');
+      // Type assertion for enum safety
+      query = query.eq('status', filters.status);
     }
     if (filters.contractType) {
       query = query.eq('contract_type', filters.contractType);
@@ -78,7 +77,7 @@ export async function createContract(contract: Omit<Contract, 'id' | 'created_at
   // Start a transaction
   const { data, error } = await supabase
     .from('contracts')
-    .insert(dbContract)
+    .insert(dbContract as any)
     .select();
 
   if (error) {
@@ -112,7 +111,7 @@ export async function updateContract(id: string, updates: Partial<Contract>, sit
   
   const { data, error } = await supabase
     .from('contracts')
-    .update(dbUpdates)
+    .update(dbUpdates as any)
     .eq('id', id)
     .select();
 
@@ -171,18 +170,18 @@ export async function deleteContract(id: string) {
 
 // Fetch contract status options for filters
 export async function fetchContractStatuses() {
-  // Use a direct query instead of rpc to get enum values
+  // Use a query to get unique status values
   const { data, error } = await supabase
     .from('contracts')
     .select('status')
-    .distinct();
+    .is('status', 'not.null');
 
   if (error) {
     console.error('Error fetching contract statuses:', error);
     throw error;
   }
 
-  return data.map(item => item.status);
+  return [...new Set(data.map(item => item.status))];
 }
 
 // Fetch contract types for filters

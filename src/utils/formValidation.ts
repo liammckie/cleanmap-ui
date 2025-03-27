@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 /**
@@ -109,6 +108,88 @@ export function createFormSchema<T extends Record<string, any>>(config: Record<k
   }
 
   return z.object(shape);
+}
+
+/**
+ * Creates field validation errors from Zod validation errors
+ */
+export function parseZodErrors(error: z.ZodError) {
+  const fieldErrors: Record<string, string> = {};
+  
+  for (const issue of error.errors) {
+    if (issue.path.length > 0) {
+      const path = issue.path.join('.');
+      fieldErrors[path] = issue.message;
+    }
+  }
+  
+  return fieldErrors;
+}
+
+/**
+ * Generate proper error message for string validation errors
+ */
+export function stringValidationMessages(
+  fieldName: string, 
+  schema: z.ZodType<any>,
+  options?: { 
+    required?: boolean,
+    minLength?: number,
+    maxLength?: number
+  }
+) {
+  const meta = (schema as any)._def?.typeName === 'ZodString' ? (schema as any)._def : null;
+  
+  if (options?.required || (meta && meta.checks && meta.checks.some((c: any) => c.kind === 'min'))) {
+    return `${fieldName} is required`;
+  }
+  
+  if (meta && meta.checks) {
+    const minCheck = meta.checks.find((c: any) => c.kind === 'min');
+    if (minCheck) {
+      return `${fieldName} must be at least ${minCheck.value} characters`;
+    }
+    
+    const maxCheck = meta.checks.find((c: any) => c.kind === 'max');
+    if (maxCheck) {
+      return `${fieldName} cannot exceed ${maxCheck.value} characters`;
+    }
+  }
+  
+  return `${fieldName} is invalid`;
+}
+
+/**
+ * Generate proper error message for number validation errors
+ */
+export function numberValidationMessages(
+  fieldName: string, 
+  schema: z.ZodType<any>,
+  options?: {
+    required?: boolean,
+    min?: number,
+    max?: number
+  }
+) {
+  const meta = (schema as any)._def?.typeName === 'ZodNumber' ? (schema as any)._def : null;
+  
+  if (options?.required) {
+    return `${fieldName} is required`;
+  }
+  
+  if (meta && meta.checks) {
+    const minCheck = meta.checks.find((c: any) => c.kind === 'min');
+    if (minCheck) {
+      return `${fieldName} must be at least ${minCheck.value}`;
+    }
+    
+    const maxCheck = meta.checks.find((c: any) => c.kind === 'max');
+    if (maxCheck) {
+      return `${fieldName} cannot exceed ${maxCheck.value}`;
+    }
+  }
+  
+  return `${fieldName} is invalid`;
 }
 
 /**

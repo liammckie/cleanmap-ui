@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Employee } from '@/schema/hr.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 export async function fetchEmployees(
   searchTerm?: string, 
@@ -27,10 +28,11 @@ export async function fetchEmployees(
       query = query.eq('department', filters.department);
     }
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Type safe casting
+      query = query.eq('status', filters.status as any);
     }
     if (filters.employmentType) {
-      query = query.eq('employment_type', filters.employmentType);
+      query = query.eq('employment_type', filters.employmentType as any);
     }
   }
 
@@ -60,9 +62,12 @@ export async function fetchEmployeeById(id: string) {
 }
 
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbEmployee = prepareObjectForDb(employee);
+  
   const { data, error } = await supabase
     .from('employees')
-    .insert(employee)
+    .insert(dbEmployee as any)
     .select();
 
   if (error) {
@@ -74,9 +79,12 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
 }
 
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbUpdates = prepareObjectForDb(updates);
+  
   const { data, error } = await supabase
     .from('employees')
-    .update(updates)
+    .update(dbUpdates as any)
     .eq('id', id)
     .select();
 
