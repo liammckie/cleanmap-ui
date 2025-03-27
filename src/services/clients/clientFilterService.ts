@@ -41,12 +41,26 @@ export async function fetchClients(
       query = query.eq('industry', filters.industry);
     }
     
-    // Handle region filter - use a safer approach that doesn't cause deep instantiation
+    // Handle region filter - but avoid excessive type depth
     if (filters.region) {
+      // Use a safer method to apply the region filter
       try {
-        query = query.eq('region', filters.region);
+        // Convert the query to PostgREST filter string format to avoid type instantiation issues
+        const { data, error } = await query.filter('region', 'eq', filters.region);
+        
+        if (error) {
+          console.warn('Region filter not applied - column may not exist');
+          // If the filter fails, continue with the unfiltered query
+          const result = await query;
+          return result.data || [];
+        }
+        
+        return data || [];
       } catch (error) {
-        console.warn('Region filter not applied - column may not exist');
+        console.warn('Region filter error:', error);
+        // Fall back to the base query without the region filter
+        const result = await query;
+        return result.data || [];
       }
     }
   }

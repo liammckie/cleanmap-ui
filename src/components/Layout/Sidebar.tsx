@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   Activity, Map, Users, Calendar, Files, 
-  Clipboard, BarChart3, Settings, Menu, X 
+  Clipboard, BarChart3, Settings, Menu, X,
+  UserCog // Added HR icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
     { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
     { id: 'clients', name: 'Clients', icon: Users, path: '/clients' },
     { id: 'locations', name: 'Locations', icon: Map, path: '/locations' },
+    { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' }, // Added HR menu item
     { id: 'schedule', name: 'Schedule', icon: Calendar, path: '/schedule' },
     { id: 'contracts', name: 'Contracts', icon: Clipboard, path: '/contracts' },
     { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },

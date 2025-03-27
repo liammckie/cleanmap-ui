@@ -35,12 +35,22 @@ export async function fetchIndustries() {
 // Fetch regions for filters
 export async function fetchRegions() {
   try {
-    // First check if the region column exists
-    const { data: columnInfo, error: columnError } = await supabase
-      .rpc('get_column_names', { table_name: 'clients' });
+    // First check if the region column exists using a safer approach
+    let hasRegionColumn = false;
     
-    // If we can't check columns through RPC or region doesn't exist, return empty array
-    if (columnError || !columnInfo || !Array.isArray(columnInfo) || !columnInfo.includes('region')) {
+    // Try to perform a query that will tell us if the column exists
+    const { error: testError } = await supabase
+      .from('clients')
+      .select('region')
+      .limit(1);
+    
+    // If there's no error, the column exists
+    if (!testError) {
+      hasRegionColumn = true;
+    }
+    
+    // If region doesn't exist, return empty array
+    if (!hasRegionColumn) {
       console.warn("Region column doesn't exist in clients table");
       return [];
     }
