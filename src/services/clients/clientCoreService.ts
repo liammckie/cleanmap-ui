@@ -5,6 +5,10 @@ import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
  * Core CRUD operations for clients
+ * 
+ * @origin module: operations/clients
+ * @source internal-user
+ * @field-locked id:uuid, company_name:string, status:enum, created_at:timestamp
  */
 
 export async function fetchClientById(id: string) {

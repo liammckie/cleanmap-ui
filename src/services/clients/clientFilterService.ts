@@ -4,6 +4,9 @@ import { isClientStatus } from '@/schema/operations/client.schema';
 
 /**
  * Client filtering and search functionality
+ * 
+ * @origin module: operations/clients
+ * @source internal-user
  */
 export async function fetchClients(
   searchTerm?: string, 
@@ -13,9 +16,11 @@ export async function fetchClients(
     industry?: string;
   }
 ) {
+  // Start with a base query that includes pagination for safety
   let query = supabase
     .from('clients')
-    .select('*');
+    .select('*')
+    .limit(100); // Enforce environment-safe query with limit
 
   // Apply search if provided
   if (searchTerm) {
@@ -36,27 +41,10 @@ export async function fetchClients(
       query = query.eq('industry', filters.industry);
     }
     
-    // Handle region filter separately to avoid TypeScript deep instantiation error
+    // Handle region filter - use a safer approach that doesn't cause deep instantiation
     if (filters.region) {
-      // We'll apply the filter within a try-catch to handle missing column cases
       try {
-        // Create a new query with the region filter
-        const regionFilter = supabase
-          .from('clients')
-          .select('id')
-          .eq('region', filters.region);
-
-        // Get the IDs that match the region filter
-        const { data: regionFilteredIds, error: regionError } = await regionFilter;
-        
-        if (!regionError && regionFilteredIds && regionFilteredIds.length > 0) {
-          // Apply the region filter by matching IDs
-          const ids = regionFilteredIds.map(item => item.id);
-          query = query.in('id', ids);
-        } else {
-          // If region filter fails or returns no results, log warning
-          console.warn('Region filter not applied or returned no results');
-        }
+        query = query.eq('region', filters.region);
       } catch (error) {
         console.warn('Region filter not applied - column may not exist');
       }
