@@ -27,17 +27,17 @@ export const ValidationErrors = {
 export function parseValidationError(error: z.ZodIssue) {
   if (error.code === 'too_small' && 'minimum' in error) {
     if (error.type === 'string') {
-      return ValidationErrors.MIN_LENGTH(error.minimum);
+      return ValidationErrors.MIN_LENGTH(Number(error.minimum));
     } else {
-      return ValidationErrors.MIN_VALUE(error.minimum);
+      return ValidationErrors.MIN_VALUE(Number(error.minimum));
     }
   }
   
   if (error.code === 'too_big' && 'maximum' in error) {
     if (error.type === 'string') {
-      return ValidationErrors.MAX_LENGTH(error.maximum);
+      return ValidationErrors.MAX_LENGTH(Number(error.maximum));
     } else {
-      return ValidationErrors.MAX_VALUE(error.maximum);
+      return ValidationErrors.MAX_VALUE(Number(error.maximum));
     }
   }
   
@@ -55,8 +55,8 @@ export function createStringSchema(options: {
   url?: boolean;
   regex?: RegExp;
   customError?: string;
-}) {
-  let schema = z.string();
+}): z.ZodString | z.ZodOptional<z.ZodString> {
+  let schema: z.ZodString = z.string();
   
   if (options.min !== undefined) {
     schema = schema.min(options.min, ValidationErrors.MIN_LENGTH(options.min));
@@ -79,12 +79,10 @@ export function createStringSchema(options: {
   }
   
   if (options.required === false) {
-    schema = schema.optional();
+    return schema.optional();
   } else {
-    schema = schema.min(1, ValidationErrors.REQUIRED);
+    return schema.min(1, ValidationErrors.REQUIRED);
   }
-  
-  return schema;
 }
 
 /**
@@ -96,8 +94,8 @@ export function createNumberSchema(options: {
   required?: boolean;
   integer?: boolean;
   positive?: boolean;
-}) {
-  let schema = options.integer ? z.number().int() : z.number();
+}): z.ZodNumber | z.ZodOptional<z.ZodNumber> {
+  let schema: z.ZodNumber = options.integer ? z.number().int() : z.number();
   
   if (options.min !== undefined) {
     schema = schema.min(options.min, ValidationErrors.MIN_VALUE(options.min));
@@ -112,7 +110,7 @@ export function createNumberSchema(options: {
   }
   
   if (options.required === false) {
-    schema = schema.optional();
+    return schema.optional();
   }
   
   return schema;
@@ -127,8 +125,8 @@ export function createDateSchema(options: {
   required?: boolean;
   future?: boolean;
   past?: boolean;
-}) {
-  let schema = z.date();
+}): z.ZodDate | z.ZodOptional<z.ZodDate> {
+  let schema: z.ZodDate = z.date();
   
   if (options.min) {
     schema = schema.min(options.min, `Date must be after ${options.min.toLocaleDateString()}`);
@@ -147,8 +145,68 @@ export function createDateSchema(options: {
   }
   
   if (options.required === false) {
-    schema = schema.optional();
+    return schema.optional();
   }
   
   return schema;
+}
+
+// Add these pattern constants and error messages for the client validation
+export const ValidationPatterns = {
+  POSTAL_CODE: /^\d{4,5}(-\d{4})?$/,
+  PHONE: /^(\+\d{1,3}[ -]?)?\(?\d{3}\)?[ -]?\d{3}[ -]?\d{4}$/,
+  EMAIL: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+};
+
+export const ErrorMessages = {
+  PHONE: 'Please enter a valid phone number',
+  EMAIL: 'Please enter a valid email address'
+};
+
+// Generic form schema builder
+export function createFormSchema<T extends Record<string, any>>(config: Record<string, any>): z.ZodObject<any> {
+  const schemaObj: Record<string, any> = {};
+  
+  for (const [field, fieldConfig] of Object.entries(config)) {
+    switch (fieldConfig.type) {
+      case 'string':
+        schemaObj[field] = createStringSchema({
+          min: fieldConfig.min,
+          max: fieldConfig.max,
+          required: fieldConfig.required,
+          regex: fieldConfig.pattern,
+          customError: fieldConfig.errorMessage
+        });
+        break;
+      case 'email':
+        schemaObj[field] = createStringSchema({
+          required: fieldConfig.required,
+          email: true,
+          customError: fieldConfig.errorMessage
+        });
+        break;
+      case 'phone':
+        schemaObj[field] = createStringSchema({
+          required: fieldConfig.required,
+          regex: fieldConfig.pattern || ValidationPatterns.PHONE,
+          customError: fieldConfig.errorMessage
+        });
+        break;
+      case 'select':
+        if (fieldConfig.options) {
+          schemaObj[field] = z.enum(fieldConfig.options as [string, ...string[]]);
+          if (!fieldConfig.required) {
+            schemaObj[field] = schemaObj[field].optional();
+          }
+        }
+        break;
+      default:
+        schemaObj[field] = z.string();
+        if (!fieldConfig.required) {
+          schemaObj[field] = schemaObj[field].optional();
+        }
+    }
+  }
+  
+  return z.object(schemaObj);
 }

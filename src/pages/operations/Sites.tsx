@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -23,8 +22,8 @@ import { PlusCircle, Search, FilterX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchSites } from '@/services/siteService';
 import { format } from 'date-fns';
+import type { Site } from '@/schema/operations';
 
-// Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -51,14 +50,18 @@ const StatusBadge = ({ status }: { status: string }) => {
 const SitesPage = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    clientId: string;
+    status: string;
+    region: string;
+    siteType: string;
+  }>({
     clientId: '',
     status: '',
     region: '',
     siteType: ''
   });
 
-  // Use react-query to fetch sites data with proper error handling
   const { data: sites, isLoading, error } = useQuery({
     queryKey: ['sites', searchTerm, filters],
     queryFn: () => fetchSites(searchTerm, filters),
@@ -113,7 +116,6 @@ const SitesPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* More filter options would go here in a real implementation */}
             <Button 
               variant="outline" 
               className="flex items-center gap-2"

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Site } from '@/schema/operations/site.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -7,7 +8,7 @@ export async function fetchSites(
   searchTerm?: string,
   filters?: {
     clientId?: string;
-    status?: Site['status'];
+    status?: Site['status'] | string;
     region?: string;
     siteType?: string;
   }
@@ -33,8 +34,11 @@ export async function fetchSites(
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
     }
-    if (filters.status && isSiteStatus(filters.status)) {
-      query = query.eq('status', filters.status);
+    if (filters.status && typeof filters.status === 'string') {
+      // Validate the status if it's a string
+      if (isSiteStatus(filters.status)) {
+        query = query.eq('status', filters.status);
+      }
     }
     if (filters.region) {
       query = query.eq('region', filters.region);

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Contract } from '@/schema/operations/contract.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -7,7 +8,7 @@ export async function fetchContracts(
   searchTerm?: string,
   filters?: {
     clientId?: string;
-    status?: Contract['status'];
+    status?: Contract['status'] | string;
     contractType?: string;
     fromDate?: string;
     toDate?: string;
@@ -34,8 +35,11 @@ export async function fetchContracts(
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
     }
-    if (filters.status && isContractStatus(filters.status)) {
-      query = query.eq('status', filters.status);
+    if (filters.status && typeof filters.status === 'string') {
+      // Validate the status if it's a string
+      if (isContractStatus(filters.status)) {
+        query = query.eq('status', filters.status);
+      }
     }
     if (filters.contractType) {
       query = query.eq('contract_type', filters.contractType);
@@ -189,9 +193,10 @@ export async function logContractChange(
     const changeLogEntry = {
       contract_id: contractId,
       change_date: new Date(),
-      changes: JSON.stringify(changes),
-      reason,
-      changed_by: changedBy
+      changes_json: JSON.stringify(changes), // Changed to match DB schema
+      change_type: reason, // Added required field
+      changed_by: changedBy,
+      effective_date: new Date() // Added required field
     };
 
     const { data, error } = await supabase

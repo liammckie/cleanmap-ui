@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -22,8 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { UserPlus, Search, FilterX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchClients } from '@/services/clientService';
+import type { Client } from '@/schema/operations';
 
-// Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -46,12 +45,14 @@ const StatusBadge = ({ status }: { status: string }) => {
 const ClientsPage = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    status: string;
+    industry: string;
+  }>({
     status: '',
     industry: ''
   });
 
-  // Use react-query to fetch clients data with proper error handling
   const { data: clients, isLoading, error } = useQuery({
     queryKey: ['clients', searchTerm, filters],
     queryFn: () => fetchClients(searchTerm, filters),
@@ -104,7 +105,6 @@ const ClientsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* More filter options would go here in a real implementation */}
             <Button 
               variant="outline" 
               className="flex items-center gap-2"

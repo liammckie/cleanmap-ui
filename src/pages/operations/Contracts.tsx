@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -23,8 +22,8 @@ import { FilePlus, Search, FilterX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchContracts } from '@/services/contractService';
 import { format } from 'date-fns';
+import type { Contract } from '@/schema/operations';
 
-// Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -51,13 +50,16 @@ const StatusBadge = ({ status }: { status: string }) => {
 const ContractsPage = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    clientId: string;
+    status: string;
+    contractType: string;
+  }>({
     clientId: '',
     status: '',
     contractType: ''
   });
 
-  // Use react-query to fetch contracts data with proper error handling
   const { data: contracts, isLoading, error } = useQuery({
     queryKey: ['contracts', searchTerm, filters],
     queryFn: () => fetchContracts(searchTerm, filters),
@@ -118,7 +120,6 @@ const ContractsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* More filter options would go here in a real implementation */}
             <Button 
               variant="outline" 
               className="flex items-center gap-2"

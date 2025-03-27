@@ -11,3 +11,5 @@ export * from './site.schema';
 export * from './contract.schema';
 export * from './workOrder.schema';
 export * from './serviceRequest.schema';
+export * from './audit.schema';
+export * from './workOrderAssignment.schema';

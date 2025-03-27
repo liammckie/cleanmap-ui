@@ -6,7 +6,7 @@ import { isClientStatus } from '@/schema/operations/client.schema';
 export async function fetchClients(
   searchTerm?: string, 
   filters?: { 
-    status?: Client['status'];
+    status?: Client['status'] | string;
     region?: string;
     industry?: string;
   }
@@ -24,14 +24,17 @@ export async function fetchClients(
 
   // Apply filters if provided
   if (filters) {
-    if (filters.status && isClientStatus(filters.status)) {
-      query = query.eq('status', filters.status);
-    }
-    if (filters.region) {
-      query = query.eq('region', filters.region);
+    if (filters.status && typeof filters.status === 'string') {
+      // Validate the status if it's a string
+      if (isClientStatus(filters.status)) {
+        query = query.eq('status', filters.status);
+      }
     }
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
+    }
+    if (filters.region) {
+      query = query.eq('region', filters.region);
     }
   }
 
