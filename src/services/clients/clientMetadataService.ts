@@ -1,104 +1,109 @@
+import { supabase } from '@/lib/supabase';
 
-import { supabase } from '@/integrations/supabase/client';
-import type { Client } from '@/schema/operations/client.schema';
+interface ClientLocation {
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface ClientMetadata {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  location: ClientLocation;
+}
 
 /**
- * Services for fetching client-related metadata (industries, regions, statuses)
- * 
- * @origin module: operations/clients
- * @source internal-user
+ * @function getClientMetadata 
+ * @description Fetches metadata for a client from the database
+ * @origin {source: "internal", module: "clientService", author: "system"}
+ * @field-locked id:uuid, name:string, email:string
  */
-
-// Fetch industry options for filters
-export async function fetchIndustries() {
+export const getClientMetadata = async (clientId: string): Promise<ClientMetadata | null> => {
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('industry')
-      .limit(500) // Enforce environment-safe query with limit
-      .order('industry');
-
-    if (error) {
-      console.error('Error fetching industries:', error);
-      throw error;
+    // Clean and validate input
+    const cleanId = clientId.trim();
+    if (!cleanId) {
+      console.error("Invalid client ID provided");
+      return null;
     }
 
-    // Extract unique industries
-    const industries = [...new Set(data.map(client => client.industry))].filter(Boolean);
-    return industries;
-  } catch (error) {
-    console.error('Error fetching industries:', error);
-    throw error;
+    // Add query limits for safety
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, name, email, phone, address, city, state, zip_code, country')
+      .eq('id', cleanId)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching client metadata:", error);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Transform for frontend use
+    const metadata: ClientMetadata = {
+      id: data.id,
+      name: data.name,
+      email: data.email || '',
+      phone: data.phone || '',
+      location: {
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '', 
+        zipCode: data.zip_code || '',
+        country: data.country || ''
+      }
+    };
+
+    return metadata;
+  } catch (e) {
+    console.error("Unexpected error in getClientMetadata:", e);
+    return null;
   }
 }
 
-// Fetch regions for filters
-export async function fetchRegions() {
+export const updateClientMetadata = async (clientId: string, metadata: Partial<ClientMetadata>): Promise<boolean> => {
   try {
-    // First check if the region column exists using a safer approach
-    let hasRegionColumn = false;
-    
-    // Try to perform a query that will tell us if the column exists
-    const { error: testError } = await supabase
-      .from('clients')
-      .select('region')
-      .limit(1);
-    
-    // If there's no error, the column exists
-    if (!testError) {
-      hasRegionColumn = true;
+    // Validate input
+    if (!clientId || !metadata) {
+      return false;
     }
-    
-    // If region doesn't exist, return empty array
-    if (!hasRegionColumn) {
-      console.warn("Region column doesn't exist in clients table");
-      return [];
-    }
-    
-    // Region column exists, fetch distinct regions
-    const { data: regionsData, error: regionsError } = await supabase
-      .from('clients')
-      .select('region')
-      .limit(500) // Enforce environment-safe query with limit
-      .order('region');
-      
-    if (regionsError) {
-      console.error('Error fetching regions:', regionsError);
-      return [];
-    }
-    
-    // Process the regions data safely
-    const uniqueRegions = [...new Set(
-      regionsData
-        .map(client => client.region)
-        .filter(Boolean) // Filter out null/undefined/empty values
-    )];
-    
-    return uniqueRegions;
-  } catch (error) {
-    console.error('Error in fetchRegions:', error);
-    return [];
-  }
-}
 
-// Fetch client statuses for filters
-export async function fetchClientStatuses() {
-  try {
-    const { data, error } = await supabase
+    // Transform to database format
+    const updateData: Record<string, any> = {
+      phone: metadata.phone,
+    };
+
+    // Handle nested location object
+    if (metadata.location) {
+      if (metadata.location.address) updateData.address = metadata.location.address;
+      if (metadata.location.city) updateData.city = metadata.location.city;
+      if (metadata.location.state) updateData.state = metadata.location.state;
+      if (metadata.location.zipCode) updateData.zip_code = metadata.location.zipCode;
+      if (metadata.location.country) updateData.country = metadata.location.country;
+    }
+
+    const { error } = await supabase
       .from('clients')
-      .select('status')
-      .limit(500); // Enforce environment-safe query with limit
+      .update(updateData)
+      .eq('id', clientId);
 
     if (error) {
-      console.error('Error fetching client statuses:', error);
-      throw error;
+      console.error("Error updating client metadata:", error);
+      return false;
     }
 
-    // Extract unique statuses
-    const statuses = [...new Set(data.map(client => client.status))].filter(Boolean);
-    return statuses as Client['status'][];
-  } catch (error) {
-    console.error('Error fetching client statuses:', error);
-    throw error;
+    return true;
+  } catch (e) {
+    console.error("Unexpected error in updateClientMetadata:", e);
+    return false;
   }
 }
