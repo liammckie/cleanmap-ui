@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { UserPlus, Search, FilterX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchClients } from '@/services/clientService';
+import { fetchClients } from '@/services/clients';
 import type { Client } from '@/schema/operations';
 
 const StatusBadge = ({ status }: { status: string }) => {
