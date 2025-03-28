@@ -2,56 +2,135 @@
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { MapIcon, Maximize2 } from 'lucide-react';
+import { MapIcon, Maximize2, Loader2 } from 'lucide-react';
+import { loadGoogleMapsScript, GOOGLE_MAPS_API_KEY } from '@/utils/googleMaps';
 
-// Mock locations data
-const mockLocations = [
+// Sample locations data - in a real app, this would come from your API/database
+const sampleLocations = [
   { id: 1, name: 'Office Building A', lat: -33.865143, lng: 151.209900, count: 3 },
   { id: 2, name: 'Business Plaza', lat: -33.882130, lng: 151.195370, count: 9 },
   { id: 3, name: 'Corporate Headquarters', lat: -33.889967, lng: 151.274846, count: 3 },
 ];
 
+interface Location {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  count: number;
+}
+
 const LocationsMap = () => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [locations, setLocations] = useState<Location[]>(sampleLocations);
 
   useEffect(() => {
-    // Simulate map loading
-    if (mapRef.current) {
-      const mapElement = mapRef.current;
-      
-      // Add a loading class then remove it after a delay to simulate loading
-      mapElement.classList.add('animate-pulse', 'bg-gray-200', 'dark:bg-gray-700');
-      
-      const timer = setTimeout(() => {
-        mapElement.classList.remove('animate-pulse', 'bg-gray-200', 'dark:bg-gray-700');
-        mapElement.style.backgroundImage = 'url("https://api.mapbox.com/styles/v1/mapbox/light-v10/static/151.21,-33.868,10,0/600x400?access_token=pk.demo")';
-        mapElement.style.backgroundSize = 'cover';
-        mapElement.style.backgroundPosition = 'center';
-        
-        // Add mock location markers
-        mockLocations.forEach(location => {
-          const marker = document.createElement('div');
-          marker.className = 'absolute flex items-center justify-center';
-          marker.style.left = `${Math.random() * 80 + 10}%`;
-          marker.style.top = `${Math.random() * 80 + 10}%`;
-          
-          const dot = document.createElement('div');
-          dot.className = cn(
-            'w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center',
-            'text-xs font-semibold shadow-md transform transition-transform duration-200',
-            'cursor-pointer hover:scale-110'
-          );
-          dot.textContent = location.count.toString();
-          
-          marker.appendChild(dot);
-          mapElement.appendChild(marker);
-        });
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
+    const initMap = async () => {
+      try {
+        await loadGoogleMapsScript();
+        initializeMap();
+      } catch (error) {
+        console.error('Error loading Google Maps:', error);
+        setIsLoading(false);
+      }
+    };
+
+    initMap();
+    
+    return () => {
+      // Clean up markers
+      if (markersRef.current) {
+        markersRef.current.forEach(marker => marker.setMap(null));
+      }
+    };
   }, []);
+
+  // Set up the map whenever fullscreen changes
+  useEffect(() => {
+    if (googleMapRef.current) {
+      google.maps.event.trigger(googleMapRef.current, 'resize');
+      
+      // Re-center the map on window resize
+      const center = googleMapRef.current.getCenter();
+      if (center) {
+        setTimeout(() => {
+          googleMapRef.current?.setCenter(center);
+        }, 100);
+      }
+    }
+  }, [isFullscreen]);
+
+  const initializeMap = () => {
+    if (!mapRef.current) return;
+
+    setIsLoading(true);
+
+    // Default map center (Sydney, Australia)
+    const mapCenter = { lat: -33.8688, lng: 151.2093 };
+
+    // Create the map
+    googleMapRef.current = new google.maps.Map(mapRef.current, {
+      center: mapCenter,
+      zoom: 12,
+      mapTypeControl: true,
+      streetViewControl: true,
+      fullscreenControl: false,
+      styles: [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }]
+        }
+      ]
+    });
+
+    // Add markers for each location
+    locations.forEach(location => {
+      const marker = new google.maps.Marker({
+        position: { lat: location.lat, lng: location.lng },
+        map: googleMapRef.current,
+        title: location.name,
+        label: {
+          text: location.count.toString(),
+          color: 'white',
+          fontWeight: 'bold'
+        },
+        animation: google.maps.Animation.DROP
+      });
+
+      // Create info window
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div style="padding: 8px;">
+            <h3 style="margin: 0; font-size: 16px;">${location.name}</h3>
+            <p style="margin: 4px 0 0;">Staff assigned: ${location.count}</p>
+          </div>
+        `
+      });
+
+      // Add click event for the marker
+      marker.addListener('click', () => {
+        infoWindow.open(googleMapRef.current, marker);
+      });
+
+      markersRef.current.push(marker);
+    });
+
+    // Fit the map to show all markers if we have any
+    if (locations.length > 0) {
+      const bounds = new google.maps.LatLngBounds();
+      locations.forEach(location => {
+        bounds.extend({ lat: location.lat, lng: location.lng });
+      });
+      googleMapRef.current.fitBounds(bounds);
+    }
+
+    setIsLoading(false);
+  };
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -88,7 +167,12 @@ const LocationsMap = () => {
           isFullscreen ? "h-[calc(100%-60px)]" : "h-[300px]"
         )}
       >
-        {/* Map will be rendered here by the useEffect hook */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+            <span className="ml-2 text-gray-600 dark:text-gray-300">Loading map...</span>
+          </div>
+        )}
       </div>
     </div>
   );

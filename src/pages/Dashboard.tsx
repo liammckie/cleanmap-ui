@@ -3,7 +3,7 @@ import { Activity, Building2, Calendar, DollarSign, Users } from 'lucide-react';
 import StatCard from '@/components/Dashboard/StatCard';
 import TasksList from '@/components/Dashboard/TasksList';
 import UpcomingContracts from '@/components/Dashboard/UpcomingContracts';
-import LocationsMap from '@/components/Dashboard/LocationsMap';
+import DashboardMap from '@/components/Dashboard/DashboardMap';
 
 const Dashboard = () => {
   return (
@@ -40,7 +40,7 @@ const Dashboard = () => {
         <UpcomingContracts />
       </div>
 
-      <LocationsMap />
+      <DashboardMap />
     </div>
   );
 };
