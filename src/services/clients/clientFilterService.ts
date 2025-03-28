@@ -86,7 +86,7 @@ export async function filterClients(filters: {
     }
     
     if (filters.search) {
-      // Fix the infinite recursion by using a string format for .or() clause
+      // Using a string format for .or() clause to avoid infinite recursion
       query = query.or(`company_name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%,contact_email.ilike.%${filters.search}%,billing_address_city.ilike.%${filters.search}%`);
     }
     

@@ -106,12 +106,11 @@ const ClientsPage = () => {
 
       {!isLoading && !error && clients && clients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients?.map((client: any) => (
+          {clients?.map((client: Client) => (
             <ClientCard 
               key={client.id} 
               client={client}
               onClick={() => {
-                // Handle click - could navigate to client detail page
                 console.log('Clicked client:', client.id);
               }}
             />

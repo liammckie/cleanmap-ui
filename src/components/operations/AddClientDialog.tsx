@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   AlertDialog,
@@ -16,14 +17,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { createClient } from '@/services/clientService';
+import { createClient } from '@/services/clients';
 
 interface AddClientDialogProps {
   children: React.ReactNode;
   onClientAdded?: () => void;
 }
 
-export const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdded }) => {
+const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdded }) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,7 +78,7 @@ export const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onCl
         billing_address_city: city,
         billing_address_state: state,
         billing_address_postcode: postcode,
-        billing_address_zip: postcode, // Add this to fix the missing property error
+        billing_address_zip: postcode, // Using postcode for zip as well
         billing_address_country: 'Australia', // Default
         payment_terms: paymentTerms,
         industry: industry,
