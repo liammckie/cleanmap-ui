@@ -4,29 +4,33 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { MapIcon, Maximize2, Loader2 } from 'lucide-react';
 import { loadGoogleMapsScript, GOOGLE_MAPS_API_KEY } from '@/utils/googleMaps';
+import { LocationData } from '@/hooks/useLocations';
 
-// Sample locations data - in a real app, this would come from your API/database
-const sampleLocations = [
-  { id: 1, name: 'Office Building A', lat: -33.865143, lng: 151.209900, count: 3 },
-  { id: 2, name: 'Business Plaza', lat: -33.882130, lng: 151.195370, count: 9 },
-  { id: 3, name: 'Corporate Headquarters', lat: -33.889967, lng: 151.274846, count: 3 },
-];
-
-interface Location {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  count: number;
+interface LocationsMapProps {
+  locations?: LocationData[];
 }
 
-const LocationsMap = () => {
+const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [locations, setLocations] = useState<Location[]>(sampleLocations);
+  const [mapLocations, setMapLocations] = useState<LocationData[]>([]);
+
+  // Set default locations if none provided
+  useEffect(() => {
+    if (locations && locations.length > 0) {
+      setMapLocations(locations);
+    } else {
+      // Sample locations data as fallback
+      setMapLocations([
+        { id: '1', name: 'Office Building A', lat: -33.865143, lng: 151.209900, count: 3, address: '123 Sample St', city: 'Sydney' },
+        { id: '2', name: 'Business Plaza', lat: -33.882130, lng: 151.195370, count: 9, address: '456 Sample Ave', city: 'Sydney' },
+        { id: '3', name: 'Corporate Headquarters', lat: -33.889967, lng: 151.274846, count: 3, address: '789 Sample Blvd', city: 'Sydney' },
+      ]);
+    }
+  }, [locations]);
 
   useEffect(() => {
     const initMap = async () => {
@@ -48,6 +52,18 @@ const LocationsMap = () => {
       }
     };
   }, []);
+
+  // Re-initialize map when locations change
+  useEffect(() => {
+    if (googleMapRef.current && mapLocations.length > 0) {
+      // Clear existing markers
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+      
+      // Add new markers
+      addMarkersToMap();
+    }
+  }, [mapLocations]);
 
   // Set up the map whenever fullscreen changes
   useEffect(() => {
@@ -88,8 +104,16 @@ const LocationsMap = () => {
       ]
     });
 
+    addMarkersToMap();
+
+    setIsLoading(false);
+  };
+
+  const addMarkersToMap = () => {
+    if (!googleMapRef.current || mapLocations.length === 0) return;
+
     // Add markers for each location
-    locations.forEach(location => {
+    mapLocations.forEach(location => {
       const marker = new google.maps.Marker({
         position: { lat: location.lat, lng: location.lng },
         map: googleMapRef.current,
@@ -121,15 +145,13 @@ const LocationsMap = () => {
     });
 
     // Fit the map to show all markers if we have any
-    if (locations.length > 0) {
+    if (mapLocations.length > 0) {
       const bounds = new google.maps.LatLngBounds();
-      locations.forEach(location => {
+      mapLocations.forEach(location => {
         bounds.extend({ lat: location.lat, lng: location.lng });
       });
       googleMapRef.current.fitBounds(bounds);
     }
-
-    setIsLoading(false);
   };
 
   const toggleFullscreen = () => {
