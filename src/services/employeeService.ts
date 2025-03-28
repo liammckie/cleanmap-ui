@@ -1,9 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Employee } from '@/schema/hr.schema';
+import type { Employee as EmployeeSchema } from '@/schema/hr.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 import type { TablesInsert } from '@/integrations/supabase/types';
 import { Database } from '@/integrations/supabase/types';
+import { Employee } from '@/types/employee.types';
 
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status'];
@@ -72,6 +73,7 @@ export async function fetchEmployeeById(id: string) {
   return data;
 }
 
+// Update the parameter type to accept our modified Employee type that has string | Date
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
   // Convert Date objects to ISO strings for Supabase
   const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>;
@@ -89,6 +91,7 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
   return data[0];
 }
 
+// Update the parameter type here as well
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
   // Convert Date objects to ISO strings for Supabase
   const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>;

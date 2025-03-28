@@ -28,7 +28,7 @@ export function toISOString(date: Date | string | null | undefined): string | nu
 
 /**
  * Prepare an object with dates for database operations by converting Date objects to strings
- * @param obj Object containing potential Date objects
+ * @param obj Object containing potential Date objects or date strings
  * @returns Same object with dates converted to strings
  */
 export function prepareObjectForDb<T extends Record<string, any>>(obj: T): Record<string, any> {
@@ -39,8 +39,8 @@ export function prepareObjectForDb<T extends Record<string, any>>(obj: T): Recor
   
   // Process each property
   Object.entries(rest).forEach(([key, value]) => {
-    // If the value is a Date, convert it to ISO string
-    if (value instanceof Date) {
+    // If the value is a Date or a date string, convert it to ISO string
+    if (value instanceof Date || (typeof value === 'string' && isDateString(value))) {
       result[key] = toISOString(value);
     } else {
       result[key] = value;
@@ -66,4 +66,19 @@ export function formatDate(date: Date | string | null | undefined, format: strin
     console.error('Invalid date:', date);
     return '';
   }
+}
+
+/**
+ * Helper function to check if a string is a valid date string
+ * @param value String to check
+ * @returns Boolean indicating if the string is a valid date
+ */
+function isDateString(value: string): boolean {
+  if (!value) return false;
+  
+  // Try to create a Date object from the string
+  const date = new Date(value);
+  
+  // Check if the date is valid
+  return !isNaN(date.getTime());
 }
