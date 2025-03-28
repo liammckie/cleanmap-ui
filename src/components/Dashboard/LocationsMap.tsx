@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MapIcon, Maximize2, Loader2 } from 'lucide-react';
 import { loadGoogleMapsScript, GOOGLE_MAPS_API_KEY } from '@/utils/googleMaps';
 import { LocationData } from '@/hooks/useLocations';
+import { useToast } from '@/hooks/use-toast';
 
 interface LocationsMapProps {
   locations?: LocationData[];
@@ -13,10 +14,11 @@ interface LocationsMapProps {
 const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mapLocations, setMapLocations] = useState<LocationData[]>([]);
+  const { toast } = useToast();
 
   // Set default locations if none provided
   useEffect(() => {
@@ -35,10 +37,20 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
   useEffect(() => {
     const initMap = async () => {
       try {
+        setIsLoading(true);
         await loadGoogleMapsScript();
-        initializeMap();
+        if (window.google && window.google.maps) {
+          initializeMap();
+        } else {
+          throw new Error('Google Maps failed to load properly');
+        }
       } catch (error) {
         console.error('Error loading Google Maps:', error);
+        toast({
+          title: 'Map Loading Error',
+          description: 'Failed to load Google Maps. Please try again later.',
+          variant: 'destructive',
+        });
         setIsLoading(false);
       }
     };
@@ -48,16 +60,20 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
     return () => {
       // Clean up markers
       if (markersRef.current) {
-        markersRef.current.forEach(marker => marker.setMap(null));
+        markersRef.current.forEach(marker => {
+          marker.map = null;
+        });
       }
     };
-  }, []);
+  }, [toast]);
 
   // Re-initialize map when locations change
   useEffect(() => {
-    if (googleMapRef.current && mapLocations.length > 0) {
+    if (googleMapRef.current && mapLocations.length > 0 && window.google) {
       // Clear existing markers
-      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current.forEach(marker => {
+        marker.map = null;
+      });
       markersRef.current = [];
       
       // Add new markers
@@ -67,8 +83,8 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
 
   // Set up the map whenever fullscreen changes
   useEffect(() => {
-    if (googleMapRef.current) {
-      google.maps.event.trigger(googleMapRef.current, 'resize');
+    if (googleMapRef.current && window.google) {
+      window.google.maps.event.trigger(googleMapRef.current, 'resize');
       
       // Re-center the map on window resize
       const center = googleMapRef.current.getCenter();
@@ -81,15 +97,13 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
   }, [isFullscreen]);
 
   const initializeMap = () => {
-    if (!mapRef.current) return;
-
-    setIsLoading(true);
+    if (!mapRef.current || !window.google) return;
 
     // Default map center (Sydney, Australia)
     const mapCenter = { lat: -33.8688, lng: 151.2093 };
 
     // Create the map
-    googleMapRef.current = new google.maps.Map(mapRef.current, {
+    googleMapRef.current = new window.google.maps.Map(mapRef.current, {
       center: mapCenter,
       zoom: 12,
       mapTypeControl: true,
@@ -109,29 +123,52 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
     setIsLoading(false);
   };
 
+  const createMarkerContent = (location: LocationData): HTMLDivElement => {
+    // Create marker element with count display
+    const markerElement = document.createElement('div');
+    markerElement.className = 'custom-marker';
+    markerElement.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background-color: #3b82f6;
+      color: white;
+      font-weight: bold;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      font-size: 14px;
+      position: relative;
+    `;
+    markerElement.textContent = location.count.toString();
+    
+    return markerElement;
+  };
+  
   const addMarkersToMap = () => {
-    if (!googleMapRef.current || mapLocations.length === 0) return;
+    if (!googleMapRef.current || mapLocations.length === 0 || !window.google) return;
 
     // Add markers for each location
     mapLocations.forEach(location => {
-      const marker = new google.maps.Marker({
+      const markerContent = createMarkerContent(location);
+      
+      // Create advanced marker
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
         position: { lat: location.lat, lng: location.lng },
         map: googleMapRef.current,
         title: location.name,
-        label: {
-          text: location.count.toString(),
-          color: 'white',
-          fontWeight: 'bold'
-        },
-        animation: google.maps.Animation.DROP
+        content: markerContent
       });
 
       // Create info window
-      const infoWindow = new google.maps.InfoWindow({
+      const infoWindow = new window.google.maps.InfoWindow({
         content: `
           <div style="padding: 8px;">
             <h3 style="margin: 0; font-size: 16px;">${location.name}</h3>
             <p style="margin: 4px 0 0;">Staff assigned: ${location.count}</p>
+            <p style="margin: 4px 0 0;">${location.address}, ${location.city}</p>
           </div>
         `
       });
@@ -146,7 +183,7 @@ const LocationsMap = ({ locations = [] }: LocationsMapProps) => {
 
     // Fit the map to show all markers if we have any
     if (mapLocations.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
+      const bounds = new window.google.maps.LatLngBounds();
       mapLocations.forEach(location => {
         bounds.extend({ lat: location.lat, lng: location.lng });
       });

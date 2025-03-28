@@ -17,12 +17,18 @@ export const loadGoogleMapsScript = (): Promise<void> => {
 
     // Create the script element
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
     script.async = true;
     script.defer = true;
     
     // Set up callbacks
-    script.onload = () => resolve();
+    script.onload = () => {
+      if (window.google && window.google.maps) {
+        resolve();
+      } else {
+        reject(new Error('Google Maps script loaded but API not available'));
+      }
+    };
     script.onerror = (error) => reject(new Error(`Google Maps script loading failed: ${error}`));
     
     // Add the script to the document
@@ -39,10 +45,10 @@ export const getCoordinatesFromAddress = async (address: string): Promise<{lat: 
   await loadGoogleMapsScript();
   
   return new Promise((resolve, reject) => {
-    const geocoder = new google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder();
     
     geocoder.geocode({ address }, (results, status) => {
-      if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+      if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
         const location = results[0].geometry.location;
         resolve({
           lat: location.lat(),
@@ -74,4 +80,12 @@ export const parseCoordinatesFromStorage = (storedCoordinates: string): {lat: nu
   if (isNaN(lat) || isNaN(lng)) return null;
   
   return { lat, lng };
+};
+
+/**
+ * Create a static map URL for a given location
+ * Useful for thumbnails or static map displays
+ */
+export const getStaticMapUrl = (location: {lat: number, lng: number}, zoom = 14, width = 400, height = 200): string => {
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=${zoom}&size=${width}x${height}&key=${GOOGLE_MAPS_API_KEY}&markers=color:red%7C${location.lat},${location.lng}`;
 };

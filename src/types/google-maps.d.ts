@@ -17,6 +17,17 @@ declare namespace google {
       getPosition(): LatLng;
     }
 
+    namespace marker {
+      class AdvancedMarkerElement {
+        constructor(opts?: AdvancedMarkerElementOptions);
+        position: LatLng | LatLngLiteral | null;
+        map: Map | null;
+        title: string | null;
+        content: Node | null;
+        addListener(eventName: string, handler: Function): MapsEventListener;
+      }
+    }
+
     class LatLng {
       constructor(lat: number, lng: number, noWrap?: boolean);
       lat(): number;
@@ -82,6 +93,13 @@ declare namespace google {
       label?: string | MarkerLabel;
       animation?: Animation;
       icon?: string | Icon | Symbol;
+    }
+
+    interface AdvancedMarkerElementOptions {
+      position?: LatLng | LatLngLiteral;
+      map?: Map;
+      title?: string;
+      content?: Node;
     }
 
     interface MarkerLabel {

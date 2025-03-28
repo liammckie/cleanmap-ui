@@ -2,16 +2,36 @@
 import { useState, useEffect } from 'react';
 import LocationsMap from './LocationsMap';
 import { useLocations } from '@/hooks/useLocations';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const DashboardMap = () => {
   const { data: locations, isLoading, error } = useLocations({ onlyActive: true });
+  const { toast } = useToast();
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      console.error('Error loading locations:', error);
+      toast({
+        title: "Error loading locations",
+        description: "Could not load location data. Please try again later.",
+        variant: "destructive",
+      });
+      setShowError(true);
+    }
+  }, [error, toast]);
 
   if (isLoading) {
-    return <LocationsMap />;
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-100 dark:border-gray-700 p-6 flex items-center justify-center h-[300px]">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-blue mr-2" />
+        <span>Loading locations...</span>
+      </div>
+    );
   }
 
-  if (error) {
-    console.error('Error loading locations:', error);
+  if (showError) {
     return <LocationsMap />;
   }
 
