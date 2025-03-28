@@ -1,13 +1,33 @@
+
 import { useState, useEffect } from 'react';
-import LocationsMap from './LocationsMap';
 import { useLocations } from '@/hooks/useLocations';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import LocationsMap from '@/components/Map/LocationsMap';
+import { MapLocation } from '@/components/Map/types';
 
 const DashboardMap = () => {
   const { data: locations, isLoading, error } = useLocations({ onlyActive: true });
   const { toast } = useToast();
   const [showError, setShowError] = useState(false);
+  const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
+
+  // Transform location data to the format expected by LocationsMap
+  useEffect(() => {
+    if (locations) {
+      const mappedLocations: MapLocation[] = locations.map(location => ({
+        id: location.id,
+        name: location.name,
+        lat: location.lat,
+        lng: location.lng,
+        count: location.count,
+        address: location.address,
+        city: location.city,
+        clientName: location.clientName
+      }));
+      setMapLocations(mappedLocations);
+    }
+  }, [locations]);
 
   useEffect(() => {
     if (error) {
@@ -38,7 +58,7 @@ const DashboardMap = () => {
     );
   }
 
-  return <LocationsMap locations={locations} />;
+  return <LocationsMap locations={mapLocations} />;
 };
 
 export default DashboardMap;

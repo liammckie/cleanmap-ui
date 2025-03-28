@@ -1,17 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { MapLocation } from '@/components/Map/types';
 
-export interface LocationData {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  count: number;
-  address: string;
-  city: string;
-  clientName?: string;
-}
+export type LocationData = MapLocation;
 
 export const useLocations = (options?: { 
   clientId?: string;

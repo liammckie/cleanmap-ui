@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Building2, MapPin, Plus, Search, Filter, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import LocationsMap from '@/components/Dashboard/LocationsMap';
-import { LocationData } from '@/hooks/useLocations';
+import LocationsMap from '@/components/Map/LocationsMap';
+import { MapLocation } from '@/components/Map/types';
 
 interface Location {
   id: string;
@@ -128,7 +127,7 @@ const Locations = () => {
   const [locations, setLocations] = useState(mockLocations);
   const [viewType, setViewType] = useState<'grid' | 'map'>('grid');
   const [filter, setFilter] = useState('all');
-  const [mapLocations, setMapLocations] = useState<LocationData[]>([]);
+  const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
 
   const filteredLocations = locations.filter((location) => {
     const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -140,9 +139,8 @@ const Locations = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Convert the filtered locations to the format expected by LocationsMap
   useEffect(() => {
-    const mapData: LocationData[] = filteredLocations
+    const mapData: MapLocation[] = filteredLocations
       .filter(location => location.lat && location.lng)
       .map(location => ({
         id: location.id,
