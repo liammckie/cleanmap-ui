@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, leadSchema } from '@/schema/sales/lead.schema';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
-import type { TablesInsert } from '@/integrations/supabase/types';
+import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } from '@/utils/supabaseInsertHelper';
 
 /**
  * Create a new lead
@@ -13,26 +12,17 @@ import type { TablesInsert } from '@/integrations/supabase/types';
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
     // Validate the lead data using Zod schema
-    const validatedLead = leadSchema.parse({
-      ...lead,
-      created_at: new Date(),
-      updated_at: new Date()
-    });
+    const validatedLead = validateWithSchema(
+      {
+        ...lead,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      leadSchema
+    );
 
-    // Prepare data for Supabase by converting Date objects to ISO strings
-    // First convert to unknown, then to TablesInsert to ensure type compatibility with Supabase
-    const leadData = prepareObjectForDb(validatedLead) as unknown as TablesInsert<'leads'>;
-
-    const { data, error } = await supabase
-      .from('leads')
-      .insert(leadData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating lead:', error);
-      return null;
-    }
+    // Insert the validated lead data using our helper
+    const data = await insertTypedRow(supabase, 'leads', validatedLead);
 
     return {
       ...data,
@@ -54,21 +44,8 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare data for Supabase using the utility function
-    // Use type assertion with unknown as intermediate step for type safety
-    const leadData = prepareObjectForDb(lead) as unknown as TablesInsert<'leads'>;
-
-    const { data, error } = await supabase
-      .from('leads')
-      .update(leadData)
-      .eq('id', leadId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating lead:', error);
-      return null;
-    }
+    // Update the lead using our helper
+    const data = await updateTypedRow(supabase, 'leads', leadId, lead);
 
     return {
       ...data,
@@ -89,16 +66,7 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
  */
 export const deleteLead = async (leadId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('leads')
-      .delete()
-      .eq('id', leadId);
-
-    if (error) {
-      console.error('Error deleting lead:', error);
-      return false;
-    }
-
+    await deleteTypedRow(supabase, 'leads', leadId);
     return true;
   } catch (error) {
     console.error('Unexpected error in deleteLead:', error);

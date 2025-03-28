@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Quote, quoteSchema } from '@/schema/sales/quote.schema';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
-import type { TablesInsert } from '@/integrations/supabase/types';
+import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } from '@/utils/supabaseInsertHelper';
 
 /**
  * Create a new quote
@@ -12,26 +11,17 @@ import type { TablesInsert } from '@/integrations/supabase/types';
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
     // Validate the quote data using Zod schema
-    const validatedQuote = quoteSchema.parse({
-      ...quote,
-      created_at: new Date(),
-      updated_at: new Date()
-    });
+    const validatedQuote = validateWithSchema(
+      {
+        ...quote,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      quoteSchema
+    );
 
-    // Prepare data for Supabase by converting Date objects to ISO strings
-    // Use type assertion with unknown as intermediate step for type safety
-    const quoteData = prepareObjectForDb(validatedQuote) as unknown as TablesInsert<'quotes'>;
-
-    const { data, error } = await supabase
-      .from('quotes')
-      .insert(quoteData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating quote:', error);
-      return null;
-    }
+    // Insert the validated quote data using our helper
+    const data = await insertTypedRow(supabase, 'quotes', validatedQuote);
 
     return {
       ...data,
@@ -54,21 +44,8 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
  */
 export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Prepare data for Supabase by converting Date objects to ISO strings
-    // Use type assertion with unknown as intermediate step for type safety
-    const quoteData = prepareObjectForDb(quote) as unknown as TablesInsert<'quotes'>;
-
-    const { data, error } = await supabase
-      .from('quotes')
-      .update(quoteData)
-      .eq('id', quoteId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating quote:', error);
-      return null;
-    }
+    // Update the quote using our helper
+    const data = await updateTypedRow(supabase, 'quotes', quoteId, quote);
 
     return {
       ...data,
@@ -90,16 +67,7 @@ export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promi
  */
 export const deleteQuote = async (quoteId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('quotes')
-      .delete()
-      .eq('id', quoteId);
-
-    if (error) {
-      console.error('Error deleting quote:', error);
-      return false;
-    }
-
+    await deleteTypedRow(supabase, 'quotes', quoteId);
     return true;
   } catch (error) {
     console.error('Unexpected error in deleteQuote:', error);

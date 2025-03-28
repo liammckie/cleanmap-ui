@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { QuoteLineItem } from '@/schema/sales/quote.schema';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
-import type { TablesInsert } from '@/integrations/supabase/types';
+import { insertTypedRow, updateTypedRow, deleteTypedRow } from '@/utils/supabaseInsertHelper';
 
 /**
  * Get all line items for a quote
@@ -48,23 +47,8 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
       throw new Error('Description is required for line item');
     }
 
-    // Prepare data for Supabase
-    const lineItemData = prepareObjectForDb(lineItem) as {
-      quote_id: string;
-      description: string;
-      [key: string]: any;
-    };
-
-    const { data, error } = await supabase
-      .from('quote_line_items')
-      .insert(lineItemData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding quote line item:', error);
-      return null;
-    }
+    // Insert the line item using our helper
+    const data = await insertTypedRow(supabase, 'quote_line_items', lineItem);
 
     return {
       ...data,
@@ -85,21 +69,8 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
  */
 export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
   try {
-    // Prepare data for Supabase
-    // Use type assertion with unknown as intermediate step for type safety
-    const lineItemData = prepareObjectForDb(lineItem) as unknown as TablesInsert<'quote_line_items'>;
-
-    const { data, error } = await supabase
-      .from('quote_line_items')
-      .update(lineItemData)
-      .eq('id', lineItemId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating quote line item:', error);
-      return null;
-    }
+    // Update the line item using our helper
+    const data = await updateTypedRow(supabase, 'quote_line_items', lineItemId, lineItem);
 
     return {
       ...data,
@@ -119,16 +90,7 @@ export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<
  */
 export const deleteQuoteLineItem = async (lineItemId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('quote_line_items')
-      .delete()
-      .eq('id', lineItemId);
-
-    if (error) {
-      console.error('Error deleting quote line item:', error);
-      return false;
-    }
-
+    await deleteTypedRow(supabase, 'quote_line_items', lineItemId);
     return true;
   } catch (error) {
     console.error('Unexpected error in deleteQuoteLineItem:', error);
