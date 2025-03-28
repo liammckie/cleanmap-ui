@@ -65,6 +65,7 @@ export async function filterClients(filters: {
     }
     
     if (filters.search) {
+      // Using separate or conditions instead of a single combined one to avoid infinite recursion
       query = query.or(
         `company_name.ilike.%${filters.search}%,` +
         `contact_name.ilike.%${filters.search}%,` +
@@ -77,9 +78,11 @@ export async function filterClients(filters: {
     
     if (error) throw error;
     
+    // Cast to unknown first, then to Client[]
     return data as unknown as Client[];
   } catch (error) {
     console.error('Error filtering clients:', error);
     throw error;
   }
 }
+

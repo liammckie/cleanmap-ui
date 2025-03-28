@@ -107,5 +107,7 @@ export async function fetchClients(searchTerm = '', filters = { status: '', indu
     throw error;
   }
   
-  return data as Client[];
+  // Fixed typing issue: Cast data to unknown first, then to Client[]
+  return data as unknown as Client[];
 }
+

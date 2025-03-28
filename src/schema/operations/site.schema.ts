@@ -31,6 +31,8 @@ export interface Site {
   notes: string | null;
   created_at: Date;
   updated_at: Date;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // Type guard for Site status
@@ -58,6 +60,9 @@ export const siteSchema = z.object({
   region: z.string().nullable(),
   status: z.enum(['Active', 'Inactive', 'Pending Launch', 'Suspended']),
   notes: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
+

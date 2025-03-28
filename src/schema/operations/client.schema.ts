@@ -31,6 +31,8 @@ export interface Client {
   payment_terms: string;
   business_number: string | null;
   on_hold_reason: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // Type guard for Client status
@@ -58,6 +60,9 @@ export const clientSchema = z.object({
   notes: z.string().nullable(),
   business_number: z.string().nullable(),
   on_hold_reason: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
+

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Site } from '@/schema/operations/site.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -55,7 +54,7 @@ export async function fetchSites(
     throw error;
   }
 
-  return data;
+  return data as unknown as Site[];
 }
 
 export async function fetchSiteById(id: string) {
@@ -91,7 +90,7 @@ export async function createSite(site: Omit<Site, 'id' | 'created_at' | 'updated
     throw error;
   }
 
-  return data[0];
+  return data[0] as unknown as Site;
 }
 
 export async function updateSite(id: string, updates: Partial<Site>) {
@@ -109,7 +108,7 @@ export async function updateSite(id: string, updates: Partial<Site>) {
     throw error;
   }
 
-  return data[0];
+  return data[0] as unknown as Site;
 }
 
 export async function deleteSite(id: string) {
