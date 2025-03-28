@@ -34,6 +34,8 @@ export interface Site {
   latitude: number | null;
   longitude: number | null;
   service_start_date?: Date | null;
+  price_per_service?: number | null;
+  price_frequency?: string | null;
   // Properties to match what Sites.tsx is using
   address_street?: string;
   address_city?: string;
@@ -73,6 +75,8 @@ export const siteSchema = z.object({
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
   service_start_date: z.date().nullable().optional(),
+  price_per_service: z.number().nullable().optional(),
+  price_frequency: z.string().nullable().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });

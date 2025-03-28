@@ -142,28 +142,39 @@ const ClientFormStepper: React.FC = () => {
       const { sites, ...clientData } = data;
       
       // Create the client first
-      const newClient = await createClient(clientData);
+      const newClient = await createClient({
+        ...clientData,
+        latitude: null,
+        longitude: null
+      });
       
       // Then create each site, linking to the new client
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
           // Format the site data correctly
           await createSite({
-            ...siteData,
             client_id: newClient.id,
-            status: 'Active',
+            site_name: siteData.site_name,
             site_code: null,
+            street_address: siteData.address_street,
+            city: siteData.address_city,
+            state: siteData.address_state,
+            zip_code: siteData.address_postcode,
             country: 'Australia',
             contact_name: null,
             contact_email: null,
             contact_phone: null,
             square_footage: null,
             floors: null,
+            site_type: siteData.site_type,
+            region: siteData.region || null,
+            status: 'Active',
             notes: siteData.special_instructions || null,
             latitude: null,
             longitude: null,
-            // Convert service_start_date to a proper Date if it exists
-            service_start_date: siteData.service_start_date ? new Date(siteData.service_start_date) : null
+            service_start_date: siteData.service_start_date,
+            price_per_service: siteData.price_per_service,
+            price_frequency: siteData.price_frequency
           });
         }
       }
