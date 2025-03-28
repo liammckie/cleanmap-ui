@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ClipboardList, Edit, AlertCircle } from 'lucide-react';
 import { 
   Table, 
@@ -33,6 +33,20 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onSort,
   onEditEmployee
 }) => {
+  // Helper function to safely format dates that could be strings or Date objects
+  const formatDate = (date: string | Date | null | undefined) => {
+    if (!date) return 'N/A';
+    
+    try {
+      // If it's a string, parse it first
+      const dateObj = typeof date === 'string' ? parseISO(date) : date;
+      return format(dateObj, 'dd MMM yyyy');
+    } catch (e) {
+      console.error('Invalid date:', date);
+      return 'N/A';
+    }
+  };
+
   const getOnboardingTasksIndicator = (employee: Employee) => {
     const totalTasks = 7;
     const completedTasks = employee.status === 'Onboarding' ? 3 : 0;
@@ -106,7 +120,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             <TableCell>{employee.job_title}</TableCell>
             <TableCell>{employee.department}</TableCell>
             <TableCell>
-              {employee.start_date ? format(new Date(employee.start_date), 'dd MMM yyyy') : 'N/A'}
+              {formatDate(employee.start_date)}
             </TableCell>
             <TableCell>
               {getOnboardingTasksIndicator(employee)}

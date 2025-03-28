@@ -1,8 +1,14 @@
 
 import { Employee as EmployeeSchema } from '@/schema/hr.schema';
 
-// Export the Employee type from the schema for use throughout the application
-export type Employee = EmployeeSchema;
+// Modify the Employee type to handle string dates from the API
+export type Employee = Omit<EmployeeSchema, 'date_of_birth' | 'start_date' | 'created_at' | 'updated_at'> & {
+  // API returns dates as strings, but we want to use them as Date objects in the UI
+  date_of_birth: string | Date;
+  start_date: string | Date;
+  created_at: string | Date;
+  updated_at: string | Date;
+};
 
 export interface EmployeeFilters {
   department?: string;

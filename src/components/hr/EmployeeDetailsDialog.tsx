@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +25,20 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
 }) => {
   if (!employee) return null;
 
+  // Helper function to safely format dates that could be strings or Date objects
+  const formatDate = (date: string | Date | null | undefined) => {
+    if (!date) return 'N/A';
+    
+    try {
+      // If it's a string, parse it first
+      const dateObj = typeof date === 'string' ? parseISO(date) : date;
+      return format(dateObj, 'dd MMM yyyy');
+    } catch (e) {
+      console.error('Invalid date:', date);
+      return 'N/A';
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -43,7 +57,7 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
             <div className="text-sm grid gap-2">
               <div>
                 <span className="text-muted-foreground">Date of Birth:</span>{' '}
-                {employee.date_of_birth ? format(new Date(employee.date_of_birth), 'dd MMM yyyy') : 'N/A'}
+                {formatDate(employee.date_of_birth)}
               </div>
               <div>
                 <span className="text-muted-foreground">Phone:</span>{' '}
@@ -73,7 +87,7 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
               </div>
               <div>
                 <span className="text-muted-foreground">Start Date:</span>{' '}
-                {employee.start_date ? format(new Date(employee.start_date), 'dd MMM yyyy') : 'N/A'}
+                {formatDate(employee.start_date)}
               </div>
               <div>
                 <span className="text-muted-foreground">Type:</span>{' '}
