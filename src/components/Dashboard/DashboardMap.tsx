@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import LocationsMap from './LocationsMap';
 import { useLocations } from '@/hooks/useLocations';
@@ -32,7 +31,11 @@ const DashboardMap = () => {
   }
 
   if (showError) {
-    return <LocationsMap />;
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-100 dark:border-gray-700 p-6 flex items-center justify-center h-[300px]">
+        <span>Error loading locations. Please try again later.</span>
+      </div>
+    );
   }
 
   return <LocationsMap locations={locations} />;
