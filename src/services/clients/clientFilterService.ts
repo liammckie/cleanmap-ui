@@ -1,76 +1,84 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { isClientStatus } from '@/schema/operations/client.schema';
+import type { Client } from '@/schema/operations';
 
 /**
- * Client filtering and search functionality
- * 
- * @origin module: operations/clients
- * @source internal-user
+ * Get all available client statuses for filtering
  */
-export async function fetchClients(
-  searchTerm?: string, 
-  filters?: { 
-    status?: string;
-    region?: string;
-    industry?: string;
+export async function getClientStatuses(): Promise<string[]> {
+  try {
+    // Since we're storing the status values as a predefined set, we can return them directly
+    return ['Active', 'On Hold'];
+  } catch (error) {
+    console.error('Error fetching client statuses:', error);
+    return ['Active', 'On Hold']; // Return default values even on error
   }
-) {
-  // Start with a base query that includes pagination for safety
-  let query = supabase
-    .from('clients')
-    .select('*')
-    .limit(100); // Enforce environment-safe query with limit
+}
 
-  // Apply search if provided
-  if (searchTerm) {
-    query = query.or(
-      `company_name.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`
-    );
+/**
+ * Get all industries that clients belong to for filtering
+ */
+export async function getClientIndustries(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('industry')
+      .not('industry', 'is', null);
+    
+    if (error) throw error;
+    
+    // Extract unique industries
+    const industries = [...new Set(data.map(client => client.industry))];
+    return industries.filter(Boolean) as string[];
+  } catch (error) {
+    console.error('Error fetching client industries:', error);
+    return [];
   }
+}
 
-  // Apply filters if provided
-  if (filters) {
-    if (filters.status && typeof filters.status === 'string') {
-      // Validate the status if it's a string
-      if (isClientStatus(filters.status)) {
-        query = query.eq('status', filters.status);
-      }
+/**
+ * Filter clients by specified criteria
+ */
+export async function filterClients(filters: {
+  status?: string;
+  industry?: string;
+  search?: string;
+  region?: string;
+}): Promise<Client[]> {
+  try {
+    let query = supabase
+      .from('clients')
+      .select('*');
+    
+    // Apply filters
+    if (filters.status) {
+      query = query.eq('status', filters.status);
     }
+    
     if (filters.industry) {
       query = query.eq('industry', filters.industry);
     }
     
-    // Handle region filter - but avoid excessive type depth
     if (filters.region) {
-      // Use a safer method to apply the region filter
-      try {
-        // Convert the query to PostgREST filter string format to avoid type instantiation issues
-        const { data, error } = await query.filter('region', 'eq', filters.region);
-        
-        if (error) {
-          console.warn('Region filter not applied - column may not exist');
-          // If the filter fails, continue with the unfiltered query
-          const result = await query;
-          return result.data || [];
-        }
-        
-        return data || [];
-      } catch (error) {
-        console.warn('Region filter error:', error);
-        // Fall back to the base query without the region filter
-        const result = await query;
-        return result.data || [];
-      }
+      query = query.eq('region', filters.region);
     }
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching clients:', error);
+    
+    if (filters.search) {
+      query = query.or(
+        `company_name.ilike.%${filters.search}%,` +
+        `contact_name.ilike.%${filters.search}%,` +
+        `contact_email.ilike.%${filters.search}%,` +
+        `billing_address_city.ilike.%${filters.search}%`
+      );
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return data as Client[];
+  } catch (error) {
+    console.error('Error filtering clients:', error);
     throw error;
   }
-
-  return data;
 }

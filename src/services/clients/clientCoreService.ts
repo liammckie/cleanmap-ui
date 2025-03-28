@@ -75,3 +75,34 @@ export async function deleteClient(id: string) {
 
   return true;
 }
+
+export async function fetchClients(searchTerm = '', filters = { status: '', industry: '' }) {
+  let query = supabase
+    .from('clients')
+    .select('*');
+  
+  // Apply search term if provided
+  if (searchTerm) {
+    query = query.or(`company_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%`);
+  }
+  
+  // Apply status filter if provided
+  if (filters.status) {
+    query = query.eq('status', filters.status);
+  }
+  
+  // Apply industry filter if provided
+  if (filters.industry) {
+    query = query.eq('industry', filters.industry);
+  }
+  
+  // Execute the query
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching clients:', error);
+    throw error;
+  }
+  
+  return data;
+}
