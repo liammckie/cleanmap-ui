@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -42,7 +43,7 @@ const clientFormSchema = z.object({
       address_postcode: z.string().min(1, "Postcode is required"),
       region: z.string().nullable().optional(),
       service_start_date: z.date().nullable(),
-      service_end_date: z.date().nullable().optional(),
+      service_end_date: z.date().nullable().optional(), // Make sure it matches the schema
       service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
       price_per_service: z.number().min(0, "Price must be 0 or greater"),
       price_frequency: z.string().min(1, "Billing frequency is required"),
@@ -190,7 +191,7 @@ const ClientFormStepper: React.FC = () => {
             latitude: null,
             longitude: null,
             service_start_date: siteData.service_start_date,
-            service_end_date: siteData.service_end_date,
+            service_end_date: siteData.service_end_date, // This is now properly typed
             service_type: siteData.service_type,
             price_per_service: siteData.price_per_service,
             price_frequency: siteData.price_frequency
