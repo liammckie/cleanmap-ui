@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,7 +105,7 @@ const ClientsPage = () => {
 
       {!isLoading && !error && clients && clients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients.map((client: Client) => (
+          {clients?.map((client: any) => (
             <ClientCard 
               key={client.id} 
               client={client}

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -64,18 +63,25 @@ export function AddClientDialog({ children, onClientAdded }: AddClientDialogProp
   
   const onSubmit = async (values: ClientFormValues) => {
     try {
-      // Add missing fields required by createClient
-      const clientData = {
-        ...values,
+      await createClient({
+        company_name: values.company_name,
         contact_name: values.company_name, // Default contact name to company name
+        contact_email: values.contact_email,
+        contact_phone: values.contact_phone,
+        billing_address_street: values.billing_address_street,
+        billing_address_city: values.billing_address_city,
+        billing_address_state: values.billing_address_state,
+        billing_address_postcode: values.billing_address_postcode,
         billing_address_country: 'Australia', // Default country
         billing_address_zip: values.billing_address_postcode, // Map to expected field
+        status: values.status as 'Active' | 'On Hold',
+        payment_terms: values.payment_terms,
+        industry: values.industry,
         region: null,
         notes: values.notes || null,
+        business_number: values.business_number,
         on_hold_reason: values.status === 'On Hold' ? values.on_hold_reason || 'Payment issue' : null,
-      };
-      
-      await createClient(clientData);
+      });
       
       toast({
         title: 'Client added',

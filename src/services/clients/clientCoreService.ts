@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Client } from '@/schema/operations/client.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { isClientStatus } from '@/schema/operations/client.schema';
 
 /**
  * Core CRUD operations for clients
@@ -88,7 +89,9 @@ export async function fetchClients(searchTerm = '', filters = { status: '', indu
   
   // Apply status filter if provided
   if (filters.status) {
-    query = query.eq('status', filters.status);
+    if (isClientStatus(filters.status)) {
+      query = query.eq('status', filters.status);
+    }
   }
   
   // Apply industry filter if provided
@@ -104,5 +107,5 @@ export async function fetchClients(searchTerm = '', filters = { status: '', indu
     throw error;
   }
   
-  return data;
+  return data as Client[];
 }

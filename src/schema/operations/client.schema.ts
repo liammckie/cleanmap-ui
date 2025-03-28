@@ -20,6 +20,7 @@ export interface Client {
   billing_address_city: string;
   billing_address_state: string;
   billing_address_zip: string;
+  billing_address_postcode: string;
   billing_address_country: string;
   status: 'Active' | 'On Hold';
   industry: string | null;
@@ -27,7 +28,6 @@ export interface Client {
   notes: string | null;
   created_at: Date;
   updated_at: Date;
-  billing_address_postcode: string;
   payment_terms: string;
   business_number: string | null;
   on_hold_reason: string | null;
@@ -49,6 +49,8 @@ export const clientSchema = z.object({
   billing_address_city: z.string().min(1, "City is required"),
   billing_address_state: z.string().min(1, "State is required"),
   billing_address_postcode: z.string().min(1, "Postcode is required"),
+  billing_address_zip: z.string().min(1, "ZIP code is required"),
+  billing_address_country: z.string().min(1, "Country is required"),
   payment_terms: z.string().min(1, "Payment terms are required"),
   status: z.enum(['Active', 'On Hold']),
   industry: z.string().nullable(),

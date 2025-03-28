@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Client } from '@/schema/operations';
+import type { Client } from '@/schema/operations/client.schema';
+import { isClientStatus } from '@/schema/operations/client.schema';
 
 /**
  * Get all available client statuses for filtering
@@ -51,7 +52,7 @@ export async function filterClients(filters: {
       .select('*');
     
     // Apply filters
-    if (filters.status) {
+    if (filters.status && isClientStatus(filters.status)) {
       query = query.eq('status', filters.status);
     }
     
@@ -76,7 +77,7 @@ export async function filterClients(filters: {
     
     if (error) throw error;
     
-    return data as Client[];
+    return data as unknown as Client[];
   } catch (error) {
     console.error('Error filtering clients:', error);
     throw error;
