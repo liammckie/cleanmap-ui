@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Table, 
@@ -27,7 +26,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   Filter,
-  AlertCircle
+  AlertCircle,
+  Edit,
+  ClipboardList
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchEmployees, fetchDepartments } from '@/services/employeeService';
@@ -93,6 +94,10 @@ const EmployeesPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Add sorting functionality
+  const [sortColumn, setSortColumn] = useState<keyof Employee | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Use react-query to fetch employees data
   const { data: employees, isLoading, error } = useQuery({
     queryKey: ['employees', searchTerm, filters],
@@ -137,6 +142,50 @@ const EmployeesPage = () => {
   const handleViewEmployee = (employee: any) => {
     setSelectedEmployee(employee);
     setIsDetailOpen(true);
+  };
+
+  // Sorting handler
+  const handleSort = (column: keyof Employee) => {
+    if (sortColumn === column) {
+      // Toggle sort direction if same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Memoized and sorted employees
+  const sortedEmployees = useMemo(() => {
+    if (!employees || !sortColumn) return employees || [];
+
+    return [...employees].sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      const comparison = 
+        aValue.toString().localeCompare(bValue.toString(), undefined, { numeric: true });
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [employees, sortColumn, sortDirection]);
+
+  // Onboarding tasks indicator
+  const getOnboardingTasksIndicator = (employee: any) => {
+    // This is a placeholder. In a real implementation, 
+    // you'd fetch actual onboarding tasks from the backend
+    const totalTasks = 7;
+    const completedTasks = employee.status === 'Onboarding' ? 3 : 0;
+
+    return employee.status === 'Onboarding' ? (
+      <div className="flex items-center gap-2 text-sm text-blue-600">
+        <ClipboardList className="h-4 w-4" />
+        {completedTasks}/{totalTasks} Tasks
+      </div>
+    ) : null;
   };
 
   return (
@@ -247,7 +296,7 @@ const EmployeesPage = () => {
         <CardHeader className="pb-3">
           <CardTitle>Employee Directory</CardTitle>
           <CardDescription>
-            {isLoading ? 'Loading...' : `${employees?.length || 0} employees found`}
+            {isLoading ? 'Loading...' : `${sortedEmployees?.length || 0} employees found`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -258,7 +307,7 @@ const EmployeesPage = () => {
             </div>
           ) : isLoading ? (
             <div className="text-center py-4">Loading employee data...</div>
-          ) : employees?.length === 0 ? (
+          ) : sortedEmployees?.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
               No employees found. Try adjusting your search or filters.
             </div>
@@ -266,38 +315,59 @@ const EmployeesPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead 
+                    onClick={() => handleSort('first_name')} 
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    Name {sortColumn === 'first_name' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </TableHead>
+                  <TableHead 
+                    onClick={() => handleSort('job_title')} 
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    Position {sortColumn === 'job_title' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </TableHead>
+                  <TableHead 
+                    onClick={() => handleSort('department')} 
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    Department {sortColumn === 'department' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </TableHead>
+                  <TableHead 
+                    onClick={() => handleSort('start_date')} 
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    Start Date {sortColumn === 'start_date' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </TableHead>
+                  <TableHead>Onboarding Progress</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentItems.map((employee) => (
-                  <TableRow 
-                    key={employee.id} 
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={() => handleViewEmployee(employee)}
-                  >
-                    <TableCell className="font-medium">
-                      {employee.first_name} {employee.last_name}
-                    </TableCell>
+                {sortedEmployees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>{employee.first_name} {employee.last_name}</TableCell>
                     <TableCell>{employee.job_title}</TableCell>
                     <TableCell>{employee.department}</TableCell>
                     <TableCell>
                       {employee.start_date ? format(new Date(employee.start_date), 'dd MMM yyyy') : 'N/A'}
                     </TableCell>
-                    <TableCell>{employee.employment_type}</TableCell>
+                    <TableCell>
+                      {getOnboardingTasksIndicator(employee)}
+                    </TableCell>
                     <TableCell>
                       <StatusBadge status={employee.status} />
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        <div>{employee.contact_email}</div>
-                        <div className="text-muted-foreground">{employee.contact_phone}</div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewEmployee(employee)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" /> Edit
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
