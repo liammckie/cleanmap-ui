@@ -1,11 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { QuoteLineItem, quoteLineItemSchema } from '@/schema/sales/quote.schema';
+import { 
+  QuoteLineItem, 
+  quoteLineItemSchema,
+  quoteLineItemDbSchema
+} from '@/schema/sales/quote.schema';
 import { 
   insertTypedRow, 
   updateTypedRow, 
   deleteTypedRow, 
   validateInsert, 
+  validateForDb,
   apiClient
 } from '@/utils/supabaseInsertHelper';
 
@@ -24,6 +29,7 @@ export const getQuoteLineItems = async (quoteId: string): Promise<QuoteLineItem[
       { limit: 100 }
     );
 
+    // Convert string dates back to Date objects
     return data.map(item => ({
       ...item,
       created_at: new Date(item.created_at),
@@ -50,6 +56,7 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
       throw new Error('Description is required for line item');
     }
 
+    // Create line item using DB schema
     const data = await apiClient.create(
       supabase,
       'quote_line_items',
@@ -58,9 +65,10 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
         created_at: new Date(),
         updated_at: new Date()
       },
-      quoteLineItemSchema
+      quoteLineItemDbSchema
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       created_at: new Date(data.created_at),
@@ -91,6 +99,7 @@ export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<
       }
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       created_at: new Date(data.created_at),

@@ -74,7 +74,7 @@ export function isLeadSource(value: string): value is LeadSource {
   return ['Referral', 'Website', 'Cold Call', 'Event', 'Partner', 'Other'].includes(value);
 }
 
-// Zod schema for runtime validation
+// Zod schema for UI validation - uses Date objects
 export const leadSchema = z.object({
   id: z.string().optional(),
   lead_name: z.string().min(1, "Lead name is required"),
@@ -94,4 +94,26 @@ export const leadSchema = z.object({
   converted_quote_id: z.string().nullable(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
+});
+
+// Separate schema for DB operations - uses strings for dates
+export const leadDbSchema = z.object({
+  id: z.string().optional(),
+  lead_name: z.string().min(1, "Lead name is required"),
+  company_name: z.string().min(1, "Company name is required"),
+  contact_name: z.string().nullable(),
+  contact_email: z.string().email("Valid email is required").nullable(),
+  contact_phone: z.string().nullable(),
+  potential_value: z.number().nonnegative("Value must be a positive number"),
+  stage: z.enum(['Discovery', 'Proposal', 'Negotiation', 'Won', 'Lost']),
+  status: z.enum(['Open', 'Closed-Won', 'Closed-Lost']),
+  next_action: z.string().nullable(),
+  next_action_date: z.string().nullable(), // ISO string format for DB
+  notes: z.string().nullable(),
+  created_by: z.string(),
+  source: z.enum(['Referral', 'Website', 'Cold Call', 'Event', 'Partner', 'Other']).nullable(),
+  converted_client_id: z.string().nullable(),
+  converted_quote_id: z.string().nullable(),
+  created_at: z.string().optional(), // ISO string format for DB
+  updated_at: z.string().optional()  // ISO string format for DB
 });

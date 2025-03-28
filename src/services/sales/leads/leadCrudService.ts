@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Lead, leadSchema } from '@/schema/sales/lead.schema';
+import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema';
 import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
@@ -11,7 +11,7 @@ import { apiClient } from '@/utils/supabaseInsertHelper';
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Create lead using the improved apiClient
+    // Create lead using the improved apiClient with DB schema
     const data = await apiClient.create(
       supabase,
       'leads',
@@ -20,9 +20,10 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
         created_at: new Date(),
         updated_at: new Date()
       },
-      leadSchema
+      leadDbSchema
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
@@ -54,6 +55,7 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
       }
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,

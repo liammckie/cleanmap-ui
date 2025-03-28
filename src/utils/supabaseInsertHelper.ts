@@ -28,7 +28,7 @@ export async function insertTypedRow<T extends keyof Database['public']['Tables'
   const prepped = Array.isArray(input) ? input.map(prepareObjectForDb) : prepareObjectForDb(input);
   const query = supabase.from(table).insert(prepped).select(selectFields);
   const { data, error } = Array.isArray(input) ? await query : await query.single();
-  if (error || !data) throw error ?? new Error('Insert failed');
+  if (error || !data) throw error ?? new Error(`[Supabase][${table}] Insert failed`);
   return data as R | R[];
 }
 
@@ -44,7 +44,7 @@ export async function updateTypedRow<T extends keyof Database['public']['Tables'
 ): Promise<R> {
   const prepared = prepareObjectForDb(updates);
   const { data, error } = await supabase.from(table).update(prepared).eq('id', id).select(selectFields).maybeSingle();
-  if (error || !data) throw error ?? new Error('Update failed');
+  if (error || !data) throw error ?? new Error(`[Supabase][${table}] Update failed for id ${id}`);
   return data as R;
 }
 
@@ -71,7 +71,7 @@ export async function selectTypedRow<T extends keyof Database['public']['Tables'
   selectFields: string = '*'
 ): Promise<R> {
   const { data, error } = await supabase.from(table).select(selectFields).eq('id', id).maybeSingle();
-  if (error || !data) throw error ?? new Error('Select by ID failed');
+  if (error || !data) throw error ?? new Error(`[Supabase][${table}] Select by ID failed for id ${id}`);
   return data as R;
 }
 
@@ -134,6 +134,26 @@ export function validateInsert<T>(data: unknown, schema: ZodSchema<T>): T {
 }
 
 /**
+ * 🛡️ Validate data and prepare it for DB operations
+ * This handles Date to ISO string conversion before validation
+ */
+export function validateForDb<T>(data: unknown, schema: ZodSchema<T>): T {
+  // First prepare the data (convert Date objects to ISO strings)
+  const prepared = prepareObjectForDb(data);
+  
+  // Then validate using the DB schema (which expects strings for dates)
+  const result = schema.safeParse(prepared);
+  if (!result.success) {
+    // Enhance error message with context
+    const errorMsg = `DB schema validation failed: ${result.error.message}`;
+    console.error(errorMsg, result.error);
+    throw new Error(errorMsg);
+  }
+  
+  return result.data;
+}
+
+/**
  * For backward compatibility - alias to validateInsert
  * @deprecated Use validateInsert instead
  */
@@ -149,11 +169,17 @@ export const apiClient = {
     supabase: SupabaseClient,
     table: T,
     data: unknown,
-    schema: ZodSchema<Database['public']['Tables'][T]['Insert']>,
+    schema: ZodSchema<any>,
     selectFields?: string
-  ) {
-    const safe = validateInsert(data, schema);
-    return insertTypedRow<T, R>(supabase, table, safe, selectFields);
+  ): Promise<R> {
+    // Validate using the provided schema
+    const validated = validateForDb(data, schema);
+    
+    // Insert and return a single row
+    const result = await insertTypedRow<T, R>(supabase, table, validated, selectFields);
+    
+    // Ensure we return a single row (not an array)
+    return Array.isArray(result) ? result[0] : result;
   },
 
   async update<T extends keyof Database['public']['Tables'], R = Database['public']['Tables'][T]['Row']>(
@@ -162,7 +188,7 @@ export const apiClient = {
     id: string,
     updates: Partial<Database['public']['Tables'][T]['Update']>,
     selectFields?: string
-  ) {
+  ): Promise<R> {
     return updateTypedRow<T, R>(supabase, table, id, updates, selectFields);
   },
 
@@ -170,7 +196,7 @@ export const apiClient = {
     supabase: SupabaseClient,
     table: T,
     id: string
-  ) {
+  ): Promise<boolean> {
     return deleteTypedRow(supabase, table, id);
   },
 
@@ -179,7 +205,7 @@ export const apiClient = {
     table: T,
     id: string,
     selectFields?: string
-  ) {
+  ): Promise<R> {
     return selectTypedRow<T, R>(supabase, table, id, selectFields);
   },
 
@@ -197,13 +223,13 @@ export const apiClient = {
       or?: string;
       in?: { [key: string]: any[] };
     }
-  ) {
+  ): Promise<R[]> {
     return queryTypedRows<T, R>(supabase, table, filters, selectFields, options);
   }
 };
 
 /**
  * 📌 Usage Example
- * const safeData = validateInsert(payload, leadSchema);
- * const lead = await apiClient.create(supabase, 'leads', payload, leadSchema);
+ * const safeData = validateForDb(payload, leadDbSchema);
+ * const lead = await apiClient.create(supabase, 'leads', payload, leadDbSchema);
  */

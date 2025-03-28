@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Quote, quoteSchema } from '@/schema/sales/quote.schema';
+import { Quote, quoteSchema, quoteDbSchema } from '@/schema/sales/quote.schema';
 import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
@@ -10,7 +10,7 @@ import { apiClient } from '@/utils/supabaseInsertHelper';
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Create quote using the improved apiClient
+    // Create quote using the improved apiClient with DB schema
     const data = await apiClient.create(
       supabase,
       'quotes',
@@ -19,9 +19,10 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
         created_at: new Date(),
         updated_at: new Date()
       },
-      quoteSchema
+      quoteDbSchema
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       issue_date: new Date(data.issue_date),
@@ -54,6 +55,7 @@ export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promi
       }
     );
 
+    // Convert string dates back to Date objects
     return {
       ...data,
       issue_date: new Date(data.issue_date),
