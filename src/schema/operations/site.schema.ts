@@ -33,6 +33,16 @@ export interface Site {
   updated_at: Date;
   latitude: number | null;
   longitude: number | null;
+  service_start_date?: Date | null;
+  // Properties to match what Sites.tsx is using
+  address_street?: string;
+  address_city?: string;
+  address_state?: string;
+  address_postcode?: string;
+  // Reference to client object when joined
+  client?: {
+    company_name: string;
+  };
 }
 
 // Type guard for Site status
@@ -62,7 +72,7 @@ export const siteSchema = z.object({
   notes: z.string().nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
+  service_start_date: z.date().nullable().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
-

@@ -30,6 +30,48 @@ export interface Contract {
   notes: string | null;
   created_at: Date;
   updated_at: Date;
+  // Fields to match what Contracts.tsx is using
+  billing_frequency?: string;
+  base_fee?: number;
+  under_negotiation?: boolean;
+  // Reference to client object when joined
+  client?: {
+    company_name: string;
+  };
+  // Reference to contract sites
+  sites?: ContractSite[];
+}
+
+/**
+ * ContractSite - Junction table linking contracts to sites
+ */
+export interface ContractSite {
+  id: string;
+  contract_id: string;
+  site_id: string;
+  created_at: Date;
+  updated_at: Date;
+  site?: {
+    id: string;
+    site_name: string;
+  };
+}
+
+/**
+ * ContractChangeLog - Tracks changes to contracts
+ */
+export interface ContractChangeLog {
+  id: string;
+  contract_id: string;
+  change_date: Date;
+  change_type: string;
+  old_value: string | null;
+  new_value: string | null;
+  effective_date: Date;
+  changed_by: string;
+  approval_status: string | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Type guard for Contract status
@@ -56,6 +98,30 @@ export const contractSchema = z.object({
   auto_renew: z.boolean(),
   documents_url: z.string().nullable(),
   notes: z.string().nullable(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional()
+});
+
+// Schema for contract site junction table
+export const contractSiteSchema = z.object({
+  id: z.string().optional(),
+  contract_id: z.string().min(1, "Contract ID is required"),
+  site_id: z.string().min(1, "Site ID is required"),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional()
+});
+
+// Schema for contract change log
+export const contractChangeLogSchema = z.object({
+  id: z.string().optional(),
+  contract_id: z.string().min(1, "Contract ID is required"),
+  change_date: z.date(),
+  change_type: z.string().min(1, "Change type is required"),
+  old_value: z.string().nullable(),
+  new_value: z.string().nullable(),
+  effective_date: z.date(),
+  changed_by: z.string().min(1, "Changed by is required"),
+  approval_status: z.string().nullable(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });

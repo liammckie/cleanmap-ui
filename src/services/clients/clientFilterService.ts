@@ -65,13 +65,8 @@ export async function filterClients(filters: {
     }
     
     if (filters.search) {
-      // Using separate or conditions instead of a single combined one to avoid infinite recursion
-      query = query.or(
-        `company_name.ilike.%${filters.search}%,` +
-        `contact_name.ilike.%${filters.search}%,` +
-        `contact_email.ilike.%${filters.search}%,` +
-        `billing_address_city.ilike.%${filters.search}%`
-      );
+      // Fix the infinite recursion by constructing a filter string without using nested .or()
+      query = query.or(`company_name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%,contact_email.ilike.%${filters.search}%,billing_address_city.ilike.%${filters.search}%`);
     }
     
     const { data, error } = await query;
@@ -85,4 +80,3 @@ export async function filterClients(filters: {
     throw error;
   }
 }
-

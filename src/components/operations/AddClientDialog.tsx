@@ -1,403 +1,330 @@
-import * as React from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { clientFormSchema, type ClientFormValues } from '@/validations/clientValidation';
-import { createClient } from '@/services/clients';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { createClient } from '@/services/clientService';
 
 interface AddClientDialogProps {
-  children?: React.ReactNode;
-  onClientAdded?: () => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onClientCreated?: () => void;
 }
 
-export function AddClientDialog({ children, onClientAdded }: AddClientDialogProps) {
-  const [open, setOpen] = React.useState(false);
+const AddClientDialog: React.FC<AddClientDialogProps> = ({ open, setOpen, onClientCreated }) => {
   const { toast } = useToast();
-  
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: {
-      company_name: '',
-      billing_address_street: '',
-      billing_address_city: '',
-      billing_address_state: '',
-      billing_address_postcode: '',
-      contact_phone: '',
-      contact_email: '',
-      payment_terms: 'Net 30',
-      status: 'Active',
-      industry: '',
-      notes: '',
-      business_number: '',
-    },
-  });
-  
-  const onSubmit = async (values: ClientFormValues) => {
-    try {
-      await createClient({
-        company_name: values.company_name,
-        contact_name: values.company_name, // Default contact name to company name
-        contact_email: values.contact_email,
-        contact_phone: values.contact_phone,
-        billing_address_street: values.billing_address_street,
-        billing_address_city: values.billing_address_city,
-        billing_address_state: values.billing_address_state,
-        billing_address_postcode: values.billing_address_postcode,
-        billing_address_country: 'Australia', // Default country
-        billing_address_zip: values.billing_address_postcode, // Map to expected field
-        status: values.status as 'Active' | 'On Hold',
-        payment_terms: values.payment_terms,
-        industry: values.industry,
-        region: null,
-        notes: values.notes || null,
-        business_number: values.business_number,
-        on_hold_reason: values.status === 'On Hold' ? values.on_hold_reason || 'Payment issue' : null,
-      });
-      
-      toast({
-        title: 'Client added',
-        description: `${values.company_name} has been added successfully.`,
-      });
-      
-      form.reset();
-      setOpen(false);
-      
-      if (onClientAdded) {
-        onClientAdded();
-      }
-    } catch (error) {
-      console.error('Error adding client:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Failed to add client',
-        description: 'There was an error adding the client. Please try again.',
-      });
-    }
+  const [loading, setLoading] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postcode, setPostcode] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [status, setStatus] = useState('Active');
+  const [businessNumber, setBusinessNumber] = useState('');
+  const [region, setRegion] = useState('');
+  const [notes, setNotes] = useState('');
+  const [onHoldReason, setOnHoldReason] = useState('');
+
+  const resetForm = () => {
+    setCompanyName('');
+    setContactName('');
+    setContactEmail('');
+    setContactPhone('');
+    setStreet('');
+    setCity('');
+    setState('');
+    setPostcode('');
+    setPaymentTerms('');
+    setIndustry('');
+    setStatus('Active');
+    setBusinessNumber('');
+    setRegion('');
+    setNotes('');
+    setOnHoldReason('');
   };
 
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  try {
+    setLoading(true);
+    
+    // Validate form data
+    const formData = {
+      company_name: companyName,
+      contact_name: contactName,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      billing_address_street: street,
+      billing_address_city: city,
+      billing_address_state: state,
+      billing_address_postcode: postcode,
+      billing_address_country: 'Australia', // Default
+      payment_terms: paymentTerms,
+      industry: industry,
+      status: status as 'Active' | 'On Hold',
+      business_number: businessNumber,
+      region: region,
+      notes: notes,
+      on_hold_reason: status === 'On Hold' ? onHoldReason : null,
+      // Add default null values for GPS coordinates
+      latitude: null,
+      longitude: null
+    };
+    
+    // Create client in database
+    await createClient(formData);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Client has been created successfully.",
+    });
+    
+    // Close dialog and reset form
+    setOpen(false);
+    resetForm();
+    
+    // Refresh client list if a callback was provided
+    if (onClientCreated) {
+      onClientCreated();
+    }
+  } catch (error) {
+    console.error('Error creating client:', error);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Failed to create client. Please try again.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button className="flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Add Client
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Add New Client</DialogTitle>
-          <DialogDescription>
-            Enter the client details below to create a new client record.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="company_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Name*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter company name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="billing_address_street"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Street Address*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter street address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="billing_address_city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="City" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="billing_address_state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State*</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select state" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="NSW">NSW</SelectItem>
-                            <SelectItem value="VIC">VIC</SelectItem>
-                            <SelectItem value="QLD">QLD</SelectItem>
-                            <SelectItem value="WA">WA</SelectItem>
-                            <SelectItem value="SA">SA</SelectItem>
-                            <SelectItem value="TAS">TAS</SelectItem>
-                            <SelectItem value="ACT">ACT</SelectItem>
-                            <SelectItem value="NT">NT</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="billing_address_postcode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Postcode*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Postcode" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contact_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Email address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="contact_phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="payment_terms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Terms*</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select payment terms" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Net 7">Net 7</SelectItem>
-                            <SelectItem value="Net 14">Net 14</SelectItem>
-                            <SelectItem value="Net 30">Net 30</SelectItem>
-                            <SelectItem value="Net 60">Net 60</SelectItem>
-                            <SelectItem value="Due on Receipt">Due on Receipt</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status*</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Active">Active</SelectItem>
-                            <SelectItem value="On Hold">On Hold</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="industry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Industry</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select industry" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Commercial">Commercial</SelectItem>
-                            <SelectItem value="Retail">Retail</SelectItem>
-                            <SelectItem value="Education">Education</SelectItem>
-                            <SelectItem value="Healthcare">Healthcare</SelectItem>
-                            <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                            <SelectItem value="Hospitality">Hospitality</SelectItem>
-                            <SelectItem value="Government">Government</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="business_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Number (ABN)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ABN" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Add any additional notes about this client"
-                        rows={3}
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button>Add Client</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Add New Client</AlertDialogTitle>
+          <AlertDialogDescription>
+            Enter the details for the new client.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="companyName" className="text-right">
+              Company Name
+            </Label>
+            <Input
+              type="text"
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="contactName" className="text-right">
+              Contact Name
+            </Label>
+            <Input
+              type="text"
+              id="contactName"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="contactEmail" className="text-right">
+              Contact Email
+            </Label>
+            <Input
+              type="email"
+              id="contactEmail"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="contactPhone" className="text-right">
+              Contact Phone
+            </Label>
+            <Input
+              type="tel"
+              id="contactPhone"
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="street" className="text-right">
+              Street Address
+            </Label>
+            <Input
+              type="text"
+              id="street"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="city" className="text-right">
+              City
+            </Label>
+            <Input
+              type="text"
+              id="city"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="state" className="text-right">
+              State
+            </Label>
+            <Input
+              type="text"
+              id="state"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="postcode" className="text-right">
+              Postcode
+            </Label>
+            <Input
+              type="text"
+              id="postcode"
+              value={postcode}
+              onChange={(e) => setPostcode(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="paymentTerms" className="text-right">
+              Payment Terms
+            </Label>
+            <Input
+              type="text"
+              id="paymentTerms"
+              value={paymentTerms}
+              onChange={(e) => setPaymentTerms(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="industry" className="text-right">
+              Industry
+            </Label>
+            <Input
+              type="text"
+              id="industry"
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="status" className="text-right">
+              Status
+            </Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="On Hold">On Hold</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {status === 'On Hold' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="onHoldReason" className="text-right">
+                On Hold Reason
+              </Label>
+              <Input
+                type="text"
+                id="onHoldReason"
+                value={onHoldReason}
+                onChange={(e) => setOnHoldReason(e.target.value)}
+                className="col-span-3"
               />
-              
-              {form.watch('status') === 'On Hold' && (
-                <FormField
-                  control={form.control}
-                  name="on_hold_reason"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>On Hold Reason</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Reason why this client is on hold"
-                          rows={2}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
             </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create Client</Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="businessNumber" className="text-right">
+              Business Number
+            </Label>
+            <Input
+              type="text"
+              id="businessNumber"
+              value={businessNumber}
+              onChange={(e) => setBusinessNumber(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="region" className="text-right">
+              Region
+            </Label>
+            <Input
+              type="text"
+              id="region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="notes" className="text-right mt-2">
+              Notes
+            </Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </form>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={loading}>
+            {loading ? 'Creating...' : 'Create'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
-}
+};
+
+export default AddClientDialog;

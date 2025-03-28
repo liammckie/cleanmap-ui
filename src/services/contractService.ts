@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { Contract } from '@/schema/operations/contract.schema';
+import type { Contract, ContractSite, ContractChangeLog } from '@/schema/operations/contract.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 import { isContractStatus } from '@/schema/operations/contract.schema';
 
@@ -59,7 +58,7 @@ export async function fetchContracts(
     throw error;
   }
 
-  return data;
+  return data as unknown as Contract[];
 }
 
 export async function fetchContractById(id: string) {
@@ -81,7 +80,7 @@ export async function fetchContractById(id: string) {
     throw error;
   }
 
-  return data;
+  return data as unknown as Contract;
 }
 
 export async function createContract(contract: Omit<Contract, 'id' | 'created_at' | 'updated_at'>, siteIds: string[]) {
@@ -116,7 +115,7 @@ export async function createContract(contract: Omit<Contract, 'id' | 'created_at
     }
   }
 
-  return data[0];
+  return data[0] as unknown as Contract;
 }
 
 export async function updateContract(id: string, updates: Partial<Contract>, siteIds?: string[]) {
@@ -165,7 +164,7 @@ export async function updateContract(id: string, updates: Partial<Contract>, sit
     }
   }
 
-  return data[0];
+  return data[0] as unknown as Contract;
 }
 
 export async function deleteContract(id: string) {
@@ -210,7 +209,7 @@ export async function logContractChange(
       throw error;
     }
 
-    return data[0];
+    return data[0] as unknown as ContractChangeLog;
   } catch (error) {
     console.error('Error logging contract change:', error);
     throw error;
@@ -258,4 +257,81 @@ export async function fetchContractStatuses() {
     console.error('Error fetching contract statuses:', error);
     throw error;
   }
+}
+
+/**
+ * Fetch all sites associated with a contract
+ */
+export async function fetchContractSites(contractId: string) {
+  const { data, error } = await supabase
+    .from('contract_sites')
+    .select(`
+      id,
+      contract_id,
+      site_id,
+      site:sites(id, site_name, site_code, street_address, city, state, zip_code, country)
+    `)
+    .eq('contract_id', contractId);
+
+  if (error) {
+    console.error('Error fetching contract sites:', error);
+    throw error;
+  }
+
+  return data as unknown as ContractSite[];
+}
+
+/**
+ * Add a site to a contract
+ */
+export async function addSiteToContract(contractId: string, siteId: string) {
+  const { data, error } = await supabase
+    .from('contract_sites')
+    .insert({
+      contract_id: contractId,
+      site_id: siteId
+    })
+    .select();
+
+  if (error) {
+    console.error('Error adding site to contract:', error);
+    throw error;
+  }
+
+  return data[0] as unknown as ContractSite;
+}
+
+/**
+ * Remove a site from a contract
+ */
+export async function removeSiteFromContract(contractSiteId: string) {
+  const { error } = await supabase
+    .from('contract_sites')
+    .delete()
+    .eq('id', contractSiteId);
+
+  if (error) {
+    console.error('Error removing site from contract:', error);
+    throw error;
+  }
+
+  return true;
+}
+
+/**
+ * Fetch all changes for a contract
+ */
+export async function fetchContractChanges(contractId: string) {
+  const { data, error } = await supabase
+    .from('contract_change_logs')
+    .select('*')
+    .eq('contract_id', contractId)
+    .order('change_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching contract changes:', error);
+    throw error;
+  }
+
+  return data as unknown as ContractChangeLog[];
 }
