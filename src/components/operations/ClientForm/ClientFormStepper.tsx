@@ -12,8 +12,8 @@ import { createClient } from '@/services/clients';
 import { createSite } from '@/services/siteService';
 import ClientDetailsForm from './ClientDetailsForm';
 import ClientSitesList from './ClientSitesList';
-import { clientSchema } from '@/schema/operations/client.schema';
-import { siteSchema } from '@/schema/operations/site.schema';
+import { calculateAllBillingFrequencies } from '@/utils/billingCalculations';
+import type { BillingFrequency } from '@/utils/billingCalculations';
 
 // Modified client form schema - removing some validation to simplify for now
 const clientFormSchema = z.object({
@@ -141,9 +141,25 @@ const ClientFormStepper: React.FC = () => {
       // Extract site data from the form
       const { sites, ...clientData } = data;
       
-      // Create the client first
+      // Create the client first - fix by providing all required fields
       const newClient = await createClient({
-        ...clientData,
+        company_name: clientData.company_name,
+        contact_name: clientData.contact_name,
+        contact_email: clientData.contact_email || null,
+        contact_phone: clientData.contact_phone || null,
+        billing_address_street: clientData.billing_address_street,
+        billing_address_city: clientData.billing_address_city,
+        billing_address_state: clientData.billing_address_state,
+        billing_address_zip: clientData.billing_address_zip,
+        billing_address_postcode: clientData.billing_address_postcode,
+        billing_address_country: clientData.billing_address_country,
+        payment_terms: clientData.payment_terms,
+        status: clientData.status,
+        industry: clientData.industry || null,
+        region: clientData.region || null,
+        notes: clientData.notes || null,
+        business_number: clientData.business_number || null,
+        on_hold_reason: clientData.on_hold_reason || null,
         latitude: null,
         longitude: null
       });
@@ -151,6 +167,12 @@ const ClientFormStepper: React.FC = () => {
       // Then create each site, linking to the new client
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
+          // Calculate pricing based on frequency
+          const { weekly, monthly, annually } = calculateAllBillingFrequencies(
+            siteData.price_per_service,
+            siteData.price_frequency as BillingFrequency
+          );
+
           // Format the site data correctly
           await createSite({
             client_id: newClient.id,

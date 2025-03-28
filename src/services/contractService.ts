@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Contract, ContractSite, ContractChangeLog } from '@/schema/operations/contract.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 import { isContractStatus } from '@/schema/operations/contract.schema';
+import { calculateAllBillingFrequencies, type BillingFrequency } from '@/utils/billingCalculations';
 
 export async function fetchContracts(
   searchTerm?: string,
@@ -22,20 +23,17 @@ export async function fetchContracts(
       )
     `);
 
-  // Apply search if provided
   if (searchTerm) {
     query = query.or(
       `contract_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,contract_number.ilike.%${searchTerm}%`
     );
   }
 
-  // Apply filters if provided
   if (filters) {
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId);
     }
     if (filters.status && typeof filters.status === 'string') {
-      // Validate the status if it's a string
       if (isContractStatus(filters.status)) {
         query = query.eq('status', filters.status);
       }
@@ -84,10 +82,19 @@ export async function fetchContractById(id: string) {
 }
 
 export async function createContract(contract: Omit<Contract, 'id' | 'created_at' | 'updated_at'>, siteIds: string[]) {
-  // Convert Date objects to ISO strings for Supabase
+  if (contract.base_fee && contract.billing_frequency && (!contract.weekly_value || !contract.monthly_value || !contract.annual_value)) {
+    const { weekly, monthly, annually } = calculateAllBillingFrequencies(
+      contract.base_fee, 
+      contract.billing_frequency as BillingFrequency
+    );
+    
+    contract.weekly_value = weekly;
+    contract.monthly_value = monthly;
+    contract.annual_value = annually;
+  }
+  
   const dbContract = prepareObjectForDb(contract);
   
-  // Start a transaction
   const { data, error } = await supabase
     .from('contracts')
     .insert(dbContract as any)
@@ -98,7 +105,6 @@ export async function createContract(contract: Omit<Contract, 'id' | 'created_at
     throw error;
   }
 
-  // Now create contract_sites relationships
   if (siteIds.length > 0) {
     const contractSites = siteIds.map(siteId => ({
       contract_id: data[0].id,
@@ -119,7 +125,29 @@ export async function createContract(contract: Omit<Contract, 'id' | 'created_at
 }
 
 export async function updateContract(id: string, updates: Partial<Contract>, siteIds?: string[]) {
-  // Convert Date objects to ISO strings for Supabase
+  if ((updates.base_fee !== undefined || updates.billing_frequency !== undefined) && 
+      (updates.base_fee || updates.billing_frequency)) {
+    
+    let currentContract: Contract | null = null;
+    if (updates.base_fee === undefined || updates.billing_frequency === undefined) {
+      const { data } = await supabase
+        .from('contracts')
+        .select('base_fee, billing_frequency')
+        .eq('id', id)
+        .single();
+      currentContract = data as unknown as Contract;
+    }
+    
+    const baseAmount = updates.base_fee ?? currentContract?.base_fee ?? 0;
+    const frequency = updates.billing_frequency ?? currentContract?.billing_frequency as BillingFrequency ?? 'monthly';
+    
+    const { weekly, monthly, annually } = calculateAllBillingFrequencies(baseAmount, frequency);
+    
+    updates.weekly_value = weekly;
+    updates.monthly_value = monthly;
+    updates.annual_value = annually;
+  }
+  
   const dbUpdates = prepareObjectForDb(updates);
   
   const { data, error } = await supabase
@@ -133,9 +161,7 @@ export async function updateContract(id: string, updates: Partial<Contract>, sit
     throw error;
   }
 
-  // If siteIds are provided, update contract_sites relationships
   if (siteIds) {
-    // First delete existing relationships
     const { error: deleteError } = await supabase
       .from('contract_sites')
       .delete()
@@ -146,7 +172,6 @@ export async function updateContract(id: string, updates: Partial<Contract>, sit
       throw deleteError;
     }
 
-    // Then create new relationships
     if (siteIds.length > 0) {
       const contractSites = siteIds.map(siteId => ({
         contract_id: id,
@@ -181,7 +206,6 @@ export async function deleteContract(id: string) {
   return true;
 }
 
-// Log a contract change
 export async function logContractChange(
   contractId: string, 
   changes: Record<string, any>, 
@@ -189,14 +213,13 @@ export async function logContractChange(
   changedBy: string
 ) {
   try {
-    // Prepare data for database - convert Date objects to ISO strings
     const changeLogEntry = {
       contract_id: contractId,
-      change_date: new Date().toISOString(), // Convert to string format for Supabase
+      change_date: new Date().toISOString(),
       changes_json: JSON.stringify(changes),
       change_type: reason,
       changed_by: changedBy,
-      effective_date: new Date().toISOString() // Convert to string format for Supabase
+      effective_date: new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -216,7 +239,6 @@ export async function logContractChange(
   }
 }
 
-// Fetch contract types for filters
 export async function fetchContractTypes() {
   try {
     const { data, error } = await supabase
@@ -229,7 +251,6 @@ export async function fetchContractTypes() {
       throw error;
     }
 
-    // Extract unique contract types
     const types = [...new Set(data.map(contract => contract.contract_type))].filter(Boolean);
     return types;
   } catch (error) {
@@ -238,7 +259,6 @@ export async function fetchContractTypes() {
   }
 }
 
-// Fetch contract statuses for filters
 export async function fetchContractStatuses() {
   try {
     const { data, error } = await supabase
@@ -250,7 +270,6 @@ export async function fetchContractStatuses() {
       throw error;
     }
 
-    // Extract unique statuses
     const statuses = [...new Set(data.map(contract => contract.status))].filter(Boolean);
     return statuses as Contract['status'][];
   } catch (error) {
@@ -259,9 +278,6 @@ export async function fetchContractStatuses() {
   }
 }
 
-/**
- * Fetch all sites associated with a contract
- */
 export async function fetchContractSites(contractId: string) {
   const { data, error } = await supabase
     .from('contract_sites')
@@ -281,9 +297,6 @@ export async function fetchContractSites(contractId: string) {
   return data as unknown as ContractSite[];
 }
 
-/**
- * Add a site to a contract
- */
 export async function addSiteToContract(contractId: string, siteId: string) {
   const { data, error } = await supabase
     .from('contract_sites')
@@ -301,9 +314,6 @@ export async function addSiteToContract(contractId: string, siteId: string) {
   return data[0] as unknown as ContractSite;
 }
 
-/**
- * Remove a site from a contract
- */
 export async function removeSiteFromContract(contractSiteId: string) {
   const { error } = await supabase
     .from('contract_sites')
@@ -318,9 +328,6 @@ export async function removeSiteFromContract(contractSiteId: string) {
   return true;
 }
 
-/**
- * Fetch all changes for a contract
- */
 export async function fetchContractChanges(contractId: string) {
   const { data, error } = await supabase
     .from('contract_change_logs')

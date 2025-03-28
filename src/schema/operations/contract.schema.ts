@@ -1,5 +1,5 @@
-
 import { z } from 'zod';
+import { BillingFrequency } from '@/utils/billingCalculations';
 
 /**
  * Contract Schema
@@ -30,9 +30,10 @@ export interface Contract {
   notes: string | null;
   created_at: Date;
   updated_at: Date;
-  // Fields to match what Contracts.tsx is using
-  billing_frequency?: string;
-  base_fee?: number;
+  // Billing fields
+  billing_frequency: BillingFrequency;
+  base_fee: number; // Base fee in the specified billing frequency
+  weekly_value?: number; // Calculated weekly value
   under_negotiation?: boolean;
   // Reference to client object when joined
   client?: {
@@ -93,11 +94,15 @@ export const contractSchema = z.object({
   renewal_terms: z.string().nullable(),
   notice_period_days: z.number().nullable(),
   payment_terms: z.string().nullable(),
+  billing_frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'annually']),
+  base_fee: z.number().min(0, "Base fee must be a positive number"),
+  weekly_value: z.number().optional(),
   monthly_value: z.number(),
   annual_value: z.number(),
   auto_renew: z.boolean(),
   documents_url: z.string().nullable(),
   notes: z.string().nullable(),
+  under_negotiation: z.boolean().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });

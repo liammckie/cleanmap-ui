@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FormControl,
   FormField,
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
+import { calculateAllBillingFrequencies, formatCurrency, type BillingFrequency } from '@/utils/billingCalculations';
 
 type SiteFormData = {
   site_name: string;
@@ -36,6 +37,21 @@ const ClientSiteForm: React.FC<ClientSiteFormProps> = ({
   index,
   onRemove
 }) => {
+  const [priceBreakdown, setPriceBreakdown] = useState({
+    weekly: 0,
+    monthly: 0,
+    annually: 0
+  });
+
+  // Recalculate price breakdown whenever price or frequency changes
+  useEffect(() => {
+    const price = form.watch(`sites.${index}.price_per_service`) || 0;
+    const frequency = form.watch(`sites.${index}.price_frequency`) as BillingFrequency || 'monthly';
+    
+    const breakdown = calculateAllBillingFrequencies(price, frequency);
+    setPriceBreakdown(breakdown);
+  }, [form, index, form.watch(`sites.${index}.price_per_service`), form.watch(`sites.${index}.price_frequency`)]);
+  
   return (
     <div className="space-y-4 p-4 border rounded-lg">
       <h3 className="text-lg font-medium">Site #{index + 1}</h3>
@@ -212,9 +228,8 @@ const ClientSiteForm: React.FC<ClientSiteFormProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
                   <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-Weekly</SelectItem>
+                  <SelectItem value="fortnightly">Fortnightly</SelectItem>
                   <SelectItem value="monthly">Monthly</SelectItem>
                   <SelectItem value="quarterly">Quarterly</SelectItem>
                   <SelectItem value="annually">Annually</SelectItem>
@@ -224,6 +239,25 @@ const ClientSiteForm: React.FC<ClientSiteFormProps> = ({
             </FormItem>
           )}
         />
+      </div>
+      
+      {/* Price breakdown display */}
+      <div className="mt-2 p-3 bg-muted rounded-md">
+        <h4 className="text-sm font-medium mb-2">Price Breakdown</h4>
+        <div className="grid grid-cols-3 gap-2 text-sm">
+          <div>
+            <p className="text-muted-foreground">Weekly</p>
+            <p className="font-medium">{formatCurrency(priceBreakdown.weekly)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Monthly</p>
+            <p className="font-medium">{formatCurrency(priceBreakdown.monthly)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Annually</p>
+            <p className="font-medium">{formatCurrency(priceBreakdown.annually)}</p>
+          </div>
+        </div>
       </div>
 
       <FormField
