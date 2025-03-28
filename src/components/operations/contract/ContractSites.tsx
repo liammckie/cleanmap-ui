@@ -59,7 +59,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
             {contract.sites.map((contractSite) => (
               <TableRow key={contractSite.id}>
                 <TableCell className="font-medium">
-                  {contractSite.site?.site_name}
+                  {contractSite.site?.site_name || 'Unnamed Site'}
                 </TableCell>
                 <TableCell className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
