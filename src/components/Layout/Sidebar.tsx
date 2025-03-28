@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   Activity, Map, Users, Calendar, Files, 
   Clipboard, BarChart3, Settings, Menu, X,
-  UserCog // Added HR icon
+  UserCog, Briefcase // Added HR icon and Briefcase icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -18,16 +17,24 @@ interface SidebarProps {
 const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
   const [activeItem, setActiveItem] = useState('dashboard');
 
-  const menuItems = [
+  const navItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
     { id: 'clients', name: 'Clients', icon: Users, path: '/clients' },
     { id: 'locations', name: 'Locations', icon: Map, path: '/locations' },
-    { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' }, // Added HR menu item
+    { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' },
     { id: 'schedule', name: 'Schedule', icon: Calendar, path: '/schedule' },
     { id: 'contracts', name: 'Contracts', icon: Clipboard, path: '/contracts' },
     { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },
     { id: 'documents', name: 'Documents', icon: Files, path: '/documents' },
     { id: 'settings', name: 'Settings', icon: Settings, path: '/settings' },
+    {
+      title: "Operations",
+      icon: Briefcase,
+      items: [
+        { title: "Clients", path: "/operations/clients" },
+        { title: "Sites", path: "/operations/site-list" },
+      ]
+    }
   ];
 
   if (isMobile && !isOpen) {
@@ -71,23 +78,55 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
 
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          {menuItems.map((item) => (
-            <li key={item.id}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                  isActive 
-                    ? "bg-brand-blue text-white" 
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                )}
-                onClick={() => setActiveItem(item.id)}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.name}</span>
-              </NavLink>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            if (item.items) {
+              return (
+                <li key={item.title}>
+                  <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all">
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </div>
+                  <ul className="space-y-1 px-4">
+                    {item.items.map((subItem) => (
+                      <li key={subItem.path}>
+                        <NavLink
+                          to={subItem.path}
+                          className={({ isActive }) => cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
+                            isActive 
+                              ? "bg-brand-blue text-white" 
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          )}
+                          onClick={() => setActiveItem(subItem.path)}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span>{subItem.title}</span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              );
+            } else {
+              return (
+                <li key={item.id}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) => cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
+                      isActive 
+                        ? "bg-brand-blue text-white" 
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    )}
+                    onClick={() => setActiveItem(item.id)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </NavLink>
+                </li>
+              );
+            }
+          })}
         </ul>
       </nav>
 

@@ -10,6 +10,7 @@ import { Search, FilterX, UserPlus } from 'lucide-react';
 import { ClientCard } from '@/components/operations/ClientCard';
 import AddClientDialog from '@/components/operations/AddClientDialog';
 import type { Client } from '@/schema/operations/client.schema';
+import { Link } from 'react-router-dom';
 
 const ClientsPage = () => {
   const { toast } = useToast();
@@ -56,12 +57,20 @@ const ClientsPage = () => {
           <h1 className="text-3xl font-bold">Clients</h1>
           <p className="text-muted-foreground">Manage your client organizations</p>
         </div>
-        <AddClientDialog onClientAdded={handleClientAdded}>
-          <Button className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add Client
+        <div className="flex gap-2">
+          <AddClientDialog onClientAdded={handleClientAdded}>
+            <Button variant="outline" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Quick Add
+            </Button>
+          </AddClientDialog>
+          <Button className="flex items-center gap-2" asChild>
+            <Link to="/operations/clients/create">
+              <UserPlus className="h-4 w-4" />
+              Add with Sites
+            </Link>
           </Button>
-        </AddClientDialog>
+        </div>
       </div>
 
       <Card className="mb-6">
