@@ -19,13 +19,13 @@ import { useToast } from "@/hooks/use-toast"
 import { createClient } from '@/services/clientService';
 
 interface AddClientDialogProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  onClientCreated?: () => void;
+  children: React.ReactNode;
+  onClientAdded?: () => void;
 }
 
-const AddClientDialog: React.FC<AddClientDialogProps> = ({ open, setOpen, onClientCreated }) => {
+export const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdded }) => {
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [contactName, setContactName] = useState('');
@@ -61,68 +61,69 @@ const AddClientDialog: React.FC<AddClientDialogProps> = ({ open, setOpen, onClie
     setOnHoldReason('');
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  try {
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Validate form data
-    const formData = {
-      company_name: companyName,
-      contact_name: contactName,
-      contact_email: contactEmail,
-      contact_phone: contactPhone,
-      billing_address_street: street,
-      billing_address_city: city,
-      billing_address_state: state,
-      billing_address_postcode: postcode,
-      billing_address_country: 'Australia', // Default
-      payment_terms: paymentTerms,
-      industry: industry,
-      status: status as 'Active' | 'On Hold',
-      business_number: businessNumber,
-      region: region,
-      notes: notes,
-      on_hold_reason: status === 'On Hold' ? onHoldReason : null,
-      // Add default null values for GPS coordinates
-      latitude: null,
-      longitude: null
-    };
-    
-    // Create client in database
-    await createClient(formData);
-    
-    // Show success toast
-    toast({
-      title: "Success",
-      description: "Client has been created successfully.",
-    });
-    
-    // Close dialog and reset form
-    setOpen(false);
-    resetForm();
-    
-    // Refresh client list if a callback was provided
-    if (onClientCreated) {
-      onClientCreated();
+    try {
+      setLoading(true);
+      
+      // Validate form data
+      const formData = {
+        company_name: companyName,
+        contact_name: contactName,
+        contact_email: contactEmail,
+        contact_phone: contactPhone,
+        billing_address_street: street,
+        billing_address_city: city,
+        billing_address_state: state,
+        billing_address_postcode: postcode,
+        billing_address_zip: postcode, // Add this to fix the missing property error
+        billing_address_country: 'Australia', // Default
+        payment_terms: paymentTerms,
+        industry: industry,
+        status: status as 'Active' | 'On Hold',
+        business_number: businessNumber,
+        region: region,
+        notes: notes,
+        on_hold_reason: status === 'On Hold' ? onHoldReason : null,
+        // Add default null values for GPS coordinates
+        latitude: null,
+        longitude: null
+      };
+      
+      // Create client in database
+      await createClient(formData);
+      
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Client has been created successfully.",
+      });
+      
+      // Close dialog and reset form
+      setOpen(false);
+      resetForm();
+      
+      // Refresh client list if a callback was provided
+      if (onClientAdded) {
+        onClientAdded();
+      }
+    } catch (error) {
+      console.error('Error creating client:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create client. Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error creating client:', error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "Failed to create client. Please try again.",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button>Add Client</Button>
+        {children}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -318,7 +319,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </form>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={loading}>
+          <AlertDialogAction disabled={loading} onClick={handleSubmit}>
             {loading ? 'Creating...' : 'Create'}
           </AlertDialogAction>
         </AlertDialogFooter>

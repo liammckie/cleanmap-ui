@@ -38,6 +38,27 @@ export async function getClientIndustries(): Promise<string[]> {
 }
 
 /**
+ * Get all regions that clients belong to for filtering
+ */
+export async function getClientRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('region')
+      .not('region', 'is', null);
+    
+    if (error) throw error;
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(client => client.region))];
+    return regions.filter(Boolean) as string[];
+  } catch (error) {
+    console.error('Error fetching client regions:', error);
+    return [];
+  }
+}
+
+/**
  * Filter clients by specified criteria
  */
 export async function filterClients(filters: {
@@ -65,7 +86,7 @@ export async function filterClients(filters: {
     }
     
     if (filters.search) {
-      // Fix the infinite recursion by constructing a filter string without using nested .or()
+      // Fix the infinite recursion by using a string format for .or() clause
       query = query.or(`company_name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%,contact_email.ilike.%${filters.search}%,billing_address_city.ilike.%${filters.search}%`);
     }
     
@@ -73,7 +94,6 @@ export async function filterClients(filters: {
     
     if (error) throw error;
     
-    // Cast to unknown first, then to Client[]
     return data as unknown as Client[];
   } catch (error) {
     console.error('Error filtering clients:', error);

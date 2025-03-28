@@ -50,8 +50,8 @@ export const clientSchema = z.object({
   billing_address_street: z.string().min(1, "Street address is required"),
   billing_address_city: z.string().min(1, "City is required"),
   billing_address_state: z.string().min(1, "State is required"),
-  billing_address_postcode: z.string().min(1, "Postcode is required"),
   billing_address_zip: z.string().min(1, "ZIP code is required"),
+  billing_address_postcode: z.string().min(1, "Postcode is required"),
   billing_address_country: z.string().min(1, "Country is required"),
   payment_terms: z.string().min(1, "Payment terms are required"),
   status: z.enum(['Active', 'On Hold']),
@@ -65,4 +65,3 @@ export const clientSchema = z.object({
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
-
