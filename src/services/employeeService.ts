@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Employee } from '@/schema/hr.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 export async function fetchEmployees(
   searchTerm?: string, 
@@ -28,13 +29,16 @@ export async function fetchEmployees(
       query = query.eq('department', filters.department);
     }
     if (filters.status) {
-      // Type safe casting
-      query = query.eq('status', filters.status as any);
+      query = query.eq('status', filters.status);
     }
     if (filters.employmentType) {
-      query = query.eq('employment_type', filters.employmentType as any);
+      query = query.eq('employment_type', filters.employmentType);
     }
   }
+
+  // Sort employees by status (Onboarding first, then Active, then Terminated)
+  // and then by last name
+  query = query.order('status', { ascending: false }).order('last_name');
 
   const { data, error } = await query;
 
@@ -63,11 +67,11 @@ export async function fetchEmployeeById(id: string) {
 
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
   // Convert Date objects to ISO strings for Supabase
-  const dbEmployee = prepareObjectForDb(employee);
+  const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>;
   
   const { data, error } = await supabase
     .from('employees')
-    .insert(dbEmployee as any)
+    .insert(dbEmployee)
     .select();
 
   if (error) {
@@ -80,11 +84,11 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
 
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
   // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates);
+  const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>;
   
   const { data, error } = await supabase
     .from('employees')
-    .update(dbUpdates as any)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
 
@@ -124,5 +128,22 @@ export async function fetchDepartments() {
 
   // Extract unique departments
   const departments = [...new Set(data.map(emp => emp.department))];
-  return departments;
+  return departments.filter(Boolean); // Remove any null/undefined values
+}
+
+// Fetch employment types for filters
+export async function fetchEmploymentTypes() {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('employment_type')
+    .order('employment_type');
+
+  if (error) {
+    console.error('Error fetching employment types:', error);
+    throw error;
+  }
+
+  // Extract unique employment types
+  const types = [...new Set(data.map(emp => emp.employment_type))];
+  return types.filter(Boolean); // Remove any null/undefined values
 }
