@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Employee } from '@/schema/hr.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
@@ -29,14 +30,14 @@ export async function fetchEmployees(
 
   // Apply filters if provided
   if (filters) {
-    if (filters.department) {
+    if (filters.department && filters.department !== 'all-departments') {
       query = query.eq('department', filters.department);
     }
-    if (filters.status) {
+    if (filters.status && filters.status !== 'all-statuses') {
       // Cast the status to the correct enum type
       query = query.eq('status', filters.status as EmployeeStatus);
     }
-    if (filters.employmentType) {
+    if (filters.employmentType && filters.employmentType !== 'all-types') {
       // Cast the employment_type to the correct enum type
       query = query.eq('employment_type', filters.employmentType as EmploymentType);
     }
