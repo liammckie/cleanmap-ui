@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Lead, LeadSource, LeadStage, LeadStatus } from '@/schema/sales/lead.schema';
+import { Lead, leadSchema } from '@/schema/sales/lead.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
@@ -11,32 +10,15 @@ import { prepareObjectForDb } from '@/utils/dateFormatters';
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Validate required fields
-    if (!lead.lead_name) {
-      throw new Error('Lead name is required');
-    }
-    if (!lead.company_name) {
-      throw new Error('Company name is required');
-    }
-    if (!lead.created_by) {
-      throw new Error('Created by is required');
-    }
-    if (lead.stage === undefined) {
-      lead.stage = 'Discovery';
-    }
-    if (lead.status === undefined) {
-      lead.status = 'Open';
-    }
+    // Validate the lead data using Zod schema
+    const validatedLead = leadSchema.parse({
+      ...lead,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
 
-    // Prepare data for Supabase using the utility function
-    const leadData = prepareObjectForDb(lead) as {
-      lead_name: string;
-      company_name: string;
-      created_by: string;
-      stage: LeadStage;
-      status: LeadStatus;
-      [key: string]: any;
-    };
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const leadData = prepareObjectForDb(validatedLead);
 
     const { data, error } = await supabase
       .from('leads')
@@ -53,8 +35,7 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
-      source: data.source as LeadSource | null
+      updated_at: new Date(data.updated_at)
     };
   } catch (error) {
     console.error('Unexpected error in createLead:', error);
@@ -89,8 +70,7 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
-      source: data.source as LeadSource | null
+      updated_at: new Date(data.updated_at)
     };
   } catch (error) {
     console.error('Unexpected error in updateLead:', error);

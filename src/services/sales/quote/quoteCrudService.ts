@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Quote } from '@/schema/sales/quote.schema';
+import { Quote, quoteSchema } from '@/schema/sales/quote.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
@@ -10,32 +9,15 @@ import { prepareObjectForDb } from '@/utils/dateFormatters';
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Validate required fields
-    if (!quote.quote_number) {
-      throw new Error('Quote number is required');
-    }
-    if (!quote.service_description) {
-      throw new Error('Service description is required');
-    }
-    if (!quote.created_by) {
-      throw new Error('Created by is required');
-    }
-    if (!quote.issue_date) {
-      throw new Error('Issue date is required');
-    }
-    if (!quote.valid_until) {
-      throw new Error('Valid until date is required');
-    }
+    // Validate the quote data using Zod schema
+    const validatedQuote = quoteSchema.parse({
+      ...quote,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const quoteData = prepareObjectForDb(quote) as {
-      quote_number: string;
-      service_description: string;
-      created_by: string;
-      issue_date: string;
-      valid_until: string;
-      [key: string]: any;
-    };
+    const quoteData = prepareObjectForDb(validatedQuote);
 
     const { data, error } = await supabase
       .from('quotes')
