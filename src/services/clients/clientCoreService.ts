@@ -49,7 +49,8 @@ export async function createClient(
   client: ClientInsert
 ): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
-  const preparedClient = prepareObjectForDb(client);
+  // We need to type the result properly to match what Supabase expects
+  const preparedClient = prepareObjectForDb(client) as ClientInsert;
   
   // Log what we're inserting to help with debugging
   console.log('Inserting client:', preparedClient);
@@ -79,7 +80,8 @@ export async function updateClient(
   updates: ClientUpdate
 ): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
-  const preparedUpdates = prepareObjectForDb(updates);
+  // Properly type the result to match what Supabase expects
+  const preparedUpdates = prepareObjectForDb(updates) as ClientUpdate;
   
   const { data, error } = await supabase
     .from('clients')

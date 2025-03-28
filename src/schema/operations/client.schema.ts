@@ -64,6 +64,33 @@ export const clientSchema = z.object({
   updated_at: z.date().optional()
 });
 
-// Type for database operations
-export type ClientInsert = Omit<Client, 'id' | 'created_at' | 'updated_at'>;
+/**
+ * Types for database operations
+ * 
+ * ClientInsert - Used when creating a new client (omits auto-generated fields)
+ * ClientUpdate - Used when updating an existing client (all fields optional)
+ */
+// Define the shape expected by Supabase when inserting a new client
+export type ClientInsert = {
+  company_name: string;
+  contact_name: string;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  billing_address_street: string;
+  billing_address_city: string;
+  billing_address_state: string;
+  billing_address_postcode: string;
+  billing_address_zip: string;
+  payment_terms: string;
+  status: 'Active' | 'On Hold';
+  industry?: string | null;
+  region?: string | null;
+  notes?: string | null;
+  business_number?: string | null;
+  on_hold_reason?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
+// Define the shape expected by Supabase when updating an existing client
 export type ClientUpdate = Partial<ClientInsert>;
