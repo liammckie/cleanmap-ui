@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Quote } from '@/schema/sales/quote.schema';
+import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
  * @function fetchQuotes
@@ -12,23 +13,29 @@ import { Quote } from '@/schema/sales/quote.schema';
  */
 export const fetchQuotes = async (searchTerm?: string): Promise<Quote[]> => {
   try {
-    let query = supabase.from('quotes').select('*');
-
+    let options = {
+      limit: 100
+    };
+    
+    let filters = {};
+    let orClause;
+    
     // Add search filter if provided
     if (searchTerm && searchTerm.trim()) {
       const term = `%${searchTerm.trim()}%`;
-      query = query.or(`quote_number.ilike.${term},service_description.ilike.${term}`);
+      orClause = `quote_number.ilike.${term},service_description.ilike.${term}`;
     }
-
-    // Add query limit for safety
-    query = query.limit(100);
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching quotes:', error);
-      return [];
-    }
+    
+    const data = await apiClient.query(
+      supabase,
+      'quotes',
+      filters,
+      '*',
+      {
+        ...options,
+        or: orClause
+      }
+    );
 
     // Convert date strings to Date objects
     return data.map(quote => ({
@@ -50,16 +57,7 @@ export const fetchQuotes = async (searchTerm?: string): Promise<Quote[]> => {
  */
 export const getQuote = async (quoteId: string): Promise<Quote | null> => {
   try {
-    const { data, error } = await supabase
-      .from('quotes')
-      .select('*')
-      .eq('id', quoteId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching quote:', error);
-      return null;
-    }
+    const data = await apiClient.getById(supabase, 'quotes', quoteId);
 
     return {
       ...data,

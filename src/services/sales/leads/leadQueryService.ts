@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, LeadSource } from '@/schema/sales/lead.schema';
+import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
  * Fetch all leads with optional search
@@ -9,23 +10,29 @@ import { Lead, LeadSource } from '@/schema/sales/lead.schema';
  */
 export const fetchLeads = async (searchTerm?: string): Promise<Lead[]> => {
   try {
-    let query = supabase.from('leads').select('*');
-
+    let options = {
+      limit: 100
+    };
+    
+    let filters = {};
+    let orClause;
+    
     // Add search filter if provided
     if (searchTerm && searchTerm.trim()) {
       const term = `%${searchTerm.trim()}%`;
-      query = query.or(`lead_name.ilike.${term},company_name.ilike.${term},contact_name.ilike.${term}`);
+      orClause = `lead_name.ilike.${term},company_name.ilike.${term},contact_name.ilike.${term}`;
     }
-
-    // Add query limit for safety
-    query = query.limit(100);
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching leads:', error);
-      return [];
-    }
+    
+    const data = await apiClient.query(
+      supabase,
+      'leads',
+      filters,
+      '*',
+      {
+        ...options,
+        or: orClause
+      }
+    );
 
     // Convert date strings to Date objects
     return data.map(lead => ({
@@ -48,16 +55,7 @@ export const fetchLeads = async (searchTerm?: string): Promise<Lead[]> => {
  */
 export const getLead = async (leadId: string): Promise<Lead | null> => {
   try {
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('id', leadId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching lead:', error);
-      return null;
-    }
+    const data = await apiClient.getById(supabase, 'leads', leadId);
 
     return {
       ...data,

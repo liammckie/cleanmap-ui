@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, leadSchema } from '@/schema/sales/lead.schema';
-import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } from '@/utils/supabaseInsertHelper';
+import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
  * Create a new lead
@@ -11,8 +11,10 @@ import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } fr
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Validate the lead data using Zod schema
-    const validatedLead = validateWithSchema(
+    // Create lead using the improved apiClient
+    const data = await apiClient.create(
+      supabase,
+      'leads',
       {
         ...lead,
         created_at: new Date(),
@@ -20,9 +22,6 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
       },
       leadSchema
     );
-
-    // Insert the validated lead data using our helper
-    const data = await insertTypedRow(supabase, 'leads', validatedLead);
 
     return {
       ...data,
@@ -44,8 +43,16 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Update the lead using our helper
-    const data = await updateTypedRow(supabase, 'leads', leadId, lead);
+    // Update the lead using our improved helper
+    const data = await apiClient.update(
+      supabase,
+      'leads',
+      leadId,
+      {
+        ...lead,
+        updated_at: new Date()
+      }
+    );
 
     return {
       ...data,
@@ -66,7 +73,7 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
  */
 export const deleteLead = async (leadId: string): Promise<boolean> => {
   try {
-    await deleteTypedRow(supabase, 'leads', leadId);
+    await apiClient.delete(supabase, 'leads', leadId);
     return true;
   } catch (error) {
     console.error('Unexpected error in deleteLead:', error);

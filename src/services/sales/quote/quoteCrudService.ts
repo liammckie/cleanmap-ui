@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Quote, quoteSchema } from '@/schema/sales/quote.schema';
-import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } from '@/utils/supabaseInsertHelper';
+import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
  * Create a new quote
@@ -10,8 +10,10 @@ import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } fr
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Validate the quote data using Zod schema
-    const validatedQuote = validateWithSchema(
+    // Create quote using the improved apiClient
+    const data = await apiClient.create(
+      supabase,
+      'quotes',
       {
         ...quote,
         created_at: new Date(),
@@ -19,9 +21,6 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
       },
       quoteSchema
     );
-
-    // Insert the validated quote data using our helper
-    const data = await insertTypedRow(supabase, 'quotes', validatedQuote);
 
     return {
       ...data,
@@ -44,8 +43,16 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
  */
 export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Update the quote using our helper
-    const data = await updateTypedRow(supabase, 'quotes', quoteId, quote);
+    // Update the quote using our improved helper
+    const data = await apiClient.update(
+      supabase,
+      'quotes',
+      quoteId,
+      {
+        ...quote,
+        updated_at: new Date()
+      }
+    );
 
     return {
       ...data,
@@ -67,7 +74,7 @@ export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promi
  */
 export const deleteQuote = async (quoteId: string): Promise<boolean> => {
   try {
-    await deleteTypedRow(supabase, 'quotes', quoteId);
+    await apiClient.delete(supabase, 'quotes', quoteId);
     return true;
   } catch (error) {
     console.error('Unexpected error in deleteQuote:', error);
