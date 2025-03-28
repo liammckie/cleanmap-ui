@@ -63,3 +63,7 @@ export const clientSchema = z.object({
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
+
+// Type for database operations
+export type ClientInsert = Omit<Client, 'id' | 'created_at' | 'updated_at'>;
+export type ClientUpdate = Partial<ClientInsert>;

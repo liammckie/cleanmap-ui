@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
-import type { Client } from '@/schema/operations/client.schema';
+import type { Client, ClientInsert, ClientUpdate } from '@/schema/operations/client.schema';
+import { isClientStatus } from '@/schema/operations/client.schema';
 
 /**
  * Fetch all clients with optional filtering
@@ -20,7 +21,7 @@ export async function fetchClients(
   }
 
   // Apply status filter if provided
-  if (filters.status) {
+  if (filters.status && isClientStatus(filters.status)) {
     query = query.eq('status', filters.status);
   }
 
@@ -36,19 +37,21 @@ export async function fetchClients(
     throw error;
   }
 
-  return data as Client[];
+  // Type cast the data to Client[] - this is safe since we know the structure
+  // matches what's defined in our Client interface
+  return (data as unknown as Client[]) || [];
 }
 
 /**
  * Create a new client
  */
 export async function createClient(
-  client: Omit<Client, 'id' | 'created_at' | 'updated_at'>
+  client: ClientInsert
 ): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
   const preparedClient = prepareObjectForDb(client);
   
-  // Log what we're inserting to debug
+  // Log what we're inserting to help with debugging
   console.log('Inserting client:', preparedClient);
   
   const { data, error } = await supabase
@@ -61,7 +64,11 @@ export async function createClient(
     throw error;
   }
 
-  return data[0] as Client;
+  if (!data || data.length === 0) {
+    throw new Error('Failed to create client - no data returned');
+  }
+
+  return data[0] as unknown as Client;
 }
 
 /**
@@ -69,7 +76,7 @@ export async function createClient(
  */
 export async function updateClient(
   id: string,
-  updates: Partial<Client>
+  updates: ClientUpdate
 ): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
   const preparedUpdates = prepareObjectForDb(updates);
@@ -85,7 +92,11 @@ export async function updateClient(
     throw error;
   }
 
-  return data[0] as Client;
+  if (!data || data.length === 0) {
+    throw new Error('Failed to update client - no data returned');
+  }
+
+  return data[0] as unknown as Client;
 }
 
 /**

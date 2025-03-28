@@ -95,8 +95,6 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         region: formData.region || null,
         notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
-        // Remove the billing_address_country field as it doesn't exist in the schema
-        // Add default null values for GPS coordinates
         latitude: null,
         longitude: null
       };

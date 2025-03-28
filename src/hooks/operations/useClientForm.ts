@@ -25,8 +25,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
       const clientFields = [
         'company_name', 'contact_name', 'billing_address_street', 
         'billing_address_city', 'billing_address_state', 
-        'billing_address_postcode', 'billing_address_country', 
-        'payment_terms'
+        'billing_address_postcode', 'payment_terms'
       ];
       
       const result = await form.trigger(clientFields as any);
@@ -63,11 +62,10 @@ export const useClientForm = (form: UseFormReturn<any>) => {
         billing_address_street: clientData.billing_address_street,
         billing_address_city: clientData.billing_address_city,
         billing_address_state: clientData.billing_address_state,
-        billing_address_zip: clientData.billing_address_zip,
+        billing_address_zip: clientData.billing_address_postcode, // Using postcode for zip as well
         billing_address_postcode: clientData.billing_address_postcode,
-        billing_address_country: clientData.billing_address_country,
         payment_terms: clientData.payment_terms,
-        status: clientData.status,
+        status: clientData.status as 'Active' | 'On Hold',
         industry: clientData.industry || null,
         region: clientData.region || null,
         notes: clientData.notes || null,
