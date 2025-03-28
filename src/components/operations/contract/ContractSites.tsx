@@ -63,7 +63,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                 </TableCell>
                 <TableCell className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-                  {`${contractSite.site?.site?.site_name || 'Unknown Location'}`}
+                  {contractSite.site?.site_name || 'Unknown Location'}
                 </TableCell>
               </TableRow>
             ))}
