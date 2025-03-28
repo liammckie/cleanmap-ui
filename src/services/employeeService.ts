@@ -138,19 +138,28 @@ export async function fetchDepartments() {
   return departments.filter(Boolean); // Remove any null/undefined values
 }
 
-// Fetch employment types for filters
+// Fetch employment types from the database enum
 export async function fetchEmploymentTypes() {
   const { data, error } = await supabase
-    .from('employees')
-    .select('employment_type')
-    .order('employment_type');
+    .rpc('get_employment_type_enum');
 
   if (error) {
     console.error('Error fetching employment types:', error);
     throw error;
   }
 
-  // Extract unique employment types
-  const types = [...new Set(data.map(emp => emp.employment_type))];
-  return types.filter(Boolean); // Remove any null/undefined values
+  return data;
+}
+
+// Fetch employee status options from the database enum
+export async function fetchEmployeeStatuses() {
+  const { data, error } = await supabase
+    .rpc('get_employee_status_enum');
+
+  if (error) {
+    console.error('Error fetching employee statuses:', error);
+    throw error;
+  }
+
+  return data;
 }

@@ -1229,6 +1229,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_employee_status_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_employment_type_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
       get_lead_source_enum: {
         Args: Record<PropertyKey, never>
         Returns: string[]

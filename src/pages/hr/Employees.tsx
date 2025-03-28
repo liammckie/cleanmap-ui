@@ -31,7 +31,12 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchEmployees, fetchDepartments } from '@/services/employeeService';
+import { 
+  fetchEmployees, 
+  fetchDepartments, 
+  fetchEmploymentTypes,
+  fetchEmployeeStatuses 
+} from '@/services/employeeService';
 import { format } from 'date-fns';
 import { 
   Select, 
@@ -59,7 +64,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -94,11 +98,9 @@ const EmployeesPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  // Add sorting functionality
   const [sortColumn, setSortColumn] = useState<keyof Employee | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Use react-query to fetch employees data
   const { data: employees, isLoading, error } = useQuery({
     queryKey: ['employees', searchTerm, filters],
     queryFn: () => fetchEmployees(searchTerm, filters),
@@ -114,10 +116,19 @@ const EmployeesPage = () => {
     }
   });
 
-  // Fetch department options for filters
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: fetchDepartments
+  });
+
+  const { data: employmentTypes = [] } = useQuery({
+    queryKey: ['employmentTypes'],
+    queryFn: fetchEmploymentTypes
+  });
+
+  const { data: employeeStatuses = [] } = useQuery({
+    queryKey: ['employeeStatuses'],
+    queryFn: fetchEmployeeStatuses
   });
 
   const clearFilters = () => {
@@ -129,25 +140,20 @@ const EmployeesPage = () => {
     setSearchTerm('');
   };
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = employees ? employees.slice(indexOfFirstItem, indexOfLastItem) : [];
   const totalPages = employees ? Math.ceil(employees.length / itemsPerPage) : 0;
 
-  // Change page handler
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  // View employee details
   const handleViewEmployee = (employee: any) => {
     setSelectedEmployee(employee);
     setIsDetailOpen(true);
   };
 
-  // Sorting handler
   const handleSort = (column: keyof Employee) => {
     if (sortColumn === column) {
-      // Toggle sort direction if same column
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
@@ -155,7 +161,6 @@ const EmployeesPage = () => {
     }
   };
 
-  // Memoized and sorted employees
   const sortedEmployees = useMemo(() => {
     if (!employees || !sortColumn) return employees || [];
 
@@ -173,10 +178,7 @@ const EmployeesPage = () => {
     });
   }, [employees, sortColumn, sortDirection]);
 
-  // Onboarding tasks indicator
   const getOnboardingTasksIndicator = (employee: any) => {
-    // This is a placeholder. In a real implementation, 
-    // you'd fetch actual onboarding tasks from the backend
     const totalTasks = 7;
     const completedTasks = employee.status === 'Onboarding' ? 3 : 0;
 
@@ -261,9 +263,9 @@ const EmployeesPage = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="all-statuses">All Statuses</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Onboarding">Onboarding</SelectItem>
-                    <SelectItem value="Terminated">Terminated</SelectItem>
+                    {employeeStatuses.map((status: string) => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -281,9 +283,9 @@ const EmployeesPage = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="all-types">All Types</SelectItem>
-                    <SelectItem value="Full-time">Full-time</SelectItem>
-                    <SelectItem value="Part-time">Part-time</SelectItem>
-                    <SelectItem value="Contractor">Contractor</SelectItem>
+                    {employmentTypes.map((type: string) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -388,11 +390,10 @@ const EmployeesPage = () => {
                 </PaginationItem>
                 
                 {[...Array(totalPages)].map((_, i) => {
-                  // Show only a limited number of page links
                   if (
-                    i === 0 || // First page
-                    i === totalPages - 1 || // Last page
-                    (i >= currentPage - 2 && i <= currentPage + 1) // Pages around current
+                    i === 0 || 
+                    i === totalPages - 1 || 
+                    (i >= currentPage - 2 && i <= currentPage + 1)
                   ) {
                     return (
                       <PaginationItem key={i}>
@@ -425,7 +426,6 @@ const EmployeesPage = () => {
         )}
       </Card>
 
-      {/* Employee Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-3xl">
           {selectedEmployee && (

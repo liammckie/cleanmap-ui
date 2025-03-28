@@ -68,3 +68,23 @@ BEGIN
   RETURN QUERY SELECT unnest(enum_range(NULL::public.service_request_status)::text[]);
 END;
 $$;
+
+-- Function to get employee status enum values
+CREATE OR REPLACE FUNCTION public.get_employee_status_enum()
+RETURNS SETOF text
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY SELECT unnest(enum_range(NULL::public.employee_status)::text[]);
+END;
+$$;
+
+-- Function to get employment type enum values
+CREATE OR REPLACE FUNCTION public.get_employment_type_enum()
+RETURNS SETOF text
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY SELECT unnest(enum_range(NULL::public.employment_type)::text[]);
+END;
+$$;

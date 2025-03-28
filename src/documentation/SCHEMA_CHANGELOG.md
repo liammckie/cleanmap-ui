@@ -84,3 +84,11 @@ This file tracks significant schema changes that may impact application function
 - Split quoteService.ts into quoteCrudService.ts, quoteQueryService.ts, quoteLineItemService.ts, and quoteEnumService.ts
 - Improved code organization and maintainability without changing functionality
 - Matched the pattern used for lead services to ensure consistency
+
+## 2024-06-11
+
+### Added
+- Enabled Row Level Security on employees table
+- Added RLS policies for different user roles (HR staff, managers, and employees)
+- Created helper functions for retrieving employee_status and employment_type enum values
+- Updated frontend code to use the new enum functions
