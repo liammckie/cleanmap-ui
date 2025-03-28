@@ -1,0 +1,122 @@
+
+import { supabase } from '@/integrations/supabase/client';
+import { Quote } from '@/schema/sales/quote.schema';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
+
+/**
+ * Create a new quote
+ * @param quote The quote data
+ * @returns The created quote or null if an error occurred
+ */
+export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
+  try {
+    // Validate required fields
+    if (!quote.quote_number) {
+      throw new Error('Quote number is required');
+    }
+    if (!quote.service_description) {
+      throw new Error('Service description is required');
+    }
+    if (!quote.created_by) {
+      throw new Error('Created by is required');
+    }
+    if (!quote.issue_date) {
+      throw new Error('Issue date is required');
+    }
+    if (!quote.valid_until) {
+      throw new Error('Valid until date is required');
+    }
+
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const quoteData = prepareObjectForDb(quote) as {
+      quote_number: string;
+      service_description: string;
+      created_by: string;
+      issue_date: string;
+      valid_until: string;
+      [key: string]: any;
+    };
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .insert(quoteData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating quote:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      issue_date: new Date(data.issue_date),
+      valid_until: new Date(data.valid_until),
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in createQuote:', error);
+    return null;
+  }
+};
+
+/**
+ * Update a quote
+ * @param quoteId ID of the quote to update
+ * @param quote Updated quote data
+ * @returns The updated quote or null if an error occurred
+ */
+export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
+  try {
+    // Prepare data for Supabase by converting Date objects to ISO strings
+    const quoteData = prepareObjectForDb(quote);
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .update(quoteData)
+      .eq('id', quoteId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating quote:', error);
+      return null;
+    }
+
+    return {
+      ...data,
+      issue_date: new Date(data.issue_date),
+      valid_until: new Date(data.valid_until),
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at)
+    };
+  } catch (error) {
+    console.error('Unexpected error in updateQuote:', error);
+    return null;
+  }
+};
+
+/**
+ * Delete a quote
+ * @param quoteId ID of the quote to delete
+ * @returns True if the quote was deleted successfully, false otherwise
+ */
+export const deleteQuote = async (quoteId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('quotes')
+      .delete()
+      .eq('id', quoteId);
+
+    if (error) {
+      console.error('Error deleting quote:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in deleteQuote:', error);
+    return false;
+  }
+};

@@ -77,3 +77,10 @@ This file tracks significant schema changes that may impact application function
 - Improved modularity and maintainability without changing functionality
 - Enhanced type safety with more specific return types
 
+## 2024-06-10
+
+### Refactored
+- Restructured quote services into smaller, more focused files
+- Split quoteService.ts into quoteCrudService.ts, quoteQueryService.ts, quoteLineItemService.ts, and quoteEnumService.ts
+- Improved code organization and maintainability without changing functionality
+- Matched the pattern used for lead services to ensure consistency
