@@ -39,23 +39,14 @@ export async function getClientIndustries(): Promise<string[]> {
 
 /**
  * Get all regions that clients belong to for filtering
+ * 
+ * Note: The region field is not directly on clients table but relates to a different concept.
+ * This is a placeholder for future functionality.
  */
 export async function getClientRegions(): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('region')
-      .not('region', 'is', null);
-    
-    if (error) throw error;
-    
-    // Extract unique regions
-    const regions = [...new Set(data.map(client => client.region))];
-    return regions.filter(Boolean) as string[];
-  } catch (error) {
-    console.error('Error fetching client regions:', error);
-    return [];
-  }
+  // For now, return an empty array as region isn't available directly on clients
+  // When region data becomes available, this function can be updated
+  return [];
 }
 
 /**
@@ -81,13 +72,20 @@ export async function filterClients(filters: {
       query = query.eq('industry', filters.industry);
     }
     
-    if (filters.region) {
-      query = query.eq('region', filters.region);
-    }
+    // Region filtering is disabled until region data is available
+    // if (filters.region) {
+    //   query = query.eq('region', filters.region);
+    // }
     
     if (filters.search) {
-      // Using a string format for .or() clause to avoid infinite recursion
-      query = query.or(`company_name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%,contact_email.ilike.%${filters.search}%,billing_address_city.ilike.%${filters.search}%`);
+      // Format the OR condition as a string to avoid TypeScript recursion issues
+      const searchPattern = `%${filters.search}%`;
+      query = query.or(
+        `company_name.ilike.${searchPattern},` +
+        `contact_name.ilike.${searchPattern},` + 
+        `contact_email.ilike.${searchPattern},` +
+        `billing_address_city.ilike.${searchPattern}`
+      );
     }
     
     const { data, error } = await query;
