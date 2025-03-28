@@ -68,3 +68,12 @@ This file tracks significant schema changes that may impact application function
 - Improved type safety when using prepareObjectForDb utility
 - Added proper type assertions to ensure insert operations have all required fields
 - Enhanced error handling during database operations
+
+## 2024-06-09
+
+### Refactored
+- Restructured lead services into smaller, more focused files
+- Split leadService.ts into leadCrudService.ts, leadQueryService.ts, and leadEnumService.ts
+- Improved modularity and maintainability without changing functionality
+- Enhanced type safety with more specific return types
+
