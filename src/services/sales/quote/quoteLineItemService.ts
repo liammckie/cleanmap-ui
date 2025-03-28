@@ -5,14 +5,7 @@ import {
   quoteLineItemSchema,
   quoteLineItemDbSchema
 } from '@/schema/sales/quote.schema';
-import { 
-  insertTypedRow, 
-  updateTypedRow, 
-  deleteTypedRow, 
-  validateInsert, 
-  validateForDb,
-  apiClient
-} from '@/utils/supabaseInsertHelper';
+import { apiClient } from '@/utils/supabaseInsertHelper';
 
 /**
  * Get all line items for a quote
