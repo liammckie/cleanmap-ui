@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { QuoteLineItem } from '@/schema/sales/quote.schema';
-import { insertTypedRow, updateTypedRow, deleteTypedRow } from '@/utils/supabaseInsertHelper';
+import { QuoteLineItem, quoteLineItemSchema } from '@/schema/sales/quote.schema';
+import { insertTypedRow, updateTypedRow, deleteTypedRow, validateWithSchema } from '@/utils/supabaseInsertHelper';
 
 /**
  * Get all line items for a quote
@@ -47,8 +47,17 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
       throw new Error('Description is required for line item');
     }
 
+    const validatedLineItem = validateWithSchema(
+      {
+        ...lineItem,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      quoteLineItemSchema
+    );
+
     // Insert the line item using our helper
-    const data = await insertTypedRow(supabase, 'quote_line_items', lineItem);
+    const data = await insertTypedRow(supabase, 'quote_line_items', validatedLineItem);
 
     return {
       ...data,

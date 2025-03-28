@@ -21,6 +21,13 @@ export function formatDate(date: Date | string | null | undefined, formatString 
 }
 
 /**
+ * Type guard to check if a value is a Record (object)
+ */
+function isRecord(value: unknown): value is Record<string, any> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
  * Prepares an object for database operations by:
  * 1. Converting Date objects to ISO strings
  * 2. Converting null to undefined for optional fields
@@ -30,8 +37,8 @@ export function formatDate(date: Date | string | null | undefined, formatString 
  * @param obj The object to prepare for database operations
  * @returns A copy of the object with dates converted to ISO strings
  */
-export function prepareObjectForDb<T extends Record<string, any>>(obj: T): T {
-  if (!obj) return obj;
+export function prepareObjectForDb<T>(obj: T): T {
+  if (!isRecord(obj)) return obj;
   
   const result = { ...obj };
   
@@ -48,6 +55,11 @@ export function prepareObjectForDb<T extends Record<string, any>>(obj: T): T {
       // This helps with Supabase's handling of null values
       if (value === null) {
         result[key] = undefined as any;
+      }
+      
+      // Recursively process nested objects
+      if (isRecord(value)) {
+        result[key] = prepareObjectForDb(value) as any;
       }
     }
   }

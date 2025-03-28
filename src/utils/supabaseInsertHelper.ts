@@ -1,6 +1,5 @@
 
 import { prepareObjectForDb } from '@/utils/dateFormatters';
-import type { TablesInsert } from '@/integrations/supabase/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ZodSchema } from 'zod';
 
