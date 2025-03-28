@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { calculateAllBillingFrequencies, formatCurrency, type BillingFrequency } from '@/utils/billingCalculations';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type SiteFormData = {
   site_name: string;
@@ -24,6 +25,9 @@ type SiteFormData = {
   price_per_service: number;
   price_frequency: string;
   special_instructions?: string;
+  service_type: 'Internal' | 'Contractor';
+  service_start_date: Date | null;
+  service_end_date: Date | null;
 };
 
 interface ClientSiteFormProps {
@@ -46,7 +50,7 @@ const ClientSiteForm: React.FC<ClientSiteFormProps> = ({
   // Recalculate price breakdown whenever price or frequency changes
   useEffect(() => {
     const price = form.watch(`sites.${index}.price_per_service`) || 0;
-    const frequency = form.watch(`sites.${index}.price_frequency`) as BillingFrequency || 'monthly';
+    const frequency = form.watch(`sites.${index}.price_frequency`) as BillingFrequency || 'weekly';
     
     const breakdown = calculateAllBillingFrequencies(price, frequency);
     setPriceBreakdown(breakdown);
@@ -179,12 +183,69 @@ const ClientSiteForm: React.FC<ClientSiteFormProps> = ({
 
         <FormField
           control={form.control}
+          name={`sites.${index}.service_type`}
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Service Type*</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="Internal" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Internal</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="Contractor" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Contractor</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <FormField
+          control={form.control}
           name={`sites.${index}.service_start_date`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Service Start Date</FormLabel>
+              <FormLabel>Service Start Date*</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input 
+                  type="date" 
+                  {...field} 
+                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name={`sites.${index}.service_end_date`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Service End Date</FormLabel>
+              <FormControl>
+                <Input 
+                  type="date" 
+                  {...field} 
+                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

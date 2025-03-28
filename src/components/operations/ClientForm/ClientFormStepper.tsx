@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -15,7 +14,6 @@ import ClientSitesList from './ClientSitesList';
 import { calculateAllBillingFrequencies } from '@/utils/billingCalculations';
 import type { BillingFrequency } from '@/utils/billingCalculations';
 
-// Modified client form schema - removing some validation to simplify for now
 const clientFormSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
   contact_name: z.string().min(1, "Contact name is required"),
@@ -43,7 +41,9 @@ const clientFormSchema = z.object({
       address_state: z.string().min(1, "State is required"),
       address_postcode: z.string().min(1, "Postcode is required"),
       region: z.string().nullable().optional(),
-      service_start_date: z.date().optional().nullable(),
+      service_start_date: z.date().nullable(),
+      service_end_date: z.date().nullable().optional(),
+      service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
       price_per_service: z.number().min(0, "Price must be 0 or greater"),
       price_frequency: z.string().min(1, "Billing frequency is required"),
       special_instructions: z.string().nullable().optional()
@@ -95,8 +95,10 @@ const ClientFormStepper: React.FC = () => {
           address_postcode: '',
           region: '',
           service_start_date: null,
+          service_end_date: null,
+          service_type: 'Internal',
           price_per_service: 0,
-          price_frequency: 'monthly',
+          price_frequency: 'weekly',
           special_instructions: ''
         }
       ]
@@ -105,7 +107,6 @@ const ClientFormStepper: React.FC = () => {
 
   const nextStep = async () => {
     if (currentStep === STEPS.CLIENT_DETAILS) {
-      // Validate only the client details fields
       const clientFields = [
         'company_name', 'contact_name', 'billing_address_street', 
         'billing_address_city', 'billing_address_state', 
@@ -118,7 +119,6 @@ const ClientFormStepper: React.FC = () => {
         setCurrentStep(STEPS.SITES);
       }
     } else if (currentStep === STEPS.SITES) {
-      // Validate site fields
       const result = await form.trigger('sites');
       if (result) {
         setCurrentStep(STEPS.REVIEW);
@@ -138,10 +138,8 @@ const ClientFormStepper: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // Extract site data from the form
       const { sites, ...clientData } = data;
       
-      // Create the client first - fix by providing all required fields
       const newClient = await createClient({
         company_name: clientData.company_name,
         contact_name: clientData.contact_name,
@@ -164,16 +162,13 @@ const ClientFormStepper: React.FC = () => {
         longitude: null
       });
       
-      // Then create each site, linking to the new client
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
-          // Calculate pricing based on frequency
           const { weekly, monthly, annually } = calculateAllBillingFrequencies(
             siteData.price_per_service,
             siteData.price_frequency as BillingFrequency
           );
 
-          // Format the site data correctly
           await createSite({
             client_id: newClient.id,
             site_name: siteData.site_name,
@@ -195,6 +190,8 @@ const ClientFormStepper: React.FC = () => {
             latitude: null,
             longitude: null,
             service_start_date: siteData.service_start_date,
+            service_end_date: siteData.service_end_date,
+            service_type: siteData.service_type,
             price_per_service: siteData.price_per_service,
             price_frequency: siteData.price_frequency
           });
@@ -206,7 +203,6 @@ const ClientFormStepper: React.FC = () => {
         description: "Client and sites created successfully.",
       });
       
-      // Navigate to clients page
       navigate('/operations/clients');
     } catch (error) {
       console.error('Error creating client and sites:', error);
@@ -256,6 +252,11 @@ const ClientFormStepper: React.FC = () => {
                   <div key={index} className="p-3 border rounded-md">
                     <p className="font-medium">{site.site_name}</p>
                     <p className="text-sm">{site.address_street}, {site.address_city}, {site.address_state} {site.address_postcode}</p>
+                    <p className="text-sm">Service Type: {site.service_type}</p>
+                    <p className="text-sm">
+                      Period: {site.service_start_date ? new Date(site.service_start_date).toLocaleDateString() : 'N/A'} 
+                      {site.service_end_date ? ` to ${new Date(site.service_end_date).toLocaleDateString()}` : ''}
+                    </p>
                     <p className="text-sm font-medium mt-2">Price: ${site.price_per_service} ({site.price_frequency})</p>
                   </div>
                 ))}
@@ -281,7 +282,6 @@ const ClientFormStepper: React.FC = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
-            {/* Step indicator */}
             <div className="flex mb-6">
               <div className={`flex-1 text-center relative ${currentStep >= STEPS.CLIENT_DETAILS ? 'text-primary' : 'text-muted-foreground'}`}>
                 <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center mb-1 ${currentStep >= STEPS.CLIENT_DETAILS ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
