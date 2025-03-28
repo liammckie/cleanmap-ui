@@ -20,8 +20,8 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
     });
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    // Explicitly type as TablesInsert to ensure type compatibility with Supabase
-    const leadData = prepareObjectForDb(validatedLead) as TablesInsert<'leads'>;
+    // First convert to unknown, then to TablesInsert to ensure type compatibility with Supabase
+    const leadData = prepareObjectForDb(validatedLead) as unknown as TablesInsert<'leads'>;
 
     const { data, error } = await supabase
       .from('leads')
@@ -55,7 +55,8 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
     // Prepare data for Supabase using the utility function
-    const leadData = prepareObjectForDb(lead) as TablesInsert<'leads'>;
+    // Use type assertion with unknown as intermediate step for type safety
+    const leadData = prepareObjectForDb(lead) as unknown as TablesInsert<'leads'>;
 
     const { data, error } = await supabase
       .from('leads')

@@ -1,4 +1,25 @@
 
+import { format } from 'date-fns';
+
+/**
+ * Formats a date to a human-readable string format
+ * 
+ * @param date The date to format (can be Date object, ISO string, or null/undefined)
+ * @param formatString Optional format string (defaults to 'dd MMM yyyy')
+ * @returns A formatted date string, or '-' if the date is null/undefined
+ */
+export function formatDate(date: Date | string | null | undefined, formatString = 'dd MMM yyyy'): string {
+  if (!date) return '-';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, formatString);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '-';
+  }
+}
+
 /**
  * Prepares an object for database operations by:
  * 1. Converting Date objects to ISO strings

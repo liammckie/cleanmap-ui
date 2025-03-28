@@ -19,8 +19,8 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
     });
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    // Explicitly type as TablesInsert to ensure type compatibility with Supabase
-    const quoteData = prepareObjectForDb(validatedQuote) as TablesInsert<'quotes'>;
+    // Use type assertion with unknown as intermediate step for type safety
+    const quoteData = prepareObjectForDb(validatedQuote) as unknown as TablesInsert<'quotes'>;
 
     const { data, error } = await supabase
       .from('quotes')
@@ -55,7 +55,8 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
 export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
   try {
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const quoteData = prepareObjectForDb(quote) as TablesInsert<'quotes'>;
+    // Use type assertion with unknown as intermediate step for type safety
+    const quoteData = prepareObjectForDb(quote) as unknown as TablesInsert<'quotes'>;
 
     const { data, error } = await supabase
       .from('quotes')

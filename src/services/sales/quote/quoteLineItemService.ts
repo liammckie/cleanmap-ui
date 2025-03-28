@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { QuoteLineItem } from '@/schema/sales/quote.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 /**
  * Get all line items for a quote
@@ -85,7 +86,8 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
 export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
   try {
     // Prepare data for Supabase
-    const lineItemData = prepareObjectForDb(lineItem);
+    // Use type assertion with unknown as intermediate step for type safety
+    const lineItemData = prepareObjectForDb(lineItem) as unknown as TablesInsert<'quote_line_items'>;
 
     const { data, error } = await supabase
       .from('quote_line_items')
