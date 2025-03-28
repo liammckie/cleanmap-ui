@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema';
 import { apiClient } from '@/utils/supabaseInsertHelper';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
  * Create a new lead
@@ -44,15 +45,18 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Prepare data for DB - convert Dates to strings
+    const preparedData = prepareObjectForDb({
+      ...lead,
+      updated_at: new Date()
+    });
+
     // Update the lead using our improved helper
     const data = await apiClient.update(
       supabase,
       'leads',
       leadId,
-      {
-        ...lead,
-        updated_at: new Date()
-      }
+      preparedData
     );
 
     // Convert string dates back to Date objects

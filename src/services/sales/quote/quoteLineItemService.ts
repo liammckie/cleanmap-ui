@@ -6,6 +6,7 @@ import {
   quoteLineItemDbSchema
 } from '@/schema/sales/quote.schema';
 import { apiClient } from '@/utils/supabaseInsertHelper';
+import { prepareObjectForDb } from '@/utils/dateFormatters';
 
 /**
  * Get all line items for a quote
@@ -81,15 +82,18 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
  */
 export const updateQuoteLineItem = async (lineItemId: string, lineItem: Partial<QuoteLineItem>): Promise<QuoteLineItem | null> => {
   try {
+    // Prepare data for DB - convert Dates to strings
+    const preparedData = prepareObjectForDb({
+      ...lineItem,
+      updated_at: new Date()
+    });
+
     // Update the line item using our improved helper
     const data = await apiClient.update(
       supabase,
       'quote_line_items',
       lineItemId,
-      {
-        ...lineItem,
-        updated_at: new Date()
-      }
+      preparedData
     );
 
     // Convert string dates back to Date objects
