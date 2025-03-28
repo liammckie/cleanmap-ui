@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Lead, leadSchema } from '@/schema/sales/lead.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 /**
  * Create a new lead
@@ -18,7 +20,8 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
     });
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const leadData = prepareObjectForDb(validatedLead);
+    // Explicitly type as TablesInsert to ensure type compatibility with Supabase
+    const leadData = prepareObjectForDb(validatedLead) as TablesInsert<'leads'>;
 
     const { data, error } = await supabase
       .from('leads')
@@ -52,7 +55,7 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
     // Prepare data for Supabase using the utility function
-    const leadData = prepareObjectForDb(lead);
+    const leadData = prepareObjectForDb(lead) as TablesInsert<'leads'>;
 
     const { data, error } = await supabase
       .from('leads')

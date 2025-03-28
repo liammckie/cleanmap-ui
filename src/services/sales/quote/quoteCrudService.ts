@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Quote, quoteSchema } from '@/schema/sales/quote.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 /**
  * Create a new quote
@@ -17,7 +19,8 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
     });
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const quoteData = prepareObjectForDb(validatedQuote);
+    // Explicitly type as TablesInsert to ensure type compatibility with Supabase
+    const quoteData = prepareObjectForDb(validatedQuote) as TablesInsert<'quotes'>;
 
     const { data, error } = await supabase
       .from('quotes')
@@ -52,7 +55,7 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
 export const updateQuote = async (quoteId: string, quote: Partial<Quote>): Promise<Quote | null> => {
   try {
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const quoteData = prepareObjectForDb(quote);
+    const quoteData = prepareObjectForDb(quote) as TablesInsert<'quotes'>;
 
     const { data, error } = await supabase
       .from('quotes')
