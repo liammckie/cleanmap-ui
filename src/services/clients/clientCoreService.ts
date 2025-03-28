@@ -1,40 +1,59 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Client } from '@/schema/operations/client.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
-import { isClientStatus } from '@/schema/operations/client.schema';
+import type { Client } from '@/schema/operations/client.schema';
 
 /**
- * Core CRUD operations for clients
- * 
- * @origin module: operations/clients
- * @source internal-user
- * @field-locked id:uuid, company_name:string, status:enum, created_at:timestamp
+ * Fetch all clients with optional filtering
  */
+export async function fetchClients(
+  searchTerm: string = '',
+  filters: { status: string; industry: string } = { status: '', industry: '' }
+): Promise<Client[]> {
+  let query = supabase.from('clients').select('*');
 
-export async function fetchClientById(id: string) {
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('id', id)
-    .single();
+  // Apply search filter if provided
+  if (searchTerm) {
+    query = query.or(
+      `company_name.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`
+    );
+  }
+
+  // Apply status filter if provided
+  if (filters.status) {
+    query = query.eq('status', filters.status);
+  }
+
+  // Apply industry filter if provided
+  if (filters.industry) {
+    query = query.eq('industry', filters.industry);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching client:', error);
+    console.error('Error fetching clients:', error);
     throw error;
   }
 
-  return data;
+  return data as Client[];
 }
 
-export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'updated_at'>) {
+/**
+ * Create a new client
+ */
+export async function createClient(
+  client: Omit<Client, 'id' | 'created_at' | 'updated_at'>
+): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
-  const dbClient = prepareObjectForDb(client);
+  const preparedClient = prepareObjectForDb(client);
   
-  // Use type assertion to match Supabase's expected type for the clients table
+  // Log what we're inserting to debug
+  console.log('Inserting client:', preparedClient);
+  
   const { data, error } = await supabase
     .from('clients')
-    .insert(dbClient as any)
+    .insert(preparedClient)
     .select();
 
   if (error) {
@@ -42,16 +61,22 @@ export async function createClient(client: Omit<Client, 'id' | 'created_at' | 'u
     throw error;
   }
 
-  return data[0];
+  return data[0] as Client;
 }
 
-export async function updateClient(id: string, updates: Partial<Client>) {
+/**
+ * Update an existing client
+ */
+export async function updateClient(
+  id: string,
+  updates: Partial<Client>
+): Promise<Client> {
   // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates);
+  const preparedUpdates = prepareObjectForDb(updates);
   
   const { data, error } = await supabase
     .from('clients')
-    .update(dbUpdates as any)
+    .update(preparedUpdates)
     .eq('id', id)
     .select();
 
@@ -60,10 +85,13 @@ export async function updateClient(id: string, updates: Partial<Client>) {
     throw error;
   }
 
-  return data[0];
+  return data[0] as Client;
 }
 
-export async function deleteClient(id: string) {
+/**
+ * Delete a client
+ */
+export async function deleteClient(id: string): Promise<void> {
   const { error } = await supabase
     .from('clients')
     .delete()
@@ -73,41 +101,4 @@ export async function deleteClient(id: string) {
     console.error('Error deleting client:', error);
     throw error;
   }
-
-  return true;
 }
-
-export async function fetchClients(searchTerm = '', filters = { status: '', industry: '' }) {
-  let query = supabase
-    .from('clients')
-    .select('*');
-  
-  // Apply search term if provided
-  if (searchTerm) {
-    query = query.or(`company_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%`);
-  }
-  
-  // Apply status filter if provided
-  if (filters.status) {
-    if (isClientStatus(filters.status)) {
-      query = query.eq('status', filters.status);
-    }
-  }
-  
-  // Apply industry filter if provided
-  if (filters.industry) {
-    query = query.eq('industry', filters.industry);
-  }
-  
-  // Execute the query
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching clients:', error);
-    throw error;
-  }
-  
-  // Fixed typing issue: Cast data to unknown first, then to Client[]
-  return data as unknown as Client[];
-}
-

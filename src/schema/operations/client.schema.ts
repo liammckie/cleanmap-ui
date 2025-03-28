@@ -8,7 +8,7 @@ import { z } from 'zod';
  */
 
 /**
- * Client - A customer organization that contracts cleaning services
+ * Client - A business that purchases cleaning services
  */
 export interface Client {
   id: string;
@@ -19,23 +19,22 @@ export interface Client {
   billing_address_street: string;
   billing_address_city: string;
   billing_address_state: string;
-  billing_address_zip: string;
   billing_address_postcode: string;
-  billing_address_country: string;
+  billing_address_zip: string;
+  payment_terms: string;
   status: 'Active' | 'On Hold';
   industry: string | null;
   region: string | null;
   notes: string | null;
-  created_at: Date;
-  updated_at: Date;
-  payment_terms: string;
   business_number: string | null;
   on_hold_reason: string | null;
+  created_at: Date;
+  updated_at: Date;
   latitude: number | null;
   longitude: number | null;
 }
 
-// Type guard for Client status
+// Type guard for client status
 export function isClientStatus(value: string): value is Client['status'] {
   return ['Active', 'On Hold'].includes(value);
 }
@@ -45,23 +44,22 @@ export const clientSchema = z.object({
   id: z.string().optional(),
   company_name: z.string().min(1, "Company name is required"),
   contact_name: z.string().min(1, "Contact name is required"),
-  contact_email: z.string().email("Valid email is required").nullable(),
-  contact_phone: z.string().nullable(),
+  contact_email: z.string().email("Invalid email address").nullable().optional(),
+  contact_phone: z.string().nullable().optional(),
   billing_address_street: z.string().min(1, "Street address is required"),
   billing_address_city: z.string().min(1, "City is required"),
   billing_address_state: z.string().min(1, "State is required"),
-  billing_address_zip: z.string().min(1, "ZIP code is required"),
   billing_address_postcode: z.string().min(1, "Postcode is required"),
-  billing_address_country: z.string().min(1, "Country is required"),
+  billing_address_zip: z.string().min(1, "ZIP code is required"),
   payment_terms: z.string().min(1, "Payment terms are required"),
   status: z.enum(['Active', 'On Hold']),
-  industry: z.string().nullable(),
-  region: z.string().nullable(),
-  notes: z.string().nullable(),
-  business_number: z.string().nullable(),
-  on_hold_reason: z.string().nullable(),
-  latitude: z.number().nullable(),
-  longitude: z.number().nullable(),
+  industry: z.string().nullable().optional(),
+  region: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  business_number: z.string().nullable().optional(),
+  on_hold_reason: z.string().nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });

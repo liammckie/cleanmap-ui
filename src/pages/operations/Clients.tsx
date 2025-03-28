@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { fetchClients } from '@/services/clients';
 import { Search, FilterX, UserPlus } from 'lucide-react';
 import { ClientCard } from '@/components/operations/ClientCard';
-import AddClientDialog from '@/components/operations/AddClientDialog';
+import AddClientDialog from '@/components/operations/client/AddClientDialog';
 import type { Client } from '@/schema/operations/client.schema';
 import { Link } from 'react-router-dom';
 

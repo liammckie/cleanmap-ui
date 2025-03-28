@@ -81,21 +81,21 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
       const clientData = {
         company_name: formData.companyName,
         contact_name: formData.contactName,
-        contact_email: formData.contactEmail,
-        contact_phone: formData.contactPhone,
+        contact_email: formData.contactEmail || null,
+        contact_phone: formData.contactPhone || null,
         billing_address_street: formData.street,
         billing_address_city: formData.city,
         billing_address_state: formData.state,
         billing_address_postcode: formData.postcode,
         billing_address_zip: formData.postcode, // Using postcode for zip as well
-        billing_address_country: 'Australia', // Default
         payment_terms: formData.paymentTerms,
-        industry: formData.industry,
+        industry: formData.industry || null,
         status: formData.status as 'Active' | 'On Hold',
-        business_number: formData.businessNumber,
-        region: formData.region,
-        notes: formData.notes,
+        business_number: formData.businessNumber || null,
+        region: formData.region || null,
+        notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
+        // Remove the billing_address_country field as it doesn't exist in the schema
         // Add default null values for GPS coordinates
         latitude: null,
         longitude: null
