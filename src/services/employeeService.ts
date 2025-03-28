@@ -1,8 +1,12 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Employee } from '@/schema/hr.schema';
 import { prepareObjectForDb } from '@/utils/dateFormatters';
 import type { TablesInsert } from '@/integrations/supabase/types';
+import { Database } from '@/integrations/supabase/types';
+
+// Define types for the filter parameters based on the database enum types
+type EmployeeStatus = Database['public']['Enums']['employee_status'];
+type EmploymentType = Database['public']['Enums']['employment_type'];
 
 export async function fetchEmployees(
   searchTerm?: string, 
@@ -29,10 +33,12 @@ export async function fetchEmployees(
       query = query.eq('department', filters.department);
     }
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      // Cast the status to the correct enum type
+      query = query.eq('status', filters.status as EmployeeStatus);
     }
     if (filters.employmentType) {
-      query = query.eq('employment_type', filters.employmentType);
+      // Cast the employment_type to the correct enum type
+      query = query.eq('employment_type', filters.employmentType as EmploymentType);
     }
   }
 
