@@ -49,6 +49,13 @@ declare namespace google {
       }
     }
 
+    namespace event {
+      function addListener(instance: any, eventName: string, handler: Function): MapsEventListener;
+      function removeListener(listener: MapsEventListener): void;
+      function clearInstanceListeners(instance: any): void;
+      function trigger(instance: any, eventName: string, ...args: any[]): void;
+    }
+
     interface MapsEventListener {
       remove(): void;
     }
@@ -163,6 +170,39 @@ declare namespace google {
     }
 
     interface MVCObject {}
+
+    interface Icon {
+      url: string;
+      size?: Size;
+      scaledSize?: Size;
+      origin?: Point;
+      anchor?: Point;
+      labelOrigin?: Point;
+    }
+
+    interface Size {
+      width: number;
+      height: number;
+      equals(other: Size): boolean;
+      toString(): string;
+    }
+
+    interface Point {
+      x: number;
+      y: number;
+      equals(other: Point): boolean;
+      toString(): string;
+    }
+
+    interface Symbol {
+      path: string;
+      fillColor?: string;
+      fillOpacity?: number;
+      scale?: number;
+      strokeColor?: string;
+      strokeOpacity?: number;
+      strokeWeight?: number;
+    }
 
     enum Animation {
       DROP,
