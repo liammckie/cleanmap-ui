@@ -20,11 +20,12 @@ import {
 } from '@/services/employeeService';
 import { Employee, EmployeeFilters } from '@/types/employee.types';
 
-// Import our new components
+// Import our components
 import EmployeeFilterCard from '@/components/hr/EmployeeFilters';
 import EmployeeTable from '@/components/hr/EmployeeTable';
 import EmployeeDetailsDialog from '@/components/hr/EmployeeDetailsDialog';
 import EmployeePagination from '@/components/hr/EmployeePagination';
+import AddEmployeeDialog from '@/components/hr/AddEmployeeDialog';
 
 const EmployeesPage = () => {
   const { toast } = useToast();
@@ -38,11 +39,12 @@ const EmployeesPage = () => {
   const [itemsPerPage] = useState(10);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false);
 
-  const [sortColumn, setSortColumn] = useState<keyof Employee | null>(null);
+  const [sortColumn, setSortColumn] = useState<keyof Employee | null>('last_name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const { data: employees, isLoading, error } = useQuery({
+  const { data: employees, isLoading, error, refetch } = useQuery({
     queryKey: ['employees', searchTerm, filters],
     queryFn: () => fetchEmployees(searchTerm, filters),
     meta: {
@@ -50,8 +52,8 @@ const EmployeesPage = () => {
         console.error('Failed to fetch employees:', err);
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load employees data. Please try again.',
+          title: "Error",
+          description: "Failed to load employees data. Please try again.",
         });
       }
     }
@@ -123,6 +125,15 @@ const EmployeesPage = () => {
     setCurrentPage(1); // Reset to first page when filters change
   };
 
+  const handleEmployeeAdded = () => {
+    // Refresh the employee list after adding a new employee
+    refetch();
+    toast({
+      title: "Success",
+      description: "Employee list has been refreshed with the new data.",
+    });
+  };
+
   return (
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
@@ -130,7 +141,10 @@ const EmployeesPage = () => {
           <h1 className="text-3xl font-bold">Employees</h1>
           <p className="text-muted-foreground">Manage your staff and team members</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setIsAddEmployeeOpen(true)}
+        >
           <UserPlus className="h-4 w-4" />
           Add Employee
         </Button>
@@ -176,10 +190,21 @@ const EmployeesPage = () => {
         )}
       </Card>
 
+      {/* Employee Details Dialog */}
       <EmployeeDetailsDialog 
         employee={selectedEmployee}
         isOpen={isDetailOpen}
         onOpenChange={setIsDetailOpen}
+      />
+
+      {/* Add Employee Dialog */}
+      <AddEmployeeDialog
+        isOpen={isAddEmployeeOpen}
+        onOpenChange={setIsAddEmployeeOpen}
+        departments={departments}
+        employeeStatuses={employeeStatuses}
+        employmentTypes={employmentTypes}
+        onEmployeeAdded={handleEmployeeAdded}
       />
     </div>
   );
