@@ -1,19 +1,16 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { createClient } from '@/services/clients';
-import { createSite } from '@/services/siteService';
 import ClientDetailsForm from './ClientDetailsForm';
 import ClientSitesList from './ClientSitesList';
-import { calculateAllBillingFrequencies } from '@/utils/billingCalculations';
-import type { BillingFrequency } from '@/utils/billingCalculations';
+import StepperHeader from './StepperHeader';
+import ReviewStep from './ReviewStep';
+import { useClientForm, STEPS } from '@/hooks/operations/useClientForm';
 
 const clientFormSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
@@ -43,7 +40,7 @@ const clientFormSchema = z.object({
       address_postcode: z.string().min(1, "Postcode is required"),
       region: z.string().nullable().optional(),
       service_start_date: z.date().nullable(),
-      service_end_date: z.date().nullable().optional(), // Make sure it matches the schema
+      service_end_date: z.date().nullable().optional(),
       service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
       price_per_service: z.number().min(0, "Price must be 0 or greater"),
       price_frequency: z.string().min(1, "Billing frequency is required"),
@@ -54,18 +51,7 @@ const clientFormSchema = z.object({
 
 type ClientFormValues = z.infer<typeof clientFormSchema>;
 
-const STEPS = {
-  CLIENT_DETAILS: 0,
-  SITES: 1,
-  REVIEW: 2
-}
-
 const ClientFormStepper: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(STEPS.CLIENT_DETAILS);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -106,116 +92,13 @@ const ClientFormStepper: React.FC = () => {
     }
   });
 
-  const nextStep = async () => {
-    if (currentStep === STEPS.CLIENT_DETAILS) {
-      const clientFields = [
-        'company_name', 'contact_name', 'billing_address_street', 
-        'billing_address_city', 'billing_address_state', 
-        'billing_address_postcode', 'billing_address_country', 
-        'payment_terms'
-      ];
-      
-      const result = await form.trigger(clientFields as any);
-      if (result) {
-        setCurrentStep(STEPS.SITES);
-      }
-    } else if (currentStep === STEPS.SITES) {
-      const result = await form.trigger('sites');
-      if (result) {
-        setCurrentStep(STEPS.REVIEW);
-      }
-    }
-  };
-
-  const previousStep = () => {
-    if (currentStep === STEPS.SITES) {
-      setCurrentStep(STEPS.CLIENT_DETAILS);
-    } else if (currentStep === STEPS.REVIEW) {
-      setCurrentStep(STEPS.SITES);
-    }
-  };
-
-  const onSubmit = async (data: ClientFormValues) => {
-    try {
-      setIsSubmitting(true);
-      
-      const { sites, ...clientData } = data;
-      
-      const newClient = await createClient({
-        company_name: clientData.company_name,
-        contact_name: clientData.contact_name,
-        contact_email: clientData.contact_email || null,
-        contact_phone: clientData.contact_phone || null,
-        billing_address_street: clientData.billing_address_street,
-        billing_address_city: clientData.billing_address_city,
-        billing_address_state: clientData.billing_address_state,
-        billing_address_zip: clientData.billing_address_zip,
-        billing_address_postcode: clientData.billing_address_postcode,
-        billing_address_country: clientData.billing_address_country,
-        payment_terms: clientData.payment_terms,
-        status: clientData.status,
-        industry: clientData.industry || null,
-        region: clientData.region || null,
-        notes: clientData.notes || null,
-        business_number: clientData.business_number || null,
-        on_hold_reason: clientData.on_hold_reason || null,
-        latitude: null,
-        longitude: null
-      });
-      
-      if (sites && sites.length > 0) {
-        for (const siteData of sites) {
-          const { weekly, monthly, annually } = calculateAllBillingFrequencies(
-            siteData.price_per_service,
-            siteData.price_frequency as BillingFrequency
-          );
-
-          await createSite({
-            client_id: newClient.id,
-            site_name: siteData.site_name,
-            site_code: null,
-            street_address: siteData.address_street,
-            city: siteData.address_city,
-            state: siteData.address_state,
-            zip_code: siteData.address_postcode,
-            country: 'Australia',
-            contact_name: null,
-            contact_email: null,
-            contact_phone: null,
-            square_footage: null,
-            floors: null,
-            site_type: siteData.site_type,
-            region: siteData.region || null,
-            status: 'Active',
-            notes: siteData.special_instructions || null,
-            latitude: null,
-            longitude: null,
-            service_start_date: siteData.service_start_date,
-            service_end_date: siteData.service_end_date, // This is now properly typed
-            service_type: siteData.service_type,
-            price_per_service: siteData.price_per_service,
-            price_frequency: siteData.price_frequency
-          });
-        }
-      }
-      
-      toast({
-        title: "Success",
-        description: "Client and sites created successfully.",
-      });
-      
-      navigate('/operations/clients');
-    } catch (error) {
-      console.error('Error creating client and sites:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create client and sites. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { 
+    currentStep, 
+    isSubmitting, 
+    nextStep, 
+    previousStep, 
+    onSubmit 
+  } = useClientForm(form);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -224,47 +107,7 @@ const ClientFormStepper: React.FC = () => {
       case STEPS.SITES:
         return <ClientSitesList form={form} />;
       case STEPS.REVIEW:
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold">Client Details</h3>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Company Name</p>
-                  <p className="text-sm">{form.getValues('company_name')}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Contact Name</p>
-                  <p className="text-sm">{form.getValues('contact_name')}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Address</p>
-                  <p className="text-sm">
-                    {form.getValues('billing_address_street')}, {form.getValues('billing_address_city')}, {form.getValues('billing_address_state')} {form.getValues('billing_address_postcode')}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold">Sites ({form.getValues('sites')?.length || 0})</h3>
-              <div className="space-y-4 mt-2">
-                {form.getValues('sites')?.map((site, index) => (
-                  <div key={index} className="p-3 border rounded-md">
-                    <p className="font-medium">{site.site_name}</p>
-                    <p className="text-sm">{site.address_street}, {site.address_city}, {site.address_state} {site.address_postcode}</p>
-                    <p className="text-sm">Service Type: {site.service_type}</p>
-                    <p className="text-sm">
-                      Period: {site.service_start_date ? new Date(site.service_start_date).toLocaleDateString() : 'N/A'} 
-                      {site.service_end_date ? ` to ${new Date(site.service_end_date).toLocaleDateString()}` : ''}
-                    </p>
-                    <p className="text-sm font-medium mt-2">Price: ${site.price_per_service} ({site.price_frequency})</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
+        return <ReviewStep form={form} />;
       default:
         return null;
     }
@@ -283,31 +126,7 @@ const ClientFormStepper: React.FC = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
-            <div className="flex mb-6">
-              <div className={`flex-1 text-center relative ${currentStep >= STEPS.CLIENT_DETAILS ? 'text-primary' : 'text-muted-foreground'}`}>
-                <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center mb-1 ${currentStep >= STEPS.CLIENT_DETAILS ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  1
-                </div>
-                <div className="text-xs">Client Details</div>
-                <div className="absolute top-4 left-1/2 w-full h-0.5 bg-muted -z-10" />
-              </div>
-              
-              <div className={`flex-1 text-center relative ${currentStep >= STEPS.SITES ? 'text-primary' : 'text-muted-foreground'}`}>
-                <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center mb-1 ${currentStep >= STEPS.SITES ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  2
-                </div>
-                <div className="text-xs">Add Sites</div>
-                <div className="absolute top-4 left-1/2 w-full h-0.5 bg-muted -z-10" />
-              </div>
-              
-              <div className={`flex-1 text-center ${currentStep >= STEPS.REVIEW ? 'text-primary' : 'text-muted-foreground'}`}>
-                <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center mb-1 ${currentStep >= STEPS.REVIEW ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  3
-                </div>
-                <div className="text-xs">Review</div>
-              </div>
-            </div>
-            
+            <StepperHeader currentStep={currentStep} steps={STEPS} />
             {renderStepContent()}
           </CardContent>
           
