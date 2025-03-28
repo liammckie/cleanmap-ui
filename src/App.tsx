@@ -13,6 +13,7 @@ import SitesPage from "@/pages/operations/Sites";
 import SiteListPage from "@/pages/operations/SiteList";
 import CreateClientPage from "@/pages/operations/CreateClient";
 import ContractsPage from "@/pages/operations/Contracts";
+import ContractDetailsPage from "@/pages/operations/ContractDetails";
 import WorkOrdersPage from "@/pages/operations/WorkOrders";
 import LeadsPage from "@/pages/sales/Leads";
 import QuotesPage from "@/pages/sales/Quotes";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/operations/sites" element={<SitesPage />} />
             <Route path="/operations/site-list" element={<SiteListPage />} />
             <Route path="/operations/contracts" element={<ContractsPage />} />
+            <Route path="/operations/contracts/:id" element={<ContractDetailsPage />} />
             <Route path="/operations/work-orders" element={<WorkOrdersPage />} />
             <Route path="/sales/leads" element={<LeadsPage />} />
             <Route path="/sales/quotes" element={<QuotesPage />} />
