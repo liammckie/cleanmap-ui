@@ -100,7 +100,14 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
     }
 
     // Prepare data for Supabase by converting Date objects to ISO strings
-    const quoteData = prepareObjectForDb(quote);
+    const quoteData = prepareObjectForDb(quote) as {
+      quote_number: string;
+      service_description: string;
+      created_by: string;
+      issue_date: string;
+      valid_until: string;
+      [key: string]: any;
+    };
 
     const { data, error } = await supabase
       .from('quotes')
@@ -251,7 +258,11 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
     }
 
     // Prepare data for Supabase
-    const lineItemData = prepareObjectForDb(lineItem);
+    const lineItemData = prepareObjectForDb(lineItem) as {
+      quote_id: string;
+      description: string;
+      [key: string]: any;
+    };
 
     const { data, error } = await supabase
       .from('quote_line_items')

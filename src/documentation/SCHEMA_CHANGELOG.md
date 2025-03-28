@@ -60,3 +60,11 @@ This file tracks significant schema changes that may impact application function
 - Fixed issue with Date handling by consistently using prepareObjectForDb utility
 - Enforced required fields validation for better error handling and database integrity
 - Removed site_ids field from Quote interface to match database structure
+
+## 2024-06-08
+
+### Fixed
+- Fixed type errors in leadService.ts and quoteService.ts
+- Improved type safety when using prepareObjectForDb utility
+- Added proper type assertions to ensure insert operations have all required fields
+- Enhanced error handling during database operations

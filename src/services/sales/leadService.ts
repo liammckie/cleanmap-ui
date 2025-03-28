@@ -69,7 +69,14 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
     }
 
     // Prepare data for Supabase using the utility function
-    const leadData = prepareObjectForDb(lead);
+    const leadData = prepareObjectForDb(lead) as {
+      lead_name: string;
+      company_name: string;
+      created_by: string;
+      stage: LeadStage;
+      status: LeadStatus;
+      [key: string]: any;
+    };
 
     const { data, error } = await supabase
       .from('leads')
