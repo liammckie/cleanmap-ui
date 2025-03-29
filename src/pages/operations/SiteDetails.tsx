@@ -146,6 +146,9 @@ const SiteDetailsPage: React.FC = () => {
     clientName: site.clients?.company_name
   }
 
+  // Determine service type with fallback
+  const serviceType = site.service_type || 'Internal'
+
   return (
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
@@ -192,8 +195,7 @@ const SiteDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="flex items-center mb-4">
                   <StatusBadge status={site.status} />
-                  {/* Use default 'Internal' if service_type is missing */}
-                  <ServiceTypeBadge type={'Internal'} />
+                  <ServiceTypeBadge type={serviceType} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -231,8 +233,9 @@ const SiteDetailsPage: React.FC = () => {
                         <div>
                           <div className="font-medium">Service Schedule</div>
                           <div className="text-muted-foreground">
-                            {/* Handle missing service_frequency */}
-                            Not specified
+                            {site.service_frequency ? 
+                              `${site.service_frequency.charAt(0).toUpperCase()}${site.service_frequency.slice(1)} service` : 
+                              site.custom_frequency ? site.custom_frequency : 'Not specified'}
                           </div>
                         </div>
                       </div>
@@ -243,8 +246,7 @@ const SiteDetailsPage: React.FC = () => {
                           <div className="font-medium">Service Period</div>
                           <div className="text-muted-foreground">
                             Start: {site.service_start_date ? format(new Date(site.service_start_date), 'PPP') : 'Not set'}<br />
-                            {/* Handle missing service_end_date */}
-                            End: Ongoing
+                            End: {site.service_end_date ? format(new Date(site.service_end_date), 'PPP') : 'Ongoing'}
                           </div>
                         </div>
                       </div>
@@ -285,11 +287,42 @@ const SiteDetailsPage: React.FC = () => {
                     </Button>
                   </div>
 
-                  {/* Site contact section - removed because properties are missing */}
+                  {site.primary_contact && (
+                    <div>
+                      <div className="font-medium">Site Contact</div>
+                      <div className="text-muted-foreground">
+                        {site.primary_contact}
+                      </div>
+                      
+                      {site.contact_phone && (
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <Phone className="h-3 w-3 mr-1" />
+                          <span>{site.contact_phone}</span>
+                        </div>
+                      )}
+                      
+                      {site.contact_email && (
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <Mail className="h-3 w-3 mr-1" />
+                          <span>{site.contact_email}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <div className="font-medium">Pricing</div>
                     <div className="text-muted-foreground">
-                      No pricing information available
+                      {site.price_per_week ? (
+                        <div className="flex items-center">
+                          <span>${site.price_per_week}</span>
+                          <span className="text-xs text-muted-foreground ml-1">
+                            /{site.price_frequency || 'week'}
+                          </span>
+                        </div>
+                      ) : (
+                        'No pricing information available'
+                      )}
                     </div>
                   </div>
                 </div>
