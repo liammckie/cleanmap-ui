@@ -1,24 +1,11 @@
-import React, { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+
+import React from 'react'
 import { UserPlus } from 'lucide-react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import {
-  fetchEmployees,
-  fetchDepartments,
-  fetchEmploymentTypes,
-  fetchEmployeeStatuses,
-} from '@/services/employeeService'
-import { Employee, EmployeeFilters, EmploymentTerminationReason } from '@/types/employee.types'
-import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
+import { Employee } from '@/types/employee.types'
+import { useEmployeeList } from '@/hooks/hr/useEmployeeList'
 
 // Import our components
 import EmployeeFilterCard from '@/components/hr/EmployeeFilters'
@@ -27,138 +14,38 @@ import EmployeeDetailsDialog from '@/components/hr/EmployeeDetailsDialog'
 import EmployeePagination from '@/components/hr/EmployeePagination'
 import AddEmployeeDialog from '@/components/hr/AddEmployeeDialog'
 
-// Helper function to validate termination reasons
-function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
-  if (!reason) return false;
-  const validReasons: EmploymentTerminationReason[] = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason as EmploymentTerminationReason);
-}
-
 const EmployeesPage = () => {
   const { toast } = useToast()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<EmployeeFilters>({
-    department: '',
-    status: '',
-    employmentType: '',
-  })
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10)
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false)
-
-  const [sortColumn, setSortColumn] = useState<keyof Employee | null>('last_name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-
   const {
-    data: employeesRaw,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    handleFilterChange,
+    clearFilters,
+    currentPage,
+    setCurrentPage,
+    sortColumn,
+    sortDirection,
+    handleSort,
+    currentItems,
+    totalPages,
     isLoading,
     error,
-    refetch,
-  } = useQuery({
-    queryKey: ['employees', searchTerm, filters],
-    queryFn: () => fetchEmployees(searchTerm, filters),
-    meta: {
-      onError: createQueryErrorHandler('employees')
-    },
-  })
-
-  // Process employee data to ensure correct typing
-  const employees = useMemo(() => {
-    if (!employeesRaw) return [] as Employee[];
-    
-    return employeesRaw.map(emp => ({
-      ...emp,
-      end_of_employment_reason: isValidTerminationReason(emp.end_of_employment_reason) 
-        ? emp.end_of_employment_reason 
-        : null
-    })) as Employee[];
-  }, [employeesRaw]);
-
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: fetchDepartments,
-    meta: {
-      onError: createQueryErrorHandler('departments')
-    },
-  })
-
-  const { data: employmentTypes = [] } = useQuery({
-    queryKey: ['employmentTypes'],
-    queryFn: fetchEmploymentTypes,
-    meta: {
-      onError: createQueryErrorHandler('employment types')
-    },
-  })
-
-  const { data: employeeStatuses = [] } = useQuery({
-    queryKey: ['employeeStatuses'],
-    queryFn: fetchEmployeeStatuses,
-    meta: {
-      onError: createQueryErrorHandler('employee statuses')
-    },
-  })
-
-  const clearFilters = () => {
-    setFilters({
-      department: '',
-      status: '',
-      employmentType: '',
-    })
-    setSearchTerm('')
-  }
-
-  const handleSort = (column: keyof Employee) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortColumn(column)
-      setSortDirection('asc')
-    }
-  }
-
-  const sortedEmployees = useMemo(() => {
-    if (!employees || !sortColumn) return employees || []
-
-    return [...employees].sort((a, b) => {
-      const aValue = a[sortColumn]
-      const bValue = b[sortColumn]
-
-      if (aValue == null) return 1
-      if (bValue == null) return -1
-
-      const comparison = aValue
-        .toString()
-        .localeCompare(bValue.toString(), undefined, { numeric: true })
-
-      return sortDirection === 'asc' ? comparison : -comparison
-    })
-  }, [employees, sortColumn, sortDirection])
-
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = sortedEmployees
-    ? sortedEmployees.slice(indexOfFirstItem, indexOfLastItem)
-    : []
-  const totalPages = sortedEmployees ? Math.ceil(sortedEmployees.length / itemsPerPage) : 0
+    departments,
+    employmentTypes,
+    employeeStatuses,
+    selectedEmployee,
+    setSelectedEmployee,
+    isDetailOpen,
+    setIsDetailOpen,
+    isAddEmployeeOpen,
+    setIsAddEmployeeOpen,
+    refetch
+  } = useEmployeeList();
 
   const handleViewEmployee = (employee: Employee) => {
-    const processedEmployee: Employee = {
-      ...employee,
-      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason as any) 
-        ? employee.end_of_employment_reason 
-        : null
-    };
-    setSelectedEmployee(processedEmployee);
+    setSelectedEmployee(employee);
     setIsDetailOpen(true);
-  }
-
-  const handleFilterChange = (newFilters: EmployeeFilters) => {
-    setFilters(newFilters)
-    setCurrentPage(1) // Reset to first page when filters change
   }
 
   const handleEmployeeAdded = () => {
@@ -197,7 +84,7 @@ const EmployeesPage = () => {
         <CardHeader className="pb-3">
           <CardTitle>Employee Directory</CardTitle>
           <CardDescription>
-            {isLoading ? 'Loading...' : `${sortedEmployees?.length || 0} employees found`}
+            {isLoading ? 'Loading...' : `${currentItems?.length || 0} employees found`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -211,7 +98,7 @@ const EmployeesPage = () => {
             onEditEmployee={handleViewEmployee}
           />
         </CardContent>
-        {employees && employees.length > 0 && (
+        {currentItems && currentItems.length > 0 && (
           <CardFooter className="flex justify-center py-4">
             <EmployeePagination
               currentPage={currentPage}
