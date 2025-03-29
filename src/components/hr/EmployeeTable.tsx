@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import StatusBadge from './StatusBadge'
 import { Employee } from '@/types/employee.types'
+import { createErrorFallbackUI } from '@/utils/databaseErrorHandlers'
 
 interface EmployeeTableProps {
   employees: Employee[] | null
@@ -65,10 +66,17 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   }
 
   if (error) {
+    // Enhanced error handling with specific handling for RLS recursion errors
+    const supabaseError = (error as any).error || error;
+    if (supabaseError?.code === '42P17') {
+      return createErrorFallbackUI(supabaseError, 'employees');
+    }
+    
     return (
       <div className="text-center py-4 text-red-500">
         <AlertCircle className="h-8 w-8 mx-auto mb-2" />
         Failed to load employees data. Please try again.
+        <p className="text-sm mt-2 text-red-400">Error: {error.message}</p>
       </div>
     )
   }

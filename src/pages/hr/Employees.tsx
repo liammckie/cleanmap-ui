@@ -18,6 +18,7 @@ import {
   fetchEmployeeStatuses,
 } from '@/services/employeeService'
 import { Employee, EmployeeFilters, EmploymentTerminationReason } from '@/types/employee.types'
+import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
 
 // Import our components
 import EmployeeFilterCard from '@/components/hr/EmployeeFilters'
@@ -61,14 +62,7 @@ const EmployeesPage = () => {
     queryKey: ['employees', searchTerm, filters],
     queryFn: () => fetchEmployees(searchTerm, filters),
     meta: {
-      onError: (err: Error) => {
-        console.error('Failed to fetch employees:', err)
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load employees data. Please try again.',
-        })
-      },
+      onError: createQueryErrorHandler('employees')
     },
   })
 
@@ -87,16 +81,25 @@ const EmployeesPage = () => {
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: fetchDepartments,
+    meta: {
+      onError: createQueryErrorHandler('departments')
+    },
   })
 
   const { data: employmentTypes = [] } = useQuery({
     queryKey: ['employmentTypes'],
     queryFn: fetchEmploymentTypes,
+    meta: {
+      onError: createQueryErrorHandler('employment types')
+    },
   })
 
   const { data: employeeStatuses = [] } = useQuery({
     queryKey: ['employeeStatuses'],
     queryFn: fetchEmployeeStatuses,
+    meta: {
+      onError: createQueryErrorHandler('employee statuses')
+    },
   })
 
   const clearFilters = () => {
