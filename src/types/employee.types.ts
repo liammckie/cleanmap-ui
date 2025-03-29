@@ -12,7 +12,7 @@ export type Employee = Omit<
   // API returns dates as strings, but we want to use them as Date objects in the UI
   date_of_birth: string | Date
   start_date: string | Date
-  end_of_employment_date?: string | Date
+  end_of_employment_date?: string | Date | null
   end_of_employment_reason?: EmploymentTerminationReason | null
   created_at: string | Date
   updated_at: string | Date
