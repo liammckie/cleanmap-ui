@@ -4,7 +4,7 @@ import { UseFormReturn } from 'react-hook-form'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { createClient } from '@/services/clients'
-import { createSite } from '@/services/siteService'
+import { createSite } from '@/services/sites' // Updated import path
 import { calculateAllBillingFrequencies } from '@/utils/billingCalculations'
 import type { BillingFrequency } from '@/utils/billingCalculations'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'

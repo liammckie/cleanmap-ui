@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -14,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { PlusCircle, Search, FilterX } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites } from '@/services/siteService'
+import { fetchSites } from '@/services/sites' // Updated import path
 import { format } from 'date-fns'
 import type { Site } from '@/schema/operations'
 

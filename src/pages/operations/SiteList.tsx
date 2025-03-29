@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,7 +19,7 @@ import {
   fetchSiteTypes,
   fetchSiteRegions,
   fetchSiteStatuses,
-} from '@/services/siteService'
+} from '@/services/sites' // Updated import path
 import { Search, FilterX, PlusCircle, MapPin, Building, Calendar, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 import { Link } from 'react-router-dom'
