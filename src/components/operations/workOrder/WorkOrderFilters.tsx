@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Search, FilterX, Calendar } from 'lucide-react'
@@ -19,9 +18,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { querySitesByClientId } from '@/services/sites/siteQueryService'
+import { fetchSites } from '@/services/sites'
 import { fetchWorkOrderStatuses, fetchWorkOrderCategories, fetchWorkOrderPriorities } from '@/services/workOrders'
-import { fetchSites } from '@/services/sites/siteQueryService'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface WorkOrderFiltersProps {
@@ -46,10 +44,10 @@ export function WorkOrderFilters({
   setFilters,
   clearFilters,
 }: WorkOrderFiltersProps) {
-  // Fetch filter options
+  // Fetch filter options - fixed to use a proper queryFn
   const { data: sites = [] } = useQuery({
     queryKey: ['sites'],
-    queryFn: fetchSites,
+    queryFn: () => fetchSites({}),
   })
 
   const { data: statuses = [] } = useQuery({

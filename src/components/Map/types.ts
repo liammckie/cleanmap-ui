@@ -25,3 +25,9 @@ export interface MapProps {
   defaultZoom?: number
   onMarkerClick?: (location: MapLocation) => void
 }
+
+// Props for the MapMarker component
+export interface MapMarkerProps {
+  location: MapLocation
+  map: google.maps.Map
+}

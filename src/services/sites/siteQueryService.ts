@@ -28,6 +28,7 @@ export async function fetchSites(options?: {
     }
     
     if (options?.status) {
+      // No need for type casting here since we're using a string
       query = query.eq('status', options.status)
     }
     
@@ -130,15 +131,23 @@ export async function querySitesByClientId(clientId: string): Promise<Site[]> {
  */
 export async function getSiteCounts(groupBy: 'region' | 'status'): Promise<{ label: string; count: number }[]> {
   try {
+    // Use a direct SQL query instead of RPC since the function doesn't exist
     const { data, error } = await supabase
-      .rpc('get_site_counts', { group_by_column: groupBy })
-
+      .from('sites')
+      .select(`${groupBy}, count`)
+      .select(`${groupBy}, count(*)`)
+      .group(groupBy)
+      
     if (error) {
       console.error(`Error getting site counts by ${groupBy}:`, error)
       throw error
     }
 
-    return data || []
+    // Transform the data to match the expected return type
+    return (data || []).map(item => ({
+      label: item[groupBy] || 'Unknown',
+      count: parseInt(item.count, 10)
+    }))
   } catch (error) {
     console.error(`Error in getSiteCounts by ${groupBy}:`, error)
     return []
@@ -165,6 +174,7 @@ export async function fetchSitesCount(options?: {
     }
     
     if (options?.status) {
+      // No need for type casting here
       query = query.eq('status', options.status)
     }
     

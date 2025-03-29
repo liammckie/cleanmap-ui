@@ -107,7 +107,8 @@ const SitesTable: React.FC<SitesTableProps> = ({
                     if (onSelectAll) onSelectAll(!!checked)
                   }}
                   checked={sites.length > 0 && selectedSites.length === sites.length}
-                  indeterminate={selectedSites.length > 0 && selectedSites.length < sites.length}
+                  // Remove the indeterminate prop as it's not supported
+                  aria-label="Select all sites"
                 />
               </TableHead>
             )}
@@ -132,6 +133,7 @@ const SitesTable: React.FC<SitesTableProps> = ({
                     onCheckedChange={(checked) => {
                       if (onSelectSite) onSelectSite(site.id, !!checked)
                     }}
+                    aria-label={`Select ${site.site_name}`}
                   />
                 </TableCell>
               )}

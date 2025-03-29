@@ -33,7 +33,8 @@ import {
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
-import { fetchSites, querySitesByClientId } from '@/services/sites/siteQueryService'
+import { fetchSites } from '@/services/sites'
+import { querySitesByClientId } from '@/services/sites/siteQueryService'
 import { 
   fetchWorkOrderStatuses, 
   fetchWorkOrderCategories, 
@@ -73,10 +74,10 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
     initialData?.site?.client_id
   )
 
-  // Fetch sites
+  // Fix the useQuery call to use a proper queryFn
   const { data: allSites } = useQuery({
     queryKey: ['sites'],
-    queryFn: fetchSites,
+    queryFn: () => fetchSites({}),
     enabled: !selectedClientId,
   })
 

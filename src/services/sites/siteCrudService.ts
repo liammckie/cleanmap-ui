@@ -18,7 +18,7 @@ export async function createSite(siteData: Partial<Site>) {
     }
     
     // Prepare data for insertion using our mapper
-    const siteInsertData = mapSiteToDb(siteData)
+    const siteInsertData = mapSiteToDb(siteData) as SiteInsert
 
     const { data, error } = await supabase
       .from('sites')

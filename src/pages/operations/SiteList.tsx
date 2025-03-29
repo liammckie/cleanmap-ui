@@ -22,7 +22,8 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites, fetchSitesCount } from '@/services/sites'
+import { fetchSites } from '@/services/sites'
+import { fetchSitesCount } from '@/services/sites/siteQueryService'
 import SitesTable from '@/components/operations/site/SitesTable'
 import DataPagination from '@/components/common/DataPagination'
 import { Checkbox } from '@/components/ui/checkbox'

@@ -1,12 +1,23 @@
 
-// Export all the site services
-export * from './siteCrudService'
-export * from './siteFilterService'
-export * from './siteImportService'
-export * from './siteMetadataService'
+/**
+ * Sites Service index
+ * 
+ * Re-export all site service functions for easy import
+ */
 
-// Export specific functions from siteQueryService
-export { fetchSites, fetchSiteById, querySitesByClientId } from './siteQueryService'
+// Export from siteQueryService
+export { 
+  fetchSites, 
+  fetchSiteById, 
+  querySitesByClientId, 
+  getSiteCounts,
+  fetchSitesCount
+} from './siteQueryService'
 
-// Export fetchSitesByClientId from sitesByClientService
-export { fetchSitesByClientId } from './sitesByClientService'
+// Export from siteCrudService
+export {
+  createSite,
+  updateSite,
+  deleteSite,
+  bulkUpdateSitesStatus
+} from './siteCrudService'
