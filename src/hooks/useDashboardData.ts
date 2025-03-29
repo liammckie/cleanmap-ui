@@ -5,8 +5,13 @@ import {
   getActiveClients,
   getSitesAwaitingContracts,
   getNewWorkOrders,
-  getSiteLocations 
-} from '@/services/dashboard/dashboardStats'
+  getSiteLocations,
+  getUpcomingContracts,
+  getPendingTasks,
+  getMonthlyRevenue,
+  getRevenueTrend,
+  getKpiMetrics
+} from '@/services/dashboard/dashboardService'
 
 export interface DashboardStats {
   totalClients: number
@@ -69,11 +74,55 @@ export const useDashboardData = () => {
     queryFn: getSiteLocations,
   })
 
-  // Sample data for demonstration (would come from API in real application)
-  const mockStats = {
-    monthlyRevenue: 128750,
-    revenueChange: 3.2
-  }
+  // Fetch upcoming contracts
+  const {
+    data: upcomingContracts,
+    isLoading: upcomingContractsLoading,
+    error: upcomingContractsError
+  } = useQuery({
+    queryKey: ['upcoming-contracts'],
+    queryFn: getUpcomingContracts,
+  })
+
+  // Fetch pending tasks
+  const {
+    data: pendingTasks,
+    isLoading: pendingTasksLoading,
+    error: pendingTasksError
+  } = useQuery({
+    queryKey: ['pending-tasks'],
+    queryFn: getPendingTasks,
+  })
+
+  // Fetch monthly revenue
+  const {
+    data: revenueData,
+    isLoading: revenueLoading,
+    error: revenueError
+  } = useQuery({
+    queryKey: ['monthly-revenue'],
+    queryFn: getMonthlyRevenue,
+  })
+
+  // Fetch revenue trend data
+  const {
+    data: revenueTrend,
+    isLoading: revenueTrendLoading,
+    error: revenueTrendError
+  } = useQuery({
+    queryKey: ['revenue-trend'],
+    queryFn: () => getRevenueTrend(6), // Get 6 months of data
+  })
+
+  // Fetch KPI metrics
+  const {
+    data: kpiMetrics,
+    isLoading: kpiMetricsLoading,
+    error: kpiMetricsError
+  } = useQuery({
+    queryKey: ['kpi-metrics'],
+    queryFn: getKpiMetrics,
+  })
 
   return {
     stats: {
@@ -82,71 +131,24 @@ export const useDashboardData = () => {
       sitesAwaitingContracts: sitesAwaitingContracts || 0,
       newWorkOrders: newWorkOrders || 0,
       cleaningLocations: mapLocations?.length || 0,
-      monthlyRevenue: mockStats.monthlyRevenue,
-      revenueChange: mockStats.revenueChange
+      monthlyRevenue: revenueData?.currentRevenue || 0,
+      revenueChange: revenueData?.change || 0
     },
-    upcomingContracts: [
-      {
-        id: '1',
-        contract_number: 'C-2023-001',
-        client_id: '123',
-        start_date: '2023-01-01',
-        end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        base_fee: 12500,
-        clients: {
-          company_name: 'ABC Corporation'
-        }
-      },
-      {
-        id: '2',
-        contract_number: 'C-2023-002',
-        client_id: '456',
-        start_date: '2023-02-15',
-        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'Active',
-        base_fee: 8750,
-        clients: {
-          company_name: 'XYZ Industries'
-        }
-      }
-    ],
-    pendingTasks: [
-      {
-        id: '1',
-        title: 'Monthly Deep Clean',
-        description: 'Perform monthly deep cleaning of all office spaces',
-        status: 'Scheduled',
-        priority: 'High',
-        due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        sites: {
-          site_name: 'CBD Office Tower',
-          client_id: '123',
-          clients: {
-            company_name: 'ABC Corporation'
-          }
-        }
-      },
-      {
-        id: '2',
-        title: 'Window Cleaning',
-        description: 'Clean all exterior windows',
-        status: 'Scheduled',
-        priority: 'Medium',
-        due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        sites: {
-          site_name: 'North Shore Campus',
-          client_id: '456',
-          clients: {
-            company_name: 'XYZ Industries'
-          }
-        }
-      }
-    ],
+    upcomingContracts: upcomingContracts || [],
+    pendingTasks: pendingTasks || [],
     mapLocations: mapLocations || [],
+    revenueTrend: revenueTrend || [],
+    kpiMetrics: kpiMetrics || {
+      taskCompletionRate: 0,
+      clientRetentionRate: 0,
+      staffUtilization: 0,
+      customerSatisfaction: 0
+    },
     isLoading: totalClientsLoading || activeClientsLoading || sitesAwaitingContractsLoading || 
-               newWorkOrdersLoading || locationsLoading,
+               newWorkOrdersLoading || locationsLoading || upcomingContractsLoading || 
+               pendingTasksLoading || revenueLoading || revenueTrendLoading || kpiMetricsLoading,
     hasError: !!totalClientsError || !!activeClientsError || !!sitesAwaitingContractsError || 
-              !!newWorkOrdersError || !!locationsError
+              !!newWorkOrdersError || !!locationsError || !!upcomingContractsError || 
+              !!pendingTasksError || !!revenueError || !!revenueTrendError || !!kpiMetricsError
   }
 }

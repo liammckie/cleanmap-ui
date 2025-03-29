@@ -10,6 +10,7 @@ interface StatCardProps {
   change?: number
   changeLabel?: string
   isCurrency?: boolean
+  onClick?: () => void
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -19,13 +20,17 @@ const StatCard: React.FC<StatCardProps> = ({
   change = 0,
   changeLabel = 'from last period',
   isCurrency = false,
+  onClick,
 }) => {
   const isPositive = change > 0
   const isNegative = change < 0
   const absChange = Math.abs(change)
 
   return (
-    <Card>
+    <Card 
+      className={onClick ? "cursor-pointer transition-all hover:shadow-md hover:border-gray-300" : ""}
+      onClick={onClick}
+    >
       <CardContent className="pt-6">
         <div className="flex justify-between items-start">
           <div>

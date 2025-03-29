@@ -1,19 +1,25 @@
 
 import React from 'react'
 import { Activity, Users, Building2, DollarSign } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import StatCard from '@/components/Dashboard/StatCard'
 import TasksList from '@/components/Dashboard/TasksList'
 import UpcomingContracts from '@/components/Dashboard/UpcomingContracts'
 import DashboardMap from '@/components/Dashboard/DashboardMap'
+import RevenueChart from '@/components/Dashboard/RevenueChart'
+import KpiMetrics from '@/components/Dashboard/KpiMetrics'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const Dashboard = () => {
+  const navigate = useNavigate()
   const { 
     stats, 
     upcomingContracts, 
     pendingTasks, 
     mapLocations, 
+    revenueTrend,
+    kpiMetrics,
     isLoading, 
     hasError 
   } = useDashboardData()
@@ -24,6 +30,10 @@ const Dashboard = () => {
       currency: 'AUD',
       maximumFractionDigits: 0,
     })
+  }
+
+  const handleCardClick = (path: string) => {
+    navigate(path)
   }
 
   // Show loading state while data is being fetched
@@ -43,6 +53,10 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Skeleton className="h-80 rounded-lg" />
           <Skeleton className="h-80 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Skeleton className="h-64 rounded-lg" />
+          <Skeleton className="h-64 rounded-lg" />
         </div>
         <Skeleton className="h-80 w-full rounded-lg" />
       </div>
@@ -71,23 +85,26 @@ const Dashboard = () => {
         <StatCard
           title="Active Clients"
           value={stats.activeClients}
-          icon={<Activity className="h-8 w-8 text-blue-500" />}
+          icon={<Users className="h-8 w-8 text-blue-500" />}
           change={2.5}
           changeLabel="from last month"
+          onClick={() => handleCardClick('/operations/clients')}
         />
         <StatCard
           title="Total Clients"
           value={stats.totalClients}
-          icon={<Users className="h-8 w-8 text-green-500" />}
+          icon={<Building2 className="h-8 w-8 text-green-500" />}
           change={4.1}
           changeLabel="new this month"
+          onClick={() => handleCardClick('/operations/clients')}
         />
         <StatCard
           title="Cleaning Locations"
           value={stats.cleaningLocations}
-          icon={<Building2 className="h-8 w-8 text-purple-500" />}
+          icon={<Activity className="h-8 w-8 text-purple-500" />}
           change={1.8}
           changeLabel="from last month"
+          onClick={() => handleCardClick('/operations/site-list')}
         />
         <StatCard
           title="Monthly Revenue"
@@ -96,6 +113,17 @@ const Dashboard = () => {
           change={stats.revenueChange}
           changeLabel="from last month"
           isCurrency
+        />
+      </div>
+
+      {/* Revenue Chart and KPI Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <RevenueChart data={revenueTrend} />
+        <KpiMetrics 
+          taskCompletionRate={kpiMetrics.taskCompletionRate}
+          clientRetentionRate={kpiMetrics.clientRetentionRate}
+          staffUtilization={kpiMetrics.staffUtilization}
+          customerSatisfaction={kpiMetrics.customerSatisfaction}
         />
       </div>
 
