@@ -11,15 +11,18 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
+    // First prepare the data with dates converted to ISO strings
+    const preparedData = prepareObjectForDb({
+      ...quote,
+      created_at: new Date(),
+      updated_at: new Date()
+    })
+
     // Create quote using the improved apiClient with DB schema
     const data = await apiClient.create(
       supabase,
       'quotes',
-      prepareObjectForDb({
-        ...quote,
-        created_at: new Date(),
-        updated_at: new Date()
-      }),
+      preparedData, // preparedData has dates as strings now
       quoteDbSchema
     );
 

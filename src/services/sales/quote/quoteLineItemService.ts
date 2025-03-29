@@ -48,15 +48,18 @@ export const addQuoteLineItem = async (
       throw new Error('Description is required for line item')
     }
 
+    // First prepare the data with dates converted to ISO strings
+    const preparedData = prepareObjectForDb({
+      ...lineItem,
+      created_at: new Date(),
+      updated_at: new Date()
+    })
+
     // Create line item using DB schema
     const data = await apiClient.create(
       supabase,
       'quote_line_items',
-      prepareObjectForDb({
-        ...lineItem,
-        created_at: new Date(),
-        updated_at: new Date()
-      }),
+      preparedData, // preparedData has dates as strings now
       quoteLineItemDbSchema
     );
 

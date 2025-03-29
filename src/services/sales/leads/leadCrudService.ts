@@ -12,17 +12,22 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // First prepare the data with dates converted to ISO strings
+    const preparedData = prepareObjectForDb({
+      ...lead,
+      created_at: new Date(),
+      updated_at: new Date()
+    })
+
+    // Then pass the prepared data to the API client with leadDbSchema for validation
     const data = await apiClient.create(
       supabase,
       'leads',
-      prepareObjectForDb({
-        ...lead,
-        created_at: new Date(),
-        updated_at: new Date()
-      }),
+      preparedData, // preparedData has dates as strings now
       leadDbSchema
     )
 
+    // Convert string dates back to Date objects for the return value
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
