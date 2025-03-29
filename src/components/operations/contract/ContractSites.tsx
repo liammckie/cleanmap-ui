@@ -46,7 +46,18 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
           </TableHeader>
           <TableBody>
             {contract.sites.map((contractSite) => {
-              const site = contractSite.site || { id: '', site_name: 'N/A' }
+              // Provide a complete default site object with all the required properties
+              const site = contractSite.site || { 
+                id: '', 
+                site_name: 'N/A',
+                site_type: 'N/A',
+                address_street: '',
+                address_city: '',
+                address_state: '',
+                address_postcode: '',
+                status: 'Inactive'
+              }
+              
               return (
                 <TableRow key={contractSite.id}>
                   <TableCell className="font-medium">
