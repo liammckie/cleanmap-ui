@@ -136,7 +136,7 @@ export async function fetchSites(search = '', filters: any = {}) {
  * @param siteId ID of the site to fetch
  * @returns Site details
  */
-export async function fetchSiteById(siteId: string) {
+export async function fetchSiteById(siteId: string): Promise<Site> {
   try {
     const { data, error } = await supabase
       .from('sites')
@@ -152,7 +152,7 @@ export async function fetchSiteById(siteId: string) {
 
     if (error) throw error
 
-    return data
+    return data as Site
   } catch (error) {
     console.error('Error fetching site by ID:', error)
     throw error
