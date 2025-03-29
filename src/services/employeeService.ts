@@ -3,22 +3,12 @@ import type { Employee as EmployeeSchema } from '@/schema/hr.schema'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 import type { TablesInsert } from '@/integrations/supabase/types'
 import { Database } from '@/integrations/supabase/types'
-import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
+import { Employee } from '@/types/employee.types'
 
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status']
 type EmploymentType = Database['public']['Enums']['employment_type']
 
-// Create a helper function to validate termination reasons
-function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
-  if (!reason) return false;
-  const validReasons: EmploymentTerminationReason[] = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason as EmploymentTerminationReason);
-}
-
-// Fetch all employees with optional filtering
 export async function fetchEmployees(
   searchTerm?: string,
   filters?: {
@@ -62,18 +52,9 @@ export async function fetchEmployees(
     throw error
   }
 
-  // Transform data to ensure end_of_employment_reason is properly typed
-  return data.map(employee => {
-    return {
-      ...employee,
-      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason) 
-        ? employee.end_of_employment_reason 
-        : null
-    };
-  });
+  return data
 }
 
-// Fetch a single employee by ID
 export async function fetchEmployeeById(id: string) {
   const { data, error } = await supabase.from('employees').select('*').eq('id', id).single()
 
@@ -82,48 +63,26 @@ export async function fetchEmployeeById(id: string) {
     throw error
   }
 
-  // Ensure end_of_employment_reason is properly typed
-  if (data) {
-    return {
-      ...data,
-      end_of_employment_reason: isValidTerminationReason(data.end_of_employment_reason) 
-        ? data.end_of_employment_reason 
-        : null
-    };
-  }
-
-  return data;
+  return data
 }
 
-// Create a new employee
+// Update the parameter type to accept our modified Employee type that has string | Date
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
-  try {
-    // Convert Date objects to ISO strings for Supabase
-    const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>
+  // Convert Date objects to ISO strings for Supabase
+  const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>
 
-    const { data, error } = await supabase.from('employees').insert(dbEmployee).select()
+  const { data, error } = await supabase.from('employees').insert(dbEmployee).select()
 
-    if (error) {
-      console.error('Error creating employee:', error)
-      throw error
-    }
-
-    return data[0]
-  } catch (err) {
-    console.error('Failed to create employee:', err)
-    throw err
+  if (error) {
+    console.error('Error creating employee:', error)
+    throw error
   }
+
+  return data[0]
 }
 
-// Update an existing employee
+// Update the parameter type here as well
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
-  // Validate end_of_employment_reason if present in updates
-  if (updates.end_of_employment_reason !== undefined && 
-      !isValidTerminationReason(updates.end_of_employment_reason)) {
-    // If invalid, set to null
-    updates.end_of_employment_reason = null;
-  }
-
   // Convert Date objects to ISO strings for Supabase
   const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>
 
@@ -137,7 +96,6 @@ export async function updateEmployee(id: string, updates: Partial<Employee>) {
   return data[0]
 }
 
-// Delete an employee by ID
 export async function deleteEmployee(id: string) {
   const { error } = await supabase.from('employees').delete().eq('id', id)
 
@@ -181,18 +139,6 @@ export async function fetchEmployeeStatuses() {
 
   if (error) {
     console.error('Error fetching employee statuses:', error)
-    throw error
-  }
-
-  return data
-}
-
-// Fetch employment termination reasons from database enum
-export async function fetchEmploymentTerminationReasons() {
-  const { data, error } = await supabase.rpc('get_employment_termination_reason_enum')
-
-  if (error) {
-    console.error('Error fetching employment termination reasons:', error)
     throw error
   }
 

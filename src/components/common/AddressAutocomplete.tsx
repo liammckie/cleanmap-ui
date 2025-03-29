@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { loadGoogleMapsScript } from '@/utils/googleMaps'
@@ -17,7 +16,6 @@ interface AddressAutocompleteProps {
   placeholder?: string
   defaultValue?: string
   className?: string
-  id?: string // Add the id prop to the interface
 }
 
 const AddressAutocomplete = ({
@@ -25,7 +23,6 @@ const AddressAutocomplete = ({
   placeholder = 'Enter an address',
   defaultValue = '',
   className,
-  id, // Add the id prop here
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
@@ -109,7 +106,6 @@ const AddressAutocomplete = ({
       placeholder={placeholder}
       defaultValue={defaultValue}
       className={className}
-      id={id} // Pass the id prop to the Input component
     />
   )
 }

@@ -1,39 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
 import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
-import { handleInfiniteRecursionError, safelyExecuteQuery } from '@/utils/databaseErrorHandlers'
-
-/**
- * @origin {source: "internal", module: "workOrderQueryService", author: "system"}
- * Safely executes a Supabase query with error handling for common database issues
- * @param queryFn Function that builds and executes the Supabase query
- * @param errorContext Context information for error reporting
- */
-async function safeExecuteQuery(queryFn, errorContext = 'query') {
-  try {
-    const result = await queryFn();
-    
-    if (result.error) {
-      // Check for infinite recursion errors in RLS policies
-      if (result.error.code === '42P17') {
-        console.error(`Infinite recursion detected in ${errorContext}:`, result.error.message);
-        handleInfiniteRecursionError(result.error, errorContext);
-        throw {
-          ...result.error,
-          userMessage: `Database security policy error in ${errorContext}. Please contact an administrator.`
-        };
-      }
-      
-      // For other errors
-      console.error(`Error in ${errorContext}:`, result.error);
-      throw result.error;
-    }
-    
-    return result.data;
-  } catch (error) {
-    console.error(`Exception in ${errorContext}:`, error);
-    throw error;
-  }
-}
 
 export async function fetchWorkOrders(
   searchTerm?: string,
@@ -107,7 +73,14 @@ export async function fetchWorkOrders(
 
   query = query.order('scheduled_start', { ascending: false })
 
-  return safeExecuteQuery(() => query, 'fetchWorkOrders');
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching work orders:', error)
+    throw error
+  }
+
+  return data
 }
 
 export async function fetchWorkOrderById(id: string) {
@@ -213,28 +186,6 @@ export async function fetchWorkOrdersByClientId(clientId: string) {
   }
 }
 
-export async function fetchWorkOrderStatusesFromDb() {
-  return safeExecuteQuery(
-    () => supabase.rpc('get_work_order_status_enum' as EnumFunction),
-    'fetchWorkOrderStatuses'
-  );
-}
-
-export async function fetchWorkOrderCategoriesFromDb() {
-  return safeExecuteQuery(
-    () => supabase.rpc('get_work_order_category_enum' as EnumFunction),
-    'fetchWorkOrderCategories'
-  );
-}
-
-export async function fetchWorkOrderPrioritiesFromDb() {
-  return safeExecuteQuery(
-    () => supabase.rpc('get_work_order_priority_enum' as EnumFunction),
-    'fetchWorkOrderPriorities'
-  );
-}
-
-// Re-adding this from the original file
 type EnumFunction = 'get_employee_status_enum' | 
   'get_employment_type_enum' | 
   'get_lead_source_enum' | 
@@ -244,3 +195,39 @@ type EnumFunction = 'get_employee_status_enum' |
   'get_work_order_status_enum' | 
   'get_work_order_category_enum' | 
   'get_work_order_priority_enum'
+
+export async function fetchWorkOrderStatusesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_status_enum' as EnumFunction)
+  
+  if (error) {
+    console.error('Error fetching work order statuses:', error)
+    throw error
+  }
+  
+  return data || []
+}
+
+export async function fetchWorkOrderCategoriesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_category_enum' as EnumFunction)
+  
+  if (error) {
+    console.error('Error fetching work order categories:', error)
+    throw error
+  }
+  
+  return data || []
+}
+
+export async function fetchWorkOrderPrioritiesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_priority_enum' as EnumFunction)
+  
+  if (error) {
+    console.error('Error fetching work order priorities:', error)
+    throw error
+  }
+  
+  return data || []
+}

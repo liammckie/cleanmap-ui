@@ -335,8 +335,6 @@ export type Database = {
           department: string
           employee_id: string
           employment_type: Database["public"]["Enums"]["employment_type"]
-          end_of_employment_date: string | null
-          end_of_employment_reason: string | null
           first_name: string
           id: string
           job_title: string
@@ -366,8 +364,6 @@ export type Database = {
           department: string
           employee_id: string
           employment_type: Database["public"]["Enums"]["employment_type"]
-          end_of_employment_date?: string | null
-          end_of_employment_reason?: string | null
           first_name: string
           id?: string
           job_title: string
@@ -397,8 +393,6 @@ export type Database = {
           department?: string
           employee_id?: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
-          end_of_employment_date?: string | null
-          end_of_employment_reason?: string | null
           first_name?: string
           id?: string
           job_title?: string
@@ -1286,10 +1280,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string[]
       }
-      get_employment_termination_reason_enum: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
       get_employment_type_enum: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -1327,12 +1317,6 @@ export type Database = {
       client_status: "Active" | "On Hold"
       contract_status: "Active" | "Expiring" | "Expired" | "Terminated"
       employee_status: "Onboarding" | "Active" | "Terminated"
-      employment_termination_reason:
-        | "Resignation"
-        | "Contract End"
-        | "Termination"
-        | "Retirement"
-        | "Other"
       employment_type: "Full-time" | "Part-time" | "Contractor"
       lead_source:
         | "Referral"

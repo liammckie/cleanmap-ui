@@ -34,8 +34,6 @@ interface Employee {
   super_fund_name: string
   super_member_number: string
   user_account_id?: string // Link to authentication user record
-  end_of_employment_date?: Date // Date when employment ended
-  end_of_employment_reason?: 'Resignation' | 'Contract End' | 'Termination' | 'Retirement' | 'Other' // Reason for employment ending
   created_at: Date
   updated_at: Date
 }

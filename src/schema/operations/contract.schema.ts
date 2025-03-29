@@ -18,15 +18,15 @@ export interface Contract {
   client_id: string
   description: string | null
   start_date: Date
-  end_date: Date | null
+  end_date: Date
   status: 'Active' | 'Expiring' | 'Expired' | 'Terminated'
   contract_type: string
   renewal_terms: string | null
   notice_period_days: number | null
   payment_terms: string | null
-  monthly_value?: number
-  annual_value?: number
-  auto_renew?: boolean
+  monthly_value: number
+  annual_value: number
+  auto_renew: boolean
   documents_url: string | null
   notes: string | null
   created_at: Date
@@ -97,7 +97,7 @@ export const contractSchema = z.object({
   client_id: z.string().min(1, 'Client is required'),
   description: z.string().nullable(),
   start_date: z.date(),
-  end_date: z.date().nullable(),
+  end_date: z.date(),
   status: z.enum(['Active', 'Expiring', 'Expired', 'Terminated']),
   contract_type: z.string().min(1, 'Contract type is required'),
   renewal_terms: z.string().nullable(),
@@ -106,9 +106,9 @@ export const contractSchema = z.object({
   billing_frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'annually']),
   base_fee: z.number().min(0, 'Base fee must be a positive number'),
   weekly_value: z.number().optional(),
-  monthly_value: z.number().optional(),
-  annual_value: z.number().optional(),
-  auto_renew: z.boolean().optional(),
+  monthly_value: z.number(),
+  annual_value: z.number(),
+  auto_renew: z.boolean(),
   documents_url: z.string().nullable(),
   notes: z.string().nullable(),
   under_negotiation: z.boolean().optional(),
