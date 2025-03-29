@@ -23,14 +23,44 @@
       content="https://lovable.dev/opengraph-image-p98pqg.png"
     />
     
-    <!-- Updated Content Security Policy to allow necessary connections -->
+    <!-- Refined Content Security Policy to ensure Vite client works properly -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' ws: wss: https://*.lovableproject.com https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://*.lovableproject.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://rsms.me; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; object-src 'none';" />
   </head>
 
   <body>
     <div id="root"></div>
+    
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    
+    <!-- Vite HMR Listener to help debug client connection issues -->
+    <script type="text/javascript">
+      // Monitor Vite HMR connection
+      window.addEventListener('vite:beforeUpdate', function(event) {
+        console.log('Vite HMR update detected:', event);
+      });
+      
+      // Global error handler specifically for script loading
+      window.addEventListener('error', function(event) {
+        if (event.filename && event.filename.includes('vite/client')) {
+          console.error('Vite client loading error:', event);
+          // Try to provide more diagnostic information
+          document.getElementById('root').innerHTML = `
+            <div style="padding: 20px; font-family: sans-serif;">
+              <h2>Development Environment Error</h2>
+              <p>There was a problem loading the Vite development client.</p>
+              <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${event.message}</pre>
+              <p>This is often caused by Content Security Policy restrictions or network issues.</p>
+              <button onclick="window.location.reload()" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Refresh Page
+              </button>
+            </div>
+          `;
+          // Prevent default error handling
+          return true;
+        }
+      }, true);
+    </script>
     
     <!-- Main Vite application script -->
     <script type="module" src="/src/main.tsx"></script>

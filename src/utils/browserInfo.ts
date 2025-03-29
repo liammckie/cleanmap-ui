@@ -1,173 +1,153 @@
 
 /**
- * Utility for gathering browser information and checking for compatibility issues
+ * Utility for capturing browser information and checking compatibility
  */
 
-/**
- * Log information about the current browser environment
- */
-export const logBrowserInfo = () => {
-  console.info('Browser Information:', {
-    userAgent: navigator.userAgent,
+// Get basic browser information
+export const getBrowserInfo = () => {
+  const userAgent = navigator.userAgent;
+  const browserInfo = {
+    userAgent,
+    vendor: navigator.vendor,
     platform: navigator.platform,
     language: navigator.language,
-    cookieEnabled: navigator.cookieEnabled,
-    online: navigator.onLine,
-    windowDimensions: {
-      innerWidth: window.innerWidth,
-      innerHeight: window.innerHeight,
-    },
-    devicePixelRatio: window.devicePixelRatio,
-    location: `${window.location.protocol}//${window.location.host}${window.location.pathname}`,
-  });
+    cookiesEnabled: navigator.cookieEnabled,
+    isOnline: navigator.onLine,
+    screenWidth: window.screen.width,
+    screenHeight: window.screen.height,
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
+    devicePixelRatio: window.devicePixelRatio || 1,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+  
+  return browserInfo;
 };
 
-/**
- * Check for browser compatibility issues that might affect the application
- * @returns Array of compatibility issues
- */
-export const checkForBrowserCompatibilityIssues = (): string[] => {
-  const issues: string[] = [];
+// Log browser information
+export const logBrowserInfo = () => {
+  const info = getBrowserInfo();
+  console.info('Browser information:', info);
+  return info;
+};
+
+// Check for potential browser compatibility issues
+export const checkForBrowserCompatibilityIssues = () => {
+  const issues = [];
   
-  // Check if we're using an outdated browser
-  const isIE = /MSIE|Trident/.test(navigator.userAgent);
-  if (isIE) {
-    issues.push('Internet Explorer is not supported. Please use a modern browser like Chrome, Firefox, or Edge.');
+  // Check for basic ES6 features
+  if (!window.Promise) {
+    issues.push('Browser does not support Promise');
   }
   
-  // Check for LocalStorage
+  if (!window.fetch) {
+    issues.push('Browser does not support fetch');
+  }
+  
+  if (!window.localStorage) {
+    issues.push('Browser does not support localStorage');
+  }
+  
+  // Check for Content Security Policy issues
   try {
-    localStorage.setItem('test', 'test');
-    localStorage.removeItem('test');
-  } catch (e) {
-    issues.push('LocalStorage is not available. Some features may not work properly.');
-  }
-  
-  // Check if JavaScript is enabled (if this code is running, it is)
-  // But we can check for other critical APIs
-  
-  // Check for Fetch API
-  if (!('fetch' in window)) {
-    issues.push('Fetch API is not available. Please use a modern browser.');
-  }
-  
-  // Check for ES6 support
-  try {
-    new Function('() => {}');
-  } catch (e) {
-    issues.push('ES6 arrow functions are not supported. Please use a modern browser.');
-  }
-  
-  // Check WebSocket support (important for Vite HMR)
-  if (!('WebSocket' in window)) {
-    issues.push('WebSockets are not supported. Hot Module Replacement will not work.');
+    const metaElement = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    if (metaElement) {
+      const cspContent = metaElement.getAttribute('content');
+      if (cspContent) {
+        if (!cspContent.includes('unsafe-eval') && !cspContent.includes("'unsafe-eval'")) {
+          issues.push('CSP does not allow unsafe-eval, which Vite requires in development mode');
+        }
+        
+        if (!cspContent.includes('ws:') && !cspContent.includes('wss:')) {
+          issues.push('CSP does not allow WebSocket connections, which Vite requires for HMR');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error checking CSP:', error);
   }
   
   return issues;
 };
 
-/**
- * Checks if Vite's client script can be loaded properly
- */
-export const checkViteClientCompatibility = (): boolean => {
+// Check specifically for Vite client compatibility
+export const checkViteClientCompatibility = () => {
+  // This is a simple heuristic to detect if the Vite client will work
+  const compatibility = {
+    hasWebSocket: typeof WebSocket !== 'undefined',
+    hasEval: typeof eval === 'function',
+    hasSessionStorage: typeof sessionStorage !== 'undefined',
+    hasImport: typeof import === 'function' || 'import' in window,
+    hasCspIssues: false,
+    cspDetails: null,
+  };
+  
+  // Check CSP for Vite compatibility
   try {
-    console.group('Vite Client Compatibility Check');
-    
-    // Test if we can create a WebSocket connection (important for Vite)
-    const hasWebSocket = 'WebSocket' in window;
-    console.log('WebSocket support:', hasWebSocket);
-    
-    // Check if CSP allows connections to Vite domains
-    const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    console.log('CSP meta tag found:', !!cspMeta);
-    
-    if (cspMeta) {
-      const cspContent = cspMeta.getAttribute('content');
-      console.log('CSP Content:', cspContent);
+    const metaElement = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    if (metaElement) {
+      const cspContent = metaElement.getAttribute('content');
+      compatibility.cspDetails = cspContent;
       
-      // Check for key Vite requirements in CSP
-      const hasUnsafeEval = cspContent?.includes("'unsafe-eval'");
-      const hasUnsafeInline = cspContent?.includes("'unsafe-inline'");
-      const hasWsConnections = cspContent?.includes('ws:') || cspContent?.includes('wss:');
-      
-      console.log('CSP allows unsafe-eval:', hasUnsafeEval);
-      console.log('CSP allows unsafe-inline:', hasUnsafeInline);
-      console.log('CSP allows WebSocket connections:', hasWsConnections);
-      
-      if (!hasUnsafeEval || !hasUnsafeInline || !hasWsConnections) {
-        console.warn('CSP may block Vite functionality. Consider adjusting CSP settings.');
+      if (cspContent) {
+        if (!cspContent.includes("'unsafe-eval'")) {
+          compatibility.hasCspIssues = true;
+        }
+        
+        // Parse CSP to check for specific directives
+        const cspParts = cspContent.split(';').map(part => part.trim());
+        for (const part of cspParts) {
+          // Check for script-src directive
+          if (part.startsWith('script-src')) {
+            if (!part.includes("'unsafe-eval'")) {
+              compatibility.hasCspIssues = true;
+            }
+          }
+          
+          // Check for connect-src directive
+          if (part.startsWith('connect-src')) {
+            if (!part.includes('ws:') && !part.includes('wss:')) {
+              compatibility.hasCspIssues = true;
+            }
+          }
+        }
       }
     }
-    
-    // Test if eval is allowed (needed for some Vite operations)
-    try {
-      // This will throw if eval is blocked by CSP
-      // eslint-disable-next-line no-eval
-      eval('true');
-      console.log('eval() is allowed by CSP');
-      console.groupEnd();
-      return hasWebSocket;
-    } catch (e) {
-      console.warn('CSP blocks eval() which may affect Vite development server', e);
-      console.groupEnd();
-      return false;
-    }
-  } catch (e) {
-    console.error('Error checking Vite compatibility:', e);
-    console.groupEnd();
-    return false;
+  } catch (error) {
+    console.error('Error checking CSP for Vite compatibility:', error);
   }
+  
+  return compatibility;
 };
 
-/**
- * Attempts to diagnose Vite client loading issues
- */
+// Diagnose Vite client issues
 export const diagnoseViteClientIssues = () => {
-  try {
-    console.group('Vite Client Diagnostics');
-    
-    // Check if the Vite client script tag exists
-    const viteClientScript = document.querySelector('script[src*="@vite/client"]');
-    console.log('Vite client script tag found:', !!viteClientScript);
-    
-    if (viteClientScript) {
-      console.log('Vite client src:', viteClientScript.getAttribute('src'));
-    } else {
-      // Try to manually load the Vite client script to test loading
-      const testScript = document.createElement('script');
-      testScript.type = 'module';
-      testScript.src = '/@vite/client';
-      testScript.id = 'vite-client-test';
-      
-      // Log when the script errors
-      testScript.onerror = (event) => {
-        console.error('Vite client test script failed to load:', event);
-      };
-      
-      // Add to DOM temporarily
-      document.head.appendChild(testScript);
-      setTimeout(() => {
-        if (document.getElementById('vite-client-test')) {
-          document.head.removeChild(testScript);
-        }
-      }, 3000);
-    }
-    
-    // Check for error events related to Vite
-    window.addEventListener('error', (event) => {
-      if (event.filename?.includes('@vite') || event.message?.includes('Vite')) {
-        console.error('Vite-related error detected:', {
-          filename: event.filename,
-          message: event.message,
-          lineno: event.lineno,
-          colno: event.colno
-        });
-      }
-    }, { once: true });
-    
-    console.groupEnd();
-  } catch (e) {
-    console.error('Error diagnosing Vite client:', e);
-    console.groupEnd();
+  const compatibility = checkViteClientCompatibility();
+  console.info('Vite client compatibility check:', compatibility);
+  
+  // Check for specific issues
+  if (!compatibility.hasWebSocket) {
+    console.warn('WebSocket API is not available, which Vite HMR requires');
   }
+  
+  if (!compatibility.hasEval) {
+    console.warn('Eval is not available, which Vite requires for module processing');
+  }
+  
+  if (compatibility.hasCspIssues) {
+    console.warn('Content Security Policy issues detected that may affect Vite:');
+    console.warn('CSP:', compatibility.cspDetails);
+    console.warn('Make sure your CSP allows: unsafe-eval, WebSocket connections, and required domains');
+  }
+  
+  return compatibility;
+};
+
+// Export utility functions
+export default {
+  getBrowserInfo,
+  logBrowserInfo,
+  checkForBrowserCompatibilityIssues,
+  checkViteClientCompatibility,
+  diagnoseViteClientIssues,
 };
