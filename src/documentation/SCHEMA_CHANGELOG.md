@@ -1,4 +1,3 @@
-
 # Schema Change Log
 
 This file tracks significant schema changes that may impact application functionality.
@@ -114,3 +113,13 @@ This file tracks significant schema changes that may impact application function
 - Added RLS policies to work_order_notes table
 - Enhanced error handling for RLS infinite recursion errors
 - Updated JSX error components to gracefully handle database errors
+
+## 2024-06-13
+
+### Fixed
+
+- Fixed contracts page white screen issue by improving error handling
+- Updated contract query service to use safelyExecuteQuery for better error handling
+- Added proper defensive checks for contract display when monthly_value is null
+- Fixed contract schema to properly handle nullable end_date field
+- Enhanced error handling in ContractsTable to catch and display RLS policy errors

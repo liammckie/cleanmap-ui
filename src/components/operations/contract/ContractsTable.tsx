@@ -22,6 +22,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import type { Contract } from '@/schema/operations/contract.schema'
+import { createErrorFallbackUI } from '@/utils/databaseErrorHandlers'
 
 interface ContractsTableProps {
   contracts?: Contract[]
@@ -36,17 +37,15 @@ const ContractsTable: React.FC<ContractsTableProps> = ({ contracts, isLoading, e
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-pulse text-center">
-          <p className="text-muted-foreground">Loading contracts...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // Handle database errors (like RLS policy infinite recursion)
   if (error) {
+    const supabaseError = (error as any).error || error;
+    
+    if (supabaseError?.code === '42P17' || 
+        supabaseError?.message?.includes('infinite recursion')) {
+      return createErrorFallbackUI(supabaseError, 'contracts');
+    }
+    
     return (
       <div className="flex items-center justify-center p-8 text-center">
         <div className="flex flex-col items-center">
@@ -55,6 +54,16 @@ const ContractsTable: React.FC<ContractsTableProps> = ({ contracts, isLoading, e
           <p className="text-muted-foreground mt-1">
             {error.message || 'An unexpected error occurred. Please try again.'}
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-pulse text-center">
+          <p className="text-muted-foreground">Loading contracts...</p>
         </div>
       </div>
     )
@@ -184,7 +193,9 @@ const ContractsTable: React.FC<ContractsTableProps> = ({ contracts, isLoading, e
                 </TableCell>
                 <TableCell>{formatDate(contract.start_date)}</TableCell>
                 <TableCell>{formatDate(contract.end_date)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(contract.monthly_value)}</TableCell>
+                <TableCell className="text-right">
+                  {contract.monthly_value ? formatCurrency(contract.monthly_value) : 'N/A'}
+                </TableCell>
                 <TableCell className="text-center">
                   <Button variant="ghost" size="sm" asChild>
                     <Link to={`/operations/contracts/${contract.id}`}>
