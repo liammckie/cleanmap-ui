@@ -14,10 +14,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
+import { EmploymentTerminationReason } from '@/types/employee.types'
 
 interface EndOfEmploymentSectionProps {
   endDate: Date | null
-  endReason: string | null
+  endReason: EmploymentTerminationReason | null
   terminationReasons: string[]
   onEndDateChange: (date: Date | undefined) => void
   onEndReasonChange: (reason: string) => void
@@ -74,7 +75,7 @@ const EndOfEmploymentSection: React.FC<EndOfEmploymentSectionProps> = ({
         <div className="space-y-2">
           <Label htmlFor="end_of_employment_reason">Reason</Label>
           <Select 
-            value={endReason || ''} 
+            value={endReason || ''}
             onValueChange={onEndReasonChange}
             disabled={!isEditable}
           >

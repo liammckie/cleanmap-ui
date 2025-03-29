@@ -1,14 +1,15 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { Employee as EmployeeSchema } from '@/schema/hr.schema'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 import type { TablesInsert } from '@/integrations/supabase/types'
 import { Database } from '@/integrations/supabase/types'
-import { Employee } from '@/types/employee.types'
+import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
 
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status']
 type EmploymentType = Database['public']['Enums']['employment_type']
-type EmploymentTerminationReason = Database['public']['Enums']['employment_termination_reason']
+type EmploymentTerminationReasonDB = Database['public']['Enums']['employment_termination_reason']
 
 export async function fetchEmployees(
   searchTerm?: string,
@@ -53,7 +54,25 @@ export async function fetchEmployees(
     throw error
   }
 
-  return data
+  // Transform data to ensure end_of_employment_reason is properly typed
+  return data.map(employee => {
+    // Only convert if end_of_employment_reason exists and is a valid value
+    if (employee.end_of_employment_reason) {
+      const reason = employee.end_of_employment_reason as string;
+      const validReasons: EmploymentTerminationReason[] = [
+        'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+      ];
+      
+      return {
+        ...employee,
+        end_of_employment_reason: validReasons.includes(reason as EmploymentTerminationReason) 
+          ? reason as EmploymentTerminationReason 
+          : null
+      };
+    }
+    
+    return employee;
+  });
 }
 
 export async function fetchEmployeeById(id: string) {
@@ -64,7 +83,22 @@ export async function fetchEmployeeById(id: string) {
     throw error
   }
 
-  return data
+  // Ensure end_of_employment_reason is properly typed
+  if (data && data.end_of_employment_reason) {
+    const reason = data.end_of_employment_reason as string;
+    const validReasons: EmploymentTerminationReason[] = [
+      'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+    ];
+    
+    return {
+      ...data,
+      end_of_employment_reason: validReasons.includes(reason as EmploymentTerminationReason) 
+        ? reason as EmploymentTerminationReason 
+        : null
+    };
+  }
+
+  return data;
 }
 
 // Update the parameter type to accept our modified Employee type that has string | Date

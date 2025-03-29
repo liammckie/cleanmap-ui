@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { createEmployee } from '@/services/employeeService'
-import { Employee } from '@/types/employee.types'
+import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
 import PersonalInfoForm from './PersonalInfoForm'
 import EmploymentDetailsForm from './EmploymentDetailsForm'
 import PayrollDetailsForm from './PayrollDetailsForm'
@@ -63,6 +63,8 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     bank_account_number: '',
     super_fund_name: '',
     super_member_number: '',
+    end_of_employment_date: null,
+    end_of_employment_reason: null,
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +76,21 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
   }
 
   const handleSelectChange = (name: string, value: string) => {
+    // Special handling for end_of_employment_reason
+    if (name === 'end_of_employment_reason') {
+      const validReasons: EmploymentTerminationReason[] = [
+        'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+      ];
+      
+      setFormData((prev) => ({
+        ...prev,
+        [name]: validReasons.includes(value as EmploymentTerminationReason) 
+          ? value as EmploymentTerminationReason 
+          : null,
+      }));
+      return;
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -134,6 +151,8 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
         bank_account_number: '',
         super_fund_name: '',
         super_member_number: '',
+        end_of_employment_date: null,
+        end_of_employment_reason: null,
       })
     } catch (error) {
       console.error('Error adding employee:', error)

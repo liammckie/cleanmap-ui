@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
@@ -10,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Employee } from '@/types/employee.types'
+import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
 import EndOfEmploymentSection from './EndOfEmploymentSection'
 
 interface EmployeeEmploymentTabProps {
@@ -44,8 +43,11 @@ const EmployeeEmploymentTab: React.FC<EmployeeEmploymentTabProps> = ({
     }
   }
 
+  // Convert to Date object if it's a string, or keep as Date, or null if undefined
   const endDate = employee.end_of_employment_date
-    ? new Date(employee.end_of_employment_date)
+    ? (typeof employee.end_of_employment_date === 'string' 
+        ? new Date(employee.end_of_employment_date) 
+        : employee.end_of_employment_date)
     : null
 
   return (
@@ -224,7 +226,7 @@ const EmployeeEmploymentTab: React.FC<EmployeeEmploymentTabProps> = ({
 
       <EndOfEmploymentSection
         endDate={endDate}
-        endReason={employee.end_of_employment_reason || null}
+        endReason={employee.end_of_employment_reason}
         terminationReasons={terminationReasons}
         onEndDateChange={handleEndDateChange}
         onEndReasonChange={handleEndReasonChange}

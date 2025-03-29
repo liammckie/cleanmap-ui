@@ -71,7 +71,29 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
   }
 
   const handleSelectChange = (field: string, value: string) => {
-    setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null))
+    setEditedEmployee((prev) => {
+      if (!prev) return null;
+      
+      // Special handling for end_of_employment_reason to ensure it's properly typed
+      if (field === 'end_of_employment_reason') {
+        // Validate if the value is a valid EmploymentTerminationReason
+        const isValidReason = isValidTerminationReason(value);
+        return {
+          ...prev,
+          [field]: isValidReason ? value as EmploymentTerminationReason : null
+        };
+      }
+      
+      return { ...prev, [field]: value };
+    })
+  }
+
+  // Helper function to validate if a value is a valid EmploymentTerminationReason
+  const isValidTerminationReason = (value: string): value is EmploymentTerminationReason => {
+    const validReasons: EmploymentTerminationReason[] = [
+      'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+    ];
+    return validReasons.includes(value as EmploymentTerminationReason);
   }
 
   const handleEndDateChange = (date: Date | undefined) => {
@@ -81,9 +103,14 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
   }
 
   const handleEndReasonChange = (reason: string) => {
-    setEditedEmployee((prev) => 
-      prev ? { ...prev, end_of_employment_reason: reason as EmploymentTerminationReason } : null
-    )
+    // Only set the reason if it's a valid EmploymentTerminationReason
+    if (isValidTerminationReason(reason)) {
+      setEditedEmployee((prev) => 
+        prev ? { ...prev, end_of_employment_reason: reason } : null
+      )
+    } else {
+      console.error(`Invalid termination reason: ${reason}`);
+    }
   }
 
   const handleSave = async () => {
