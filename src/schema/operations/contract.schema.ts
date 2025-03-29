@@ -1,3 +1,4 @@
+
 import { z } from 'zod'
 import { BillingFrequency } from '@/utils/billingCalculations'
 
@@ -55,6 +56,14 @@ export interface ContractSite {
   site?: {
     id: string
     site_name: string
+    site_type: string
+    site_code?: string
+    address_street: string
+    address_city: string
+    address_state: string
+    address_postcode: string
+    status: string
+    country?: string
   }
 }
 

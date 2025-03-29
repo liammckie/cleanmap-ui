@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { ContractSite } from '@/schema/operations/contract.schema'
 
@@ -12,7 +13,16 @@ export async function fetchContractSites(contractId: string) {
       id,
       contract_id,
       site_id,
-      site:sites(id, site_name, site_code, street_address, city, state, zip_code, country)
+      site:sites(
+        id, 
+        site_name, 
+        site_type, 
+        address_street, 
+        address_city, 
+        address_state, 
+        address_postcode, 
+        status
+      )
     `,
     )
     .eq('contract_id', contractId)
