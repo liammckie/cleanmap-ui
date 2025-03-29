@@ -65,7 +65,7 @@ export function calculateAllBillingFrequencies(
   return {
     weekly: weeklyAmount,
     monthly: monthlyAmount,
-    annually: annualAmount, // Changed from 'annual' to 'annually' for consistency
+    annually: annualAmount, // Keep as 'annually' for consistency
   }
 }
 

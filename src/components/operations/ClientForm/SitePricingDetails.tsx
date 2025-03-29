@@ -27,11 +27,12 @@ import {
   CardTitle 
 } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { PriceBreakdown } from '@/hooks/operations/useClientSiteForm'
 
 interface SitePricingDetailsProps {
   form: UseFormReturn<any>
   index: number
-  priceBreakdown?: { weekly: number; monthly: number; annual: number }
+  priceBreakdown?: PriceBreakdown
 }
 
 const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, priceBreakdown }) => {
@@ -285,7 +286,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Annual</p>
-              <p className="font-medium">{formatCurrency(priceBreakdown.annually)}</p>
+              <p className="font-medium">{formatCurrency(priceBreakdown.annual)}</p>
             </div>
           </div>
         </div>

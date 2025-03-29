@@ -1,7 +1,7 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { format, subDays } from 'date-fns'
+import { MapLocation } from '@/components/Map/types'
 
 /**
  * Hook to fetch dashboard data for the main dashboard
@@ -263,6 +263,45 @@ export function useDashboardData() {
     },
   })
 
+  // Add a new query to fetch site locations for the map
+  const {
+    data: sitesData,
+    isLoading: isLoadingSites,
+    error: sitesError,
+  } = useQuery({
+    queryKey: ['dashboard', 'siteLocations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sites')
+        .select(`
+          id,
+          site_name,
+          address_street,
+          address_city,
+          address_state,
+          address_postcode,
+          coordinates,
+          client_id,
+          clients(company_name)
+        `)
+        .eq('status', 'Active')
+        .limit(50)
+      
+      if (error) throw new Error(error.message)
+      
+      // Transform to MapLocation format
+      return data.map(site => ({
+        id: site.id,
+        title: site.site_name,
+        address: `${site.address_street}, ${site.address_city}, ${site.address_state} ${site.address_postcode}`,
+        coordinates: site.coordinates ? JSON.parse(site.coordinates) : null,
+        status: 'Active',
+        type: 'site',
+        clientName: site.clients?.company_name || 'Unknown Client'
+      })) as MapLocation[]
+    },
+  })
+
   const isLoading = 
     isLoadingTotalClients || 
     isLoadingActiveClients || 
@@ -304,7 +343,8 @@ export function useDashboardData() {
         clientRetentionRate: 0,
         employeeProductivity: 0,
         sitesSatisfactionRate: 0
-      }
+      },
+      sites: sitesData || [] // Add the sites data for map
     },
     isLoading,
     error,

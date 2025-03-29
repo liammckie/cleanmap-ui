@@ -16,6 +16,15 @@ interface ContractSitesProps {
   contract: Contract
 }
 
+interface ContractSite {
+  id: string;
+  site?: {
+    site_name?: string;
+    address_city?: string;
+    address_state?: string;
+  };
+}
+
 const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
   if (!contract.sites || contract.sites.length === 0) {
     return (
@@ -48,7 +57,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contract.sites.map((contractSite) => (
+            {contract.sites.map((contractSite: ContractSite) => (
               <TableRow key={contractSite.id}>
                 <TableCell className="font-medium">
                   {contractSite.site?.site_name || 'Unnamed Site'}
@@ -56,7 +65,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                 <TableCell className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
                   {contractSite.site && 'address_city' in contractSite.site ? 
-                    `${contractSite.site.address_city}, ${contractSite.site.address_state}` : 
+                    `${contractSite.site.address_city || 'Unknown City'}, ${contractSite.site.address_state || 'Unknown State'}` : 
                     'Unknown Location'}
                 </TableCell>
               </TableRow>

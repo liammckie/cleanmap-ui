@@ -11,6 +11,23 @@ import DashboardMap from '@/components/Dashboard/DashboardMap'
 import UpcomingContracts from '@/components/Dashboard/UpcomingContracts'
 import TasksList from '@/components/Dashboard/TasksList'
 import { formatDate } from '@/utils/dateFormatters'
+import { MapLocation } from '@/components/Map/types'
+
+// Define the shape of task and contract data for the dashboard
+interface DashboardTask {
+  id: string
+  title: string
+  description: string
+  status: 'In Progress' | 'Completed' | 'Scheduled' | 'Overdue' | 'Cancelled'
+  priority: 'Low' | 'Medium' | 'High'
+  due_date: string
+  scheduled_start: string
+  sites: {
+    site_name: string
+    client_id: string
+    clients?: { company_name: string }
+  }
+}
 
 const Dashboard: React.FC = () => {
   const { data, isLoading, error } = useDashboardData()
@@ -55,6 +72,21 @@ const Dashboard: React.FC = () => {
       </div>
     )
   }
+
+  // Transform task data to match expected shape
+  const transformedTasks = data.pendingTasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    description: task.description || '',
+    status: task.status,
+    priority: task.priority,
+    due_date: task.due_date,
+    scheduled_start: task.scheduled_start || '',
+    sites: {
+      site_name: task.sites?.site_name || 'Unknown site',
+      client_id: task.sites?.client_id || ''
+    }
+  }));
 
   return (
     <div className="container mx-auto py-6">
@@ -109,16 +141,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid gap-6 md:grid-cols-2 mb-6">
         <TasksList 
-          tasks={data.pendingTasks.map(task => ({
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            status: task.status,
-            priority: task.priority,
-            due_date: task.due_date,
-            scheduled_start: task.scheduled_start,
-            sites: task.sites
-          }))} 
+          tasks={transformedTasks} 
         />
         
         <UpcomingContracts 
@@ -126,6 +149,7 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
+      {/* Create map locations array to match expected type */}
       <div className="mb-6">
         <Card>
           <CardHeader>
@@ -134,7 +158,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="h-[400px]">
-              <DashboardMap locations={data.mapLocations} />
+              <DashboardMap locations={data.sites || []} />
             </div>
           </CardContent>
         </Card>

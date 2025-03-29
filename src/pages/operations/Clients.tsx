@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { fetchClients, deleteClient } from '@/services/clients'
 import { formatDate } from '@/utils/dateFormatters'
 import {
@@ -24,7 +25,17 @@ import {
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { confirm } from '@/components/ui/confirm'
-import AddClientDialog from '@/components/operations/AddClientDialog'
+import AddClientDialog from '@/components/operations/client/AddClientDialog'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+interface Client {
+  id: string;
+  company_name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  status: string;
+}
 
 const ClientsPage: React.FC = () => {
   const [search, setSearch] = useState('')
@@ -42,13 +53,14 @@ const ClientsPage: React.FC = () => {
     queryFn: () => fetchClients({ search, filters }),
   })
 
-  const deleteMutation = useMutation(deleteClient, {
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteClient(id),
     onSuccess: () => {
       toast({
         title: 'Success',
         description: 'Client deleted successfully',
       })
-      queryClient.invalidateQueries(['clients'])
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
     },
     onError: (error: any) => {
       toast({
@@ -59,7 +71,7 @@ const ClientsPage: React.FC = () => {
     },
   })
 
-  const handleDelete = async (clientId: number) => {
+  const handleDelete = async (clientId: string) => {
     const confirmed = await confirm({
       title: 'Delete Client',
       description: 'Are you sure you want to delete this client? This action cannot be undone.',
@@ -79,7 +91,7 @@ const ClientsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <AddClientDialog onClientAdded={refetchClients} />
+          <AddClientDialog onClientAdded={() => refetchClients()} />
           <Button asChild>
             <Link to="/operations/clients/create">Add with Sites</Link>
           </Button>
@@ -136,12 +148,12 @@ const ClientsPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clients.map((client) => (
+                {clients.map((client: Client) => (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium">{client.company_name}</TableCell>
-                    <TableCell>{client.contact_person}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
+                    <TableCell>{client.contact_name}</TableCell>
+                    <TableCell>{client.contact_email}</TableCell>
+                    <TableCell>{client.contact_phone}</TableCell>
                     <TableCell>{client.status}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

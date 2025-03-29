@@ -3,17 +3,18 @@ import { useState, useEffect } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { calculateAllBillingFrequencies, BillingFrequency } from '@/utils/billingCalculations'
 
-interface PriceBreakdown {
+// Ensure this interface matches both usages in ClientSiteForm and SitePricingDetails
+export interface PriceBreakdown {
   weekly: number
   monthly: number
-  annually: number // Renamed from 'annual' to match the expected prop name
+  annual: number
 }
 
 export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown>({
     weekly: 0,
     monthly: 0,
-    annually: 0, // Renamed from 'annual' to match the expected prop name
+    annual: 0, // This should be 'annual' to match the interface
   })
 
   // Recalculate price breakdown whenever price or frequency changes
@@ -27,7 +28,7 @@ export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
     setPriceBreakdown({
       weekly: breakdown.weekly,
       monthly: breakdown.monthly,
-      annually: breakdown.annually // Map the annual value from the calculation to annually
+      annual: breakdown.annually // Map the annually value from the calculation to annual
     });
   }, [
     form,
