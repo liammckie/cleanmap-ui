@@ -10,7 +10,7 @@ export async function fetchSiteTypes(): Promise<string[]> {
     const { data, error } = await supabase
       .from('sites')
       .select('site_type')
-      .is('site_type', 'not.null')
+      .not('site_type', 'is', null)
       .order('site_type')
 
     if (error) throw error
@@ -33,7 +33,7 @@ export async function fetchSiteRegions(): Promise<string[]> {
     const { data, error } = await supabase
       .from('sites')
       .select('region')
-      .is('region', 'not.null')
+      .not('region', 'is', null)
       .order('region')
 
     if (error) throw error
@@ -56,7 +56,7 @@ export async function fetchSiteStatuses(): Promise<string[]> {
     const { data, error } = await supabase
       .from('sites')
       .select('status')
-      .is('status', 'not.null')
+      .not('status', 'is', null)
       .order('status')
 
     if (error) throw error

@@ -195,7 +195,7 @@ const SiteDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="flex items-center mb-4">
                   <StatusBadge status={site.status} />
-                  <ServiceTypeBadge type={serviceType} />
+                  {serviceType && <ServiceTypeBadge type={serviceType} />}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
