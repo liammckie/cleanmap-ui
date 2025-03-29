@@ -1,3 +1,4 @@
+
 /**
  * Utility for capturing browser information and checking compatibility
  */
@@ -69,6 +70,17 @@ export const checkForBrowserCompatibilityIssues = () => {
   return issues;
 };
 
+// Safely check if dynamic imports are supported
+const checkDynamicImportSupport = () => {
+  try {
+    // Use Function constructor to avoid direct 'import' syntax that causes parsing errors
+    new Function('try { return new Function("return import(\\"\\")"); } catch(e) { return false; }')();
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 // Check specifically for Vite client compatibility
 export const checkViteClientCompatibility = () => {
   // This is a simple heuristic to detect if the Vite client will work
@@ -76,7 +88,7 @@ export const checkViteClientCompatibility = () => {
     hasWebSocket: typeof WebSocket !== 'undefined',
     hasEval: typeof eval === 'function',
     hasSessionStorage: typeof sessionStorage !== 'undefined',
-    hasImport: 'import' in window || typeof window.import === 'function',
+    hasImport: checkDynamicImportSupport(),
     hasCspIssues: false,
     cspDetails: null,
   };
