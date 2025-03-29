@@ -24,10 +24,13 @@ export async function fetchEmployeeById(id: string) {
  */
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
   try {
-    // Convert Date objects to ISO strings for Supabase
-    const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>
+    // First convert the employee object to DB format
+    const dbEmployee = mapEmployeeToDb(employee)
+    
+    // Then prepare Date objects for Supabase (convert to ISO strings)
+    const preparedEmployee = prepareObjectForDb(dbEmployee) as TablesInsert<'employees'>
 
-    const { data, error } = await supabase.from('employees').insert(dbEmployee).select()
+    const { data, error } = await supabase.from('employees').insert(preparedEmployee).select()
 
     if (error) {
       console.error('Error creating employee:', error)
@@ -45,10 +48,13 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
  * Update an existing employee
  */
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
-  // Use the mapper to convert the employee object to DB format
+  // First convert the employee object to DB format using our mapper
   const dbUpdates = mapEmployeeToDb(updates)
+  
+  // Then ensure dates are properly formatted as strings
+  const preparedUpdates = prepareObjectForDb(dbUpdates)
 
-  const { data, error } = await supabase.from('employees').update(dbUpdates).eq('id', id).select()
+  const { data, error } = await supabase.from('employees').update(preparedUpdates).eq('id', id).select()
 
   if (error) {
     console.error('Error updating employee:', error)
