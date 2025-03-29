@@ -19,11 +19,11 @@ import {
   DollarSign,
   AlertCircle,
 } from 'lucide-react'
-import type { Client } from '@/schema/operations'
+import type { Client } from '@/schema/operations/client.schema'
 import { cn } from '@/lib/utils'
 
 interface ClientCardProps {
-  client: any // Using any to temporarily fix type errors
+  client: any // Using a more relaxed type to handle the Supabase returned data
   onClick?: () => void
 }
 

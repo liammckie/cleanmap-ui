@@ -16,8 +16,8 @@ const ClientsPage = () => {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{
-    status: string
-    industry: string
+    status: 'Active' | 'On Hold' | '';
+    industry: string;
   }>({
     status: '',
     industry: '',
@@ -30,7 +30,13 @@ const ClientsPage = () => {
     refetch,
   } = useQuery({
     queryKey: ['clients', searchTerm, filters],
-    queryFn: () => fetchClients({ search: searchTerm, filters }),
+    queryFn: () => fetchClients({ 
+      search: searchTerm, 
+      filters: {
+        status: filters.status as 'Active' | 'On Hold' || undefined,
+        industry: filters.industry || undefined
+      }
+    }),
     meta: {
       onError: (err: Error) => {
         console.error('Failed to fetch clients:', err)
@@ -118,10 +124,10 @@ const ClientsPage = () => {
 
       {!isLoading && !error && clients && clients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients?.map((client: Client) => (
+          {clients.map((client) => (
             <ClientCard
               key={client.id}
-              client={client}
+              client={client as unknown as Client}
               onClick={() => {
                 console.log('Clicked client:', client.id)
               }}

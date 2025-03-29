@@ -1,5 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client'
+import type { Client, ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
+import { clientSchema } from '@/schema/operations/client.schema'
+import { validateForDb } from '@/utils/supabase/validation'
 
 /**
  * Fetch all clients with optional filtering
@@ -8,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client'
 export async function fetchClients(options: {
   search?: string;
   filters?: {
-    status?: string;
+    status?: 'Active' | 'On Hold';
     industry?: string;
   };
 } = {}) {

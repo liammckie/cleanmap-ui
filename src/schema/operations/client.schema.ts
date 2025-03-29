@@ -27,8 +27,8 @@ export interface Client {
   notes: string | null
   business_number: string | null
   on_hold_reason: string | null
-  created_at: Date
-  updated_at: Date
+  created_at: string
+  updated_at: string
   latitude: number | null
   longitude: number | null
 }
@@ -58,8 +58,8 @@ export const clientSchema = z.object({
   on_hold_reason: z.string().nullable().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  created_at: z.string().or(z.date()).optional(),
+  updated_at: z.string().or(z.date()).optional(),
 })
 
 /**
