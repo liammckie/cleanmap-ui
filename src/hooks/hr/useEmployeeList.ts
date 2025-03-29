@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Employee } from '@/types/employee.types'
@@ -27,10 +26,27 @@ export function useEmployeeList() {
     clearFilters
   } = useEmployeeFilters();
 
-  // Fetch employees
+  // Fetch employees with enhanced logging
   const employeeQuery = useQuery({
     queryKey: ['employees', searchTerm, filters],
-    queryFn: () => fetchEmployees(searchTerm, filters),
+    queryFn: () => {
+      console.group('Employee Data Fetch');
+      console.log('Search Term:', searchTerm);
+      console.log('Filters:', filters);
+      return fetchEmployees(searchTerm, filters)
+        .then(data => {
+          console.log('Raw Employee Data:', data);
+          console.log('Employee Data Type:', typeof data);
+          console.log('Employee Data Length:', data?.length);
+          console.groupEnd();
+          return data;
+        })
+        .catch(error => {
+          console.error('Employee Fetch Error:', error);
+          console.groupEnd();
+          throw error;
+        });
+    },
     meta: {
       onError: createQueryErrorHandler('employees')
     },
@@ -43,14 +59,26 @@ export function useEmployeeList() {
     refetch,
   } = employeeQuery;
 
-  // Process employee data with proper error handling
+  // Enhanced logging for data processing
   const employees = useMemo(() => {
-    console.log('Processing employee data', employeesRaw);
-    if (!employeesRaw) return [];
+    console.group('Employee Data Processing');
+    console.log('Raw Data:', employeesRaw);
+    
+    if (!employeesRaw) {
+      console.warn('No raw employee data to process');
+      console.groupEnd();
+      return [];
+    }
+    
     try {
-      return processEmployeeData(employeesRaw) as Employee[];
+      const processedEmployees = processEmployeeData(employeesRaw) as Employee[];
+      console.log('Processed Employees:', processedEmployees);
+      console.log('Processed Employees Length:', processedEmployees.length);
+      console.groupEnd();
+      return processedEmployees;
     } catch (error) {
-      console.error('Error processing employee data:', error);
+      console.error('Employee Data Processing Error:', error);
+      console.groupEnd();
       return [];
     }
   }, [employeesRaw]);
