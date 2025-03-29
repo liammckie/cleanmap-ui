@@ -100,11 +100,13 @@ export async function fetchSites(search = '', filters: any = {}) {
     }
 
     if (filters.status) {
-      // Handle status as a string and ensure it's a valid site status
-      const validStatuses = ['Active', 'Inactive', 'Pending Launch', 'Suspended']
-      const status = String(filters.status)
-      if (validStatuses.includes(status)) {
-        query = query.eq('status', status)
+      // Handle status as a proper site status enum value
+      // Fix: Validate the status to ensure it's one of the allowed values
+      const validStatuses: Site['status'][] = ['Active', 'Inactive', 'Pending Launch', 'Suspended'];
+      const status = String(filters.status);
+      
+      if (validStatuses.includes(status as Site['status'])) {
+        query = query.eq('status', status as Site['status'])
       }
     }
 
