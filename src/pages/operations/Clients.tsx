@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,7 +30,7 @@ const ClientsPage = () => {
     refetch,
   } = useQuery({
     queryKey: ['clients', searchTerm, filters],
-    queryFn: () => fetchClients(searchTerm, filters),
+    queryFn: () => fetchClients({ search: searchTerm, filters }),
     meta: {
       onError: (err: Error) => {
         console.error('Failed to fetch clients:', err)

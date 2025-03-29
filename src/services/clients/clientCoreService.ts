@@ -1,24 +1,50 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import { mapFromDb } from '@/utils/mappers'
-import type { ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
 
 /**
- * Fetch all clients
+ * Fetch all clients with optional filtering
+ * @param options Search and filter options
  */
-export async function fetchClients() {
+export async function fetchClients(options: {
+  search?: string;
+  filters?: {
+    status?: string;
+    industry?: string;
+  };
+} = {}) {
   try {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('company_name')
+    const { search = '', filters = {} } = options;
+    
+    let query = supabase.from('clients').select('*')
+
+    // Apply search if provided
+    if (search) {
+      query = query.or(
+        `company_name.ilike.%${search}%,contact_name.ilike.%${search}%,contact_email.ilike.%${search}%`
+      )
+    }
+
+    // Apply status filter if provided
+    if (filters.status) {
+      query = query.eq('status', filters.status)
+    }
+
+    // Apply industry filter if provided
+    if (filters.industry) {
+      query = query.eq('industry', filters.industry)
+    }
+
+    // Order by company name
+    query = query.order('company_name')
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching clients:', error)
       throw error
     }
 
-    return data.map(client => mapFromDb(client))
+    return data
   } catch (error) {
     console.error('Error fetching clients:', error)
     throw error
@@ -26,9 +52,10 @@ export async function fetchClients() {
 }
 
 /**
- * Fetch a single client by ID
+ * Fetch a client by ID
+ * @param id Client ID
  */
-export async function fetchClient(id: string) {
+export async function fetchClientById(id: string) {
   try {
     const { data, error } = await supabase
       .from('clients')
@@ -37,21 +64,22 @@ export async function fetchClient(id: string) {
       .single()
 
     if (error) {
-      console.error(`Error fetching client ${id}:`, error)
+      console.error('Error fetching client:', error)
       throw error
     }
 
-    return mapFromDb(data)
+    return data
   } catch (error) {
-    console.error(`Error fetching client ${id}:`, error)
+    console.error('Error fetching client:', error)
     throw error
   }
 }
 
 /**
  * Create a new client
+ * @param clientData Client data to insert
  */
-export async function createClient(clientData: ClientInsert) {
+export async function createClient(clientData: any) {
   try {
     const { data, error } = await supabase
       .from('clients')
@@ -64,7 +92,7 @@ export async function createClient(clientData: ClientInsert) {
       throw error
     }
 
-    return mapFromDb(data)
+    return data
   } catch (error) {
     console.error('Error creating client:', error)
     throw error
@@ -73,8 +101,10 @@ export async function createClient(clientData: ClientInsert) {
 
 /**
  * Update an existing client
+ * @param id Client ID
+ * @param clientData Client data to update
  */
-export async function updateClient(id: string, clientData: ClientUpdate) {
+export async function updateClient(id: string, clientData: any) {
   try {
     const { data, error } = await supabase
       .from('clients')
@@ -84,19 +114,20 @@ export async function updateClient(id: string, clientData: ClientUpdate) {
       .single()
 
     if (error) {
-      console.error(`Error updating client ${id}:`, error)
+      console.error('Error updating client:', error)
       throw error
     }
 
-    return mapFromDb(data)
+    return data
   } catch (error) {
-    console.error(`Error updating client ${id}:`, error)
+    console.error('Error updating client:', error)
     throw error
   }
 }
 
 /**
  * Delete a client
+ * @param id Client ID
  */
 export async function deleteClient(id: string) {
   try {
@@ -106,13 +137,11 @@ export async function deleteClient(id: string) {
       .eq('id', id)
 
     if (error) {
-      console.error(`Error deleting client ${id}:`, error)
+      console.error('Error deleting client:', error)
       throw error
     }
-
-    return true
   } catch (error) {
-    console.error(`Error deleting client ${id}:`, error)
+    console.error('Error deleting client:', error)
     throw error
   }
 }

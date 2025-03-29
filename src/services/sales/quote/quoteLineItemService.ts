@@ -91,7 +91,7 @@ export async function updateQuoteLineItem(
   }
 ) {
   try {
-    const updateData = { ...data }
+    const updateData: any = { ...data }
     
     // If quantity or unit_price is changed, recalculate amount
     if (data.quantity !== undefined || data.unit_price !== undefined) {

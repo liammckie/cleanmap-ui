@@ -1,6 +1,6 @@
 
 import { mapToDb, mapFromDb } from '@/utils/mappers'
-import type { ClientFormData } from '@/components/operations/client/useClientDialog'
+import type { ClientFormData } from '@/components/operations/client/types'
 import type { ClientInsert } from '@/schema/operations/client.schema'
 
 /**
