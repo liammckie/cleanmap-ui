@@ -1,17 +1,13 @@
-
-import { supabase } from '@/integrations/supabase/client'
+mport { supabase } from '@/integrations/supabase/client'
 import { Quote, quoteDbSchema } from '@/schema/sales/quote.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**
  * Create a new quote
- * @param quote The quote data
- * @returns The created quote or null if an error occurred
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...quote,
       created_at: new Date(),
@@ -40,16 +36,12 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
 
 /**
  * Update a quote
- * @param quoteId ID of the quote to update
- * @param updates Updated quote data
- * @returns The updated quote or null if an error occurred
  */
 export const updateQuote = async (
   quoteId: string,
   updates: Partial<Quote>
 ): Promise<Quote | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...updates,
       updated_at: new Date()
@@ -79,8 +71,6 @@ export const updateQuote = async (
 
 /**
  * Delete a quote
- * @param quoteId ID of the quote to delete
- * @returns True if the quote was deleted successfully, false otherwise
  */
 export const deleteQuote = async (quoteId: string): Promise<boolean> => {
   try {

@@ -1,13 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client'
-import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema'
+import { Lead, leadDbSchema } from '@/schema/sales/lead.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**
  * Create a new lead
- * @param lead The lead data
- * @returns The created lead or null if an error occurred
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
@@ -38,13 +35,9 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
 
 /**
  * Update a lead
- * @param leadId ID of the lead to update
- * @param lead Updated lead data
- * @returns The updated lead or null if an error occurred
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
@@ -66,8 +59,6 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
 
 /**
  * Delete a lead
- * @param leadId ID of the lead to delete
- * @returns True if the lead was deleted successfully, false otherwise
  */
 export const deleteLead = async (leadId: string): Promise<boolean> => {
   try {
