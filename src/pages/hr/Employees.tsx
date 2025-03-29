@@ -11,34 +11,43 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+
 import {
   fetchEmployees,
   fetchDepartments,
   fetchEmploymentTypes,
   fetchEmployeeStatuses,
 } from '@/services/employeeService'
-import { Employee, EmployeeFilters, EmploymentTerminationReason } from '@/types/employee.types'
 
-// Import our components
+import {
+  Employee,
+  EmployeeFilters,
+  EmploymentTerminationReason,
+} from '@/types/employee.types'
+
 import EmployeeFilterCard from '@/components/hr/EmployeeFilters'
 import EmployeeTable from '@/components/hr/EmployeeTable'
 import EmployeeDetailsDialog from '@/components/hr/EmployeeDetailsDialog'
 import EmployeePagination from '@/components/hr/EmployeePagination'
 import AddEmployeeDialog from '@/components/hr/AddEmployeeDialog'
 
-// Helper function to validate termination reasons
-function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
-  if (!reason) return false;
+function isValidTerminationReason(
+  reason: string | null | undefined
+): reason is EmploymentTerminationReason {
   const validReasons: EmploymentTerminationReason[] = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason as EmploymentTerminationReason);
+    'Resignation',
+    'Contract End',
+    'Termination',
+    'Retirement',
+    'Other',
+  ]
+  return !!reason && validReasons.includes(reason as EmploymentTerminationReason)
 }
 
 const EmployeesPage = () => {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<EmployeeFilters>({
+  const [filters, setFilters] = useState({
     department: '',
     status: '',
     employmentType: '',
@@ -49,7 +58,7 @@ const EmployeesPage = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false)
 
-  const [sortColumn, setSortColumn] = useState<keyof Employee | null>('last_name')
+  const [sortColumn, setSortColumn] = useState<keyof Employee>('last_name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const {
@@ -72,17 +81,17 @@ const EmployeesPage = () => {
     },
   })
 
-  // Process employee data to ensure correct typing
   const employees = useMemo(() => {
-    if (!employeesRaw) return [] as Employee[];
-    
-    return employeesRaw.map(emp => ({
+    if (!employeesRaw) return [] as Employee[]
+    return employeesRaw.map((emp) => ({
       ...emp,
-      end_of_employment_reason: isValidTerminationReason(emp.end_of_employment_reason) 
-        ? emp.end_of_employment_reason 
-        : null
-    })) as Employee[];
-  }, [employeesRaw]);
+      end_of_employment_reason: isValidTerminationReason(
+        emp.end_of_employment_reason
+      )
+        ? emp.end_of_employment_reason
+        : null,
+    }))
+  }, [employeesRaw])
 
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
@@ -119,43 +128,39 @@ const EmployeesPage = () => {
 
   const sortedEmployees = useMemo(() => {
     if (!employees || !sortColumn) return employees || []
-
     return [...employees].sort((a, b) => {
       const aValue = a[sortColumn]
       const bValue = b[sortColumn]
-
       if (aValue == null) return 1
       if (bValue == null) return -1
-
       const comparison = aValue
         .toString()
         .localeCompare(bValue.toString(), undefined, { numeric: true })
-
       return sortDirection === 'asc' ? comparison : -comparison
     })
   }, [employees, sortColumn, sortDirection])
 
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = sortedEmployees
-    ? sortedEmployees.slice(indexOfFirstItem, indexOfLastItem)
-    : []
-  const totalPages = sortedEmployees ? Math.ceil(sortedEmployees.length / itemsPerPage) : 0
+  const currentItems = sortedEmployees?.slice(indexOfFirstItem, indexOfLastItem) || []
+  const totalPages = Math.ceil(sortedEmployees?.length / itemsPerPage)
 
   const handleViewEmployee = (employee: Employee) => {
     const processedEmployee: Employee = {
       ...employee,
-      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason as any) 
-        ? employee.end_of_employment_reason 
-        : null
-    };
-    setSelectedEmployee(processedEmployee);
-    setIsDetailOpen(true);
+      end_of_employment_reason: isValidTerminationReason(
+        employee.end_of_employment_reason
+      )
+        ? employee.end_of_employment_reason
+        : null,
+    }
+    setSelectedEmployee(processedEmployee)
+    setIsDetailOpen(true)
   }
 
   const handleFilterChange = (newFilters: EmployeeFilters) => {
     setFilters(newFilters)
-    setCurrentPage(1) // Reset to first page when filters change
+    setCurrentPage(1)
   }
 
   const handleEmployeeAdded = () => {
@@ -167,72 +172,66 @@ const EmployeesPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Employees</h1>
-          <p className="text-muted-foreground">Manage your staff and team members</p>
-        </div>
-        <Button className="flex items-center gap-2" onClick={() => setIsAddEmployeeOpen(true)}>
-          <UserPlus className="h-4 w-4" />
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Employees</h1>
+        <Button onClick={() => setIsAddEmployeeOpen(true)}>
+          <UserPlus className="w-4 h-4 mr-2" />
           Add Employee
         </Button>
       </div>
 
+      <p className="text-muted-foreground">Manage your staff and team members</p>
+
       <EmployeeFilterCard
-        searchTerm={searchTerm}
         filters={filters}
-        departments={departments}
-        employeeStatuses={employeeStatuses}
-        employmentTypes={employmentTypes}
-        onSearchChange={setSearchTerm}
         onFilterChange={handleFilterChange}
-        onClearFilters={clearFilters}
+        onClear={clearFilters}
+        departments={departments}
+        employmentTypes={employmentTypes}
+        statuses={employeeStatuses}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Employee Directory</CardTitle>
-          <CardDescription>
-            {isLoading ? 'Loading...' : `${sortedEmployees?.length || 0} employees found`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EmployeeTable
-            employees={currentItems}
-            isLoading={isLoading}
-            error={error as Error}
-            sortColumn={sortColumn}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            onEditEmployee={handleViewEmployee}
-          />
-        </CardContent>
-        {employees && employees.length > 0 && (
-          <CardFooter className="flex justify-center py-4">
-            <EmployeePagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </CardFooter>
-        )}
-      </Card>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium">Employee Directory</h2>
+        <span className="text-sm text-muted-foreground">
+          {isLoading
+            ? 'Loading...'
+            : `${sortedEmployees?.length || 0} employees found`}
+        </span>
+      </div>
 
-      <EmployeeDetailsDialog
-        employee={selectedEmployee}
-        isOpen={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
+      {employees.length > 0 && (
+        <EmployeeTable
+          employees={currentItems}
+          onRowClick={handleViewEmployee}
+          onSort={handleSort}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+        />
+      )}
+
+      <EmployeePagination
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
       />
 
       <AddEmployeeDialog
-        isOpen={isAddEmployeeOpen}
+        open={isAddEmployeeOpen}
         onOpenChange={setIsAddEmployeeOpen}
-        departments={departments}
-        employeeStatuses={employeeStatuses}
-        employmentTypes={employmentTypes}
         onEmployeeAdded={handleEmployeeAdded}
       />
+
+      {selectedEmployee && (
+        <EmployeeDetailsDialog
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+          employee={selectedEmployee}
+        />
+      )}
     </div>
   )
 }
