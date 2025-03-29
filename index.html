@@ -63,22 +63,46 @@
           
           const debugBtn = document.getElementById('debugBtn');
           if (debugBtn) {
-            debugBtn.addEventListener('click', function() {
+            debugBtn.addEventListener('click', async function() {
               const debugResults = document.getElementById('debugResults');
               if (debugResults) {
                 debugResults.innerHTML = '<p>Fetching employee data manually...</p>';
                 
-                // Attempt to manually fetch employee data
-                fetch('/api/employees')
-                  .then(response => response.json())
-                  .catch(error => {
-                    debugResults.innerHTML = `<p style="color: red;">Error fetching data: ${error.message}</p>`;
-                    console.error('Manual fetch error:', error);
-                  });
+                // Import and use the debug utility
+                try {
+                  // Dynamically import the debug utility
+                  const module = await import('./src/utils/employeeDebug.js');
+                  const employeeData = await module.debugEmployeeData();
+                  
+                  if (employeeData && employeeData.length > 0) {
+                    debugResults.innerHTML = `
+                      <p style="color: green;">✓ Successfully loaded ${employeeData.length} employee records.</p>
+                      <div style="margin-top: 10px; max-height: 300px; overflow: auto; background-color: #f5f5f5; padding: 10px; border-radius: 4px;">
+                        <pre style="margin: 0;">${JSON.stringify(employeeData, null, 2)}</pre>
+                      </div>
+                    `;
+                  } else {
+                    debugResults.innerHTML = `<p style="color: orange;">⚠️ No employee data returned.</p>`;
+                  }
+                } catch (error) {
+                  debugResults.innerHTML = `<p style="color: red;">Error fetching data: ${error.message}</p>`;
+                  console.error('Manual fetch error:', error);
+                }
               }
             });
           }
         }
+      });
+    </script>
+    
+    <!-- Script to initialize mock API -->
+    <script type="module">
+      // Import and initialize mock API
+      import { setupMockEmployeeApi } from './src/utils/employeeDebug.js';
+      
+      // Set up mock API when the document is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        setupMockEmployeeApi();
       });
     </script>
   </body>

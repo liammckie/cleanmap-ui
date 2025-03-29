@@ -6,9 +6,15 @@ import './index.css'
 import { captureGlobalErrors } from './utils/errorCapture.ts'
 import { checkSyntax, diagnoseSyntaxError } from './utils/syntaxChecker.ts'
 import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo.ts'
+import { setupMockEmployeeApi } from './utils/employeeDebug.ts'
 
 // Set up global error capturing
 captureGlobalErrors();
+
+// Initialize mock API in development mode
+if (process.env.NODE_ENV === 'development') {
+  setupMockEmployeeApi();
+}
 
 // Check Vite client compatibility before starting
 console.log('Checking Vite client compatibility:', checkViteClientCompatibility());
