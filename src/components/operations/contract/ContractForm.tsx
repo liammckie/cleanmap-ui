@@ -36,7 +36,6 @@ interface ContractFormProps {
   onSiteSelectionChange: (siteIds: string[]) => void
 }
 
-// Create a subset of the schema for form validation
 const contractFormSchema = z.object({
   contract_number: z.string().min(1, 'Contract number is required'),
   contract_name: z.string().min(1, 'Contract name is required'),
@@ -70,7 +69,6 @@ const ContractForm: React.FC<ContractFormProps> = ({
     existingContract?.sites?.map((site: any) => site.site_id) || []
   )
 
-  // Fetch sites for the selected client
   const {
     data: clientSites = [],
     isLoading: sitesLoading,
@@ -101,7 +99,6 @@ const ContractForm: React.FC<ContractFormProps> = ({
     },
   })
 
-  // When client selection changes, update the available sites
   useEffect(() => {
     const clientId = form.watch('client_id')
     if (clientId !== selectedClientId) {
@@ -111,7 +108,6 @@ const ContractForm: React.FC<ContractFormProps> = ({
     }
   }, [form.watch('client_id')])
 
-  // When selected sites change, notify parent
   useEffect(() => {
     onSiteSelectionChange(selectedSites)
   }, [selectedSites])
@@ -127,13 +123,11 @@ const ContractForm: React.FC<ContractFormProps> = ({
   }
 
   const handleFormSubmit = (data: any) => {
-    // Calculate derived values based on base fee and frequency
     const { weekly, monthly, annually } = calculateAllBillingFrequencies(
       data.base_fee,
       data.billing_frequency
     )
 
-    // Add calculated values to form data
     const formData = {
       ...data,
       weekly_value: weekly,

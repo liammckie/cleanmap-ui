@@ -46,7 +46,6 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
           </TableHeader>
           <TableBody>
             {contract.sites.map((contractSite) => {
-              // Check if site exists, if not use a default object with all required properties
               const site = contractSite.site || { 
                 id: '', 
                 site_name: 'N/A',
