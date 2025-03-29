@@ -1,26 +1,27 @@
+
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
+import { MapContainer } from '@/components/Map/MapContainer'
+import type { MapLocation } from '@/components/Map/types'
 
-const DashboardMap = () => {
-  const navigate = useNavigate()
+interface DashboardMapProps {
+  locations: MapLocation[]
+}
 
+const DashboardMap: React.FC<DashboardMapProps> = ({ locations = [] }) => {
   return (
-    <Card className="h-[300px]">
-      <CardHeader>
-        <CardTitle className="flex justify-between">
-          <span>Cleaning Locations Map</span>
-        </CardTitle>
+    <Card className="h-[500px]">
+      <CardHeader className="pb-0">
+        <CardTitle>Service Locations</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center h-[calc(100%-60px)]">
-        <p className="text-muted-foreground mb-4 text-center">
-          The locations map has been moved to the Reports section
-        </p>
-        <Button onClick={() => navigate('/reports')} className="flex items-center gap-2">
-          <ExternalLink className="h-4 w-4" />
-          View Map in Reports
-        </Button>
+      <CardContent className="h-[calc(100%-4rem)]">
+        {locations.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>No active service locations found</p>
+          </div>
+        ) : (
+          <MapContainer locations={locations} />
+        )}
       </CardContent>
     </Card>
   )

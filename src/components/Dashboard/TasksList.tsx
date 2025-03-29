@@ -1,180 +1,128 @@
-import { useState } from 'react'
-import { Check, Clock, MoreHorizontal } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
+
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { formatDistanceToNow } from 'date-fns'
+import { Link } from 'react-router-dom'
 
 interface Task {
   id: string
   title: string
-  description: string
-  location: string
-  dueDate: string
-  isCompleted: boolean
-  priority: 'low' | 'medium' | 'high'
+  description?: string
+  status: string
+  priority: string
+  due_date: string
+  scheduled_start?: string
+  sites?: {
+    site_name: string
+    client_id: string
+    clients?: {
+      company_name: string
+    }
+  }
 }
 
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Office Cleaning - 5th Floor',
-    description: 'Complete full cleaning routine for 5th floor offices',
-    location: 'Tech Center Building',
-    dueDate: 'Today, 5:00 PM',
-    isCompleted: false,
-    priority: 'high',
-  },
-  {
-    id: '2',
-    title: 'Restroom Maintenance',
-    description: 'Check and restock supplies in all restrooms',
-    location: 'Business Plaza',
-    dueDate: 'Today, 3:30 PM',
-    isCompleted: false,
-    priority: 'medium',
-  },
-  {
-    id: '3',
-    title: 'Carpet Cleaning',
-    description: 'Deep clean carpets in the main conference room',
-    location: 'Corporate Headquarters',
-    dueDate: 'Tomorrow, 9:00 AM',
-    isCompleted: false,
-    priority: 'low',
-  },
-  {
-    id: '4',
-    title: 'Window Cleaning',
-    description: 'Clean exterior windows on first and second floors',
-    location: 'Riverside Office',
-    dueDate: 'Tomorrow, 2:00 PM',
-    isCompleted: false,
-    priority: 'medium',
-  },
-]
+interface TasksListProps {
+  tasks: Task[]
+}
 
-const TasksList = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
-
-  const toggleTaskCompletion = (id: string) => {
-    setTasks(
-      tasks.map((task) => (task.id === id ? { ...task, isCompleted: !task.isCompleted } : task)),
-    )
+const TasksList: React.FC<TasksListProps> = ({ tasks }) => {
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'medium':
+        return 'bg-amber-100 text-amber-800 border-amber-200'
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-      case 'low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'in progress':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const formatDueDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch (error) {
+      return 'Invalid date'
     }
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-100 dark:border-gray-700">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Tasks</h3>
-        <Button variant="outline" size="sm" className="text-sm">
-          View All
-        </Button>
-      </div>
-
-      <div className="overflow-hidden">
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-          {tasks.map((task) => (
-            <li
-              key={task.id}
-              className={cn(
-                'px-6 py-4 transition-colors duration-200',
-                task.isCompleted
-                  ? 'bg-gray-50 dark:bg-gray-800/60'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id={`task-${task.id}`}
-                  checked={task.isCompleted}
-                  onCheckedChange={() => toggleTaskCompletion(task.id)}
-                  className="mt-1"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        'text-sm font-medium',
-                        task.isCompleted
-                          ? 'text-gray-500 dark:text-gray-400 line-through'
-                          : 'text-gray-900 dark:text-white',
-                      )}
-                    >
+    <Card>
+      <CardHeader>
+        <CardTitle>Upcoming Tasks</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {tasks.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No pending tasks found</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {tasks.map((task) => (
+              <div
+                key={task.id}
+                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium">
+                    <Link to={`/operations/work-orders/${task.id}`} className="hover:text-brand-blue">
                       {task.title}
-                    </span>
-                    <span
-                      className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                        getPriorityColor(task.priority),
-                      )}
-                    >
-                      {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                    </span>
-                  </div>
-
-                  <p
-                    className={cn(
-                      'text-sm',
-                      task.isCompleted
-                        ? 'text-gray-500 dark:text-gray-400 line-through'
-                        : 'text-gray-700 dark:text-gray-300',
-                    )}
-                  >
-                    {task.description}
-                  </p>
-
-                  <div className="mt-1 flex items-center gap-4 text-xs">
-                    <div className="text-gray-500 dark:text-gray-400">📍 {task.location}</div>
-                    <div className="flex items-center text-gray-500 dark:text-gray-400">
-                      <Clock className="mr-1 h-3 w-3" />
-                      {task.dueDate}
-                    </div>
+                    </Link>
+                  </h3>
+                  <div className="flex gap-2">
+                    <Badge className={getPriorityColor(task.priority)}>
+                      {task.priority}
+                    </Badge>
+                    <Badge className={getStatusColor(task.status)}>
+                      {task.status}
+                    </Badge>
                   </div>
                 </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View details</DropdownMenuItem>
-                    <DropdownMenuItem>Assign to staff</DropdownMenuItem>
-                    <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600 dark:text-red-400">
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                
+                <p className="text-sm text-muted-foreground line-clamp-1 mb-1">
+                  {task.description || 'No description provided'}
+                </p>
+                
+                <div className="flex flex-col sm:flex-row sm:justify-between text-xs mt-2">
+                  <div className="text-muted-foreground">
+                    <span>Site: </span>
+                    <span className="font-medium">{task.sites?.site_name || 'Unknown'}</span>
+                    {task.sites?.clients?.company_name && (
+                      <>
+                        <span> (</span>
+                        <span>{task.sites.clients.company_name}</span>
+                        <span>)</span>
+                      </>
+                    )}
+                  </div>
+                  <div className={`${new Date(task.due_date) < new Date() ? 'text-red-600' : 'text-muted-foreground'}`}>
+                    Due {formatDueDate(task.due_date)}
+                  </div>
+                </div>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
