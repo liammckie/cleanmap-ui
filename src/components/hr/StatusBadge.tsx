@@ -12,14 +12,10 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     | 'secondary'
     | 'destructive'
     | 'outline'
-    | 'success'
-    | 'warning'
-    | null
-    | undefined
 
   switch (status) {
     case 'Active':
-      variant = 'success'
+      variant = 'default'
       break
     case 'Onboarding':
       variant = 'secondary'
@@ -28,7 +24,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       variant = 'destructive'
       break
     default:
-      variant = 'default'
+      variant = 'outline'
   }
 
   return <Badge variant={variant}>{status}</Badge>
