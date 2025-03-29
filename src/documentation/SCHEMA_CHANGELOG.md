@@ -1,3 +1,4 @@
+
 # Schema Change Log
 
 This file tracks significant schema changes that may impact application functionality.
@@ -103,3 +104,13 @@ This file tracks significant schema changes that may impact application function
 - Added RLS policies for different user roles (HR staff, managers, and employees)
 - Created helper functions for retrieving employee_status and employment_type enum values
 - Updated frontend code to use the new enum functions
+
+## 2024-06-12
+
+### Security
+
+- Fixed function search path mutable security issue by setting search_path explicitly on all enum functions
+- Enabled Row Level Security on work_order_notes table
+- Added RLS policies to work_order_notes table
+- Enhanced error handling for RLS infinite recursion errors
+- Updated JSX error components to gracefully handle database errors

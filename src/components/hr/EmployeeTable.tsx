@@ -63,7 +63,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
   if (error) {
     const supabaseError = (error as any).error || error;
-    if (supabaseError?.code === '42P17') {
+    
+    if (supabaseError?.code === '42P17' || 
+        supabaseError?.message?.includes('infinite recursion')) {
       return createErrorFallbackUI(supabaseError, 'employees');
     }
     
@@ -72,6 +74,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
         <AlertCircle className="h-8 w-8 mx-auto mb-2" />
         Failed to load employees data. Please try again.
         <p className="text-sm mt-2 text-red-400">Error: {error.message}</p>
+        <p className="text-xs mt-1 text-red-300">
+          If this problem persists, please contact the system administrator.
+        </p>
       </div>
     )
   }
