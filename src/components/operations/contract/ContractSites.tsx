@@ -46,7 +46,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
           </TableHeader>
           <TableBody>
             {contract.sites.map((contractSite) => {
-              // Provide a complete default site object with all the required properties
+              // Check if site exists, if not use a default object with all required properties
               const site = contractSite.site || { 
                 id: '', 
                 site_name: 'N/A',
@@ -66,7 +66,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                       {site.site_name}
                     </div>
                   </TableCell>
-                  <TableCell>{site.site_type || 'N/A'}</TableCell>
+                  <TableCell>{site.site_type}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -74,7 +74,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                         <div>
                           <div>{site.address_street}</div>
                           <div className="text-xs text-muted-foreground">
-                            {site.address_city || 'N/A'}, {site.address_state || ''} {site.address_postcode || ''}
+                            {site.address_city}, {site.address_state} {site.address_postcode}
                           </div>
                         </div>
                       ) : (
@@ -87,7 +87,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                       ${site.status === 'Active' ? 'bg-green-100 text-green-800' : 
                       site.status === 'Inactive' ? 'bg-gray-100 text-gray-800' : 
                       'bg-yellow-100 text-yellow-800'}`}>
-                      {site.status || 'N/A'}
+                      {site.status}
                     </span>
                   </TableCell>
                 </TableRow>

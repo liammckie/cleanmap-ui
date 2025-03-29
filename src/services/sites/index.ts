@@ -5,8 +5,11 @@ export * from './siteFilterService'
 export * from './siteImportService'
 export * from './siteMetadataService'
 
-// Export all except the renamed querySitesByClientId from siteQueryService
-export { fetchSites, fetchSiteById, querySitesByClientId } from './siteQueryService'
+// Export all from siteQueryService except fetchSitesByClientId to avoid conflicts
+export { fetchSites, fetchSiteById } from './siteQueryService'
 
-// Export the fetchSitesByClientId from sitesByClientService
+// Export the renamed function from siteQueryService
+export { querySitesByClientId } from './siteQueryService'
+
+// Export fetchSitesByClientId from sitesByClientService
 export { fetchSitesByClientId } from './sitesByClientService'

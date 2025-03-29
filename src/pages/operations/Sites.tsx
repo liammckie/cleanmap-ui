@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react'
+import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Table,
@@ -15,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { PlusCircle, Search, FilterX } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites } from '@/services/sites' // Now properly exported
+import { fetchSites } from '@/services/sites'
 import { format } from 'date-fns'
 import type { Site } from '@/schema/operations'
 
@@ -54,12 +53,12 @@ const SitesPage = () => {
   })
 
   const {
-    data: sites,
+    data: sites = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['sites', searchTerm, filters],
-    queryFn: () => fetchSites(searchTerm, filters),
+    queryKey: ['sites'],
+    queryFn: () => fetchSites(),
     meta: {
       onError: (err: Error) => {
         console.error('Failed to fetch sites:', err)
