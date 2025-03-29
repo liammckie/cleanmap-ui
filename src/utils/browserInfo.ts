@@ -72,9 +72,8 @@ export const checkForBrowserCompatibilityIssues = () => {
 // Safely check if dynamic imports are supported without using eval
 const checkDynamicImportSupport = (): boolean => {
   try {
-    // Use a more explicit type check that TypeScript can understand
-    return typeof window !== 'undefined' && 
-           typeof window.import === 'function';
+    // Use feature detection instead of checking window.import
+    return typeof import.meta !== 'undefined';
   } catch (e) {
     return false;
   }
