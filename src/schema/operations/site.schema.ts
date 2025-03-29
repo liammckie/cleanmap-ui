@@ -28,14 +28,26 @@ export interface Site {
   created_at: Date
   updated_at: Date
   
-  // The following fields aren't in the database schema but used in the UI
+  // Contact information
+  primary_contact: string | null
+  contact_phone: string | null
+  contact_email: string | null
+  
+  // Service details
+  service_frequency: string | null
+  custom_frequency: string | null
+  service_type: 'Internal' | 'Contractor'
+  
+  // Pricing information
+  price_per_service: number | null
+  price_frequency: string | null
+  service_items: Array<{id: number, description: string, amount: number}> | null
+  
+  // UI-specific fields (not in database)
   street_address?: string
   city?: string
   state?: string
   zip_code?: string
-  price_per_service?: number | null
-  price_frequency?: string | null
-  service_type?: 'Internal' | 'Contractor'
   
   // Reference to client object when joined
   client?: {
@@ -62,9 +74,28 @@ export const siteSchema = z.object({
   site_manager_id: z.string().nullable().optional(),
   service_start_date: z.date().nullable().optional(),
   service_end_date: z.date().nullable().optional(),
-  service_type: z.enum(['Internal', 'Contractor']).optional(),
+  
+  // Contact information
+  primary_contact: z.string().nullable().optional(),
+  contact_phone: z.string().nullable().optional(),
+  contact_email: z.string().email('Invalid email').nullable().optional(),
+  
+  // Service details
+  service_frequency: z.string().nullable().optional(),
+  custom_frequency: z.string().nullable().optional(),
+  service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
+  
+  // Pricing information
   price_per_service: z.number().nullable().optional(),
   price_frequency: z.string().nullable().optional(),
+  service_items: z.array(
+    z.object({
+      id: z.number(),
+      description: z.string(),
+      amount: z.number()
+    })
+  ).nullable().optional(),
+  
   special_instructions: z.string().nullable().optional(),
   status: z.enum(['Active', 'Inactive', 'Pending Launch', 'Suspended']).default('Active'),
   created_at: z.date().optional(),
@@ -86,9 +117,21 @@ export type SiteInsert = {
   special_instructions?: string | null
   status: 'Active' | 'Inactive' | 'Pending Launch' | 'Suspended'
   site_manager_id?: string | null
+  
+  // Contact information
+  primary_contact?: string | null
+  contact_phone?: string | null
+  contact_email?: string | null
+  
+  // Service details
+  service_frequency?: string | null
+  custom_frequency?: string | null
   service_type?: 'Internal' | 'Contractor'
+  
+  // Pricing information
   price_per_service?: number | null
   price_frequency?: string | null
+  service_items?: Array<{id: number, description: string, amount: number}> | null
 }
 
 export type SiteUpdate = Partial<SiteInsert>

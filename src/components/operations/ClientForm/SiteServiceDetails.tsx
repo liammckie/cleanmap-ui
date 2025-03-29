@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UseFormReturn } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SiteServiceDetailsProps {
   form: UseFormReturn<any>;
@@ -30,24 +31,35 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
     form.setValue(`sites.${index}.address_postcode`, clientAddress.postcode);
   };
 
-  return <>
+  return (
+    <div className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField control={form.control} name={`sites.${index}.region`} render={({
-        field
-      }) => <FormItem>
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.region`} 
+          render={({ field }) => (
+            <FormItem>
               <FormLabel>Region</FormLabel>
               <FormControl>
                 <Input placeholder="Enter region" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
-            </FormItem>} />
+            </FormItem>
+          )}
+        />
 
-        <FormField control={form.control} name={`sites.${index}.service_type`} render={({
-        field
-      }) => <FormItem className="space-y-3">
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.service_type`} 
+          render={({ field }) => (
+            <FormItem className="space-y-3">
               <FormLabel>Service Type*</FormLabel>
               <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                <RadioGroup 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value} 
+                  className="flex space-x-4"
+                >
                   <FormItem className="flex items-center space-x-2">
                     <FormControl>
                       <RadioGroupItem value="Internal" />
@@ -63,40 +75,93 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
                 </RadioGroup>
               </FormControl>
               <FormMessage />
-            </FormItem>} />
+            </FormItem>
+          )}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <FormField control={form.control} name={`sites.${index}.service_start_date`} render={({
-        field
-      }) => <FormItem>
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.service_start_date`} 
+          render={({ field }) => (
+            <FormItem>
               <FormLabel>Contract Start Date*</FormLabel>
               <FormControl>
-                <Input type="date" {...field} value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} onChange={e => field.onChange(e.target.value ? new Date(e.target.value) : null)} />
+                <Input 
+                  type="date" 
+                  {...field} 
+                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} 
+                  onChange={e => field.onChange(e.target.value ? new Date(e.target.value) : null)} 
+                />
               </FormControl>
               <FormMessage />
-            </FormItem>} />
+            </FormItem>
+          )}
+        />
 
-        <FormField control={form.control} name={`sites.${index}.service_end_date`} render={({
-        field
-      }) => <FormItem>
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.service_end_date`} 
+          render={({ field }) => (
+            <FormItem>
               <FormLabel>Contract End Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} onChange={e => field.onChange(e.target.value ? new Date(e.target.value) : null)} />
+                <Input 
+                  type="date" 
+                  {...field} 
+                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''} 
+                  onChange={e => field.onChange(e.target.value ? new Date(e.target.value) : null)} 
+                />
               </FormControl>
               <FormMessage />
-            </FormItem>} />
+            </FormItem>
+          )}
+        />
 
-        <FormField control={form.control} name={`sites.${index}.service_frequency`} render={({
-        field
-      }) => <FormItem>
-              <FormLabel>Service Frequency</FormLabel>
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.service_frequency`} 
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Service Frequency*</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="twice-weekly">Twice Weekly</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {form.watch(`sites.${index}.service_frequency`) === 'custom' && (
+        <FormField 
+          control={form.control} 
+          name={`sites.${index}.custom_frequency`} 
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Custom Frequency Details</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Daily, Twice weekly" {...field} value={field.value || ''} />
+                <Input placeholder="Describe custom service schedule" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
-            </FormItem>} />
-      </div>
+            </FormItem>
+          )}
+        />
+      )}
 
       <div className="flex items-center space-x-2 mt-2">
         <Checkbox id={`copy-client-address-${index}`} onClick={copyClientAddress} />
@@ -104,7 +169,8 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
           Use client address for this site
         </label>
       </div>
-    </>;
+    </div>
+  );
 };
 
 export default SiteServiceDetails;

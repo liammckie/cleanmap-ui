@@ -12,6 +12,13 @@ import StepperHeader from './StepperHeader'
 import ReviewStep from './ReviewStep'
 import { useClientForm, STEPS } from '@/hooks/operations/useClientForm'
 
+// Schema for service items
+const serviceItemSchema = z.object({
+  id: z.number(),
+  description: z.string().min(1, 'Description is required'),
+  amount: z.number().min(0, 'Amount must be 0 or greater')
+});
+
 const clientFormSchema = z.object({
   company_name: z.string().min(1, 'Company name is required'),
   primary_contact: z.string().min(1, 'Primary contact is required'),
@@ -36,19 +43,31 @@ const clientFormSchema = z.object({
       z.object({
         site_name: z.string().min(1, 'Site name is required'),
         site_type: z.string().min(1, 'Site type is required'),
+        
+        // Contact information
         primary_contact: z.string().nullable().optional(),
         contact_phone: z.string().nullable().optional(),
+        contact_email: z.string().email('Valid email is required').nullable().optional(),
+        
+        // Address fields
         address_street: z.string().min(1, 'Street address is required'),
         address_city: z.string().min(1, 'City is required'),
         address_state: z.string().min(1, 'State is required'),
         address_postcode: z.string().min(1, 'Postcode is required'),
         region: z.string().nullable().optional(),
+        
+        // Service details
         service_start_date: z.date().nullable(),
         service_end_date: z.date().nullable().optional(),
         service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
         service_frequency: z.string().nullable().optional(),
+        custom_frequency: z.string().nullable().optional(),
+        
+        // Pricing details
         price_per_service: z.number().min(0, 'Price must be 0 or greater'),
         price_frequency: z.string().min(1, 'Billing frequency is required'),
+        service_items: z.array(serviceItemSchema).optional(),
+        
         special_instructions: z.string().nullable().optional(),
       }),
     )
@@ -86,6 +105,7 @@ const ClientFormStepper: React.FC = () => {
           site_type: '',
           primary_contact: '',
           contact_phone: '',
+          contact_email: '',
           address_street: '',
           address_city: '',
           address_state: '',
@@ -94,9 +114,11 @@ const ClientFormStepper: React.FC = () => {
           service_start_date: null,
           service_end_date: null,
           service_type: 'Internal',
-          service_frequency: '',
+          service_frequency: 'weekly',
+          custom_frequency: '',
           price_per_service: 0,
           price_frequency: 'weekly',
+          service_items: [{ id: 0, description: 'Regular cleaning', amount: 0 }],
           special_instructions: '',
         },
       ],

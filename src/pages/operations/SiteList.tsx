@@ -14,15 +14,29 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import {
-  fetchSites,
-  fetchSiteTypes,
-  fetchSiteRegions,
-  fetchSiteStatuses,
-} from '@/services/sites' // Updated import path
-import { Search, FilterX, PlusCircle, MapPin, Building, Calendar, DollarSign } from 'lucide-react'
+import { fetchSites } from '@/services/sites'
+import { 
+  Search, 
+  FilterX, 
+  PlusCircle, 
+  DollarSign, 
+  Calendar, 
+  MoreHorizontal, 
+  Building,
+  MapPin,
+  Phone,
+  Mail
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { Link } from 'react-router-dom'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { Site } from '@/schema/operations'
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -44,6 +58,21 @@ const StatusBadge = ({ status }: { status: string }) => {
   return <Badge className={`${getStatusColor(status)}`}>{status}</Badge>
 }
 
+const ServiceTypeBadge = ({ type }: { type: string }) => {
+  const getTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'internal':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'contractor':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  return <Badge className={`${getTypeColor(type)}`}>{type}</Badge>
+}
+
 const SiteListPage: React.FC = () => {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
@@ -63,6 +92,7 @@ const SiteListPage: React.FC = () => {
     data: sites,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['sites', searchTerm, filters],
     queryFn: () => fetchSites(searchTerm, filters),
@@ -78,21 +108,6 @@ const SiteListPage: React.FC = () => {
     },
   })
 
-  const { data: siteTypes } = useQuery({
-    queryKey: ['siteTypes'],
-    queryFn: fetchSiteTypes,
-  })
-
-  const { data: regions } = useQuery({
-    queryKey: ['siteRegions'],
-    queryFn: fetchSiteRegions,
-  })
-
-  const { data: statuses } = useQuery({
-    queryKey: ['siteStatuses'],
-    queryFn: fetchSiteStatuses,
-  })
-
   const clearFilters = () => {
     setFilters({
       clientId: '',
@@ -101,6 +116,12 @@ const SiteListPage: React.FC = () => {
       siteType: '',
     })
     setSearchTerm('')
+  }
+
+  const handleViewSite = (siteId: string) => {
+    // Future implementation: navigate to site detail page
+    console.log('View site details:', siteId)
+    // Will be implemented in a future task to show site details
   }
 
   return (
@@ -164,55 +185,127 @@ const SiteListPage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Site Name</TableHead>
+                  <TableHead>Site Info</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Service Details</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Price</TableHead>
-                  <TableHead>Service Start</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sites?.map((site) => (
-                  <TableRow key={site.id} className="cursor-pointer hover:bg-muted">
-                    <TableCell className="font-medium">
-                      {site.site_name}
-                      {site.region && (
-                        <div className="text-xs text-muted-foreground">Region: {site.region}</div>
+                  <TableRow key={site.id} className="hover:bg-muted">
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{site.site_name}</span>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <Building className="h-3 w-3 mr-1" />
+                          <span>{site.site_type}</span>
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span>
+                            {site.address_city}, {site.address_state}
+                          </span>
+                        </div>
+                        {site.region && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Region: {site.region}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <span>{site.client?.company_name}</span>
+                    </TableCell>
+                    
+                    <TableCell>
+                      {site.primary_contact ? (
+                        <div className="flex flex-col">
+                          <span>{site.primary_contact}</span>
+                          {site.contact_phone && (
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <Phone className="h-3 w-3 mr-1" />
+                              <span>{site.contact_phone}</span>
+                            </div>
+                          )}
+                          {site.contact_email && (
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <Mail className="h-3 w-3 mr-1" />
+                              <span>{site.contact_email}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No contact info</span>
                       )}
                     </TableCell>
-                    <TableCell>{site.client?.company_name}</TableCell>
+                    
                     <TableCell>
-                      <div className="text-sm">
-                        <div>{site.address_street || site.street_address}</div>
-                        <div className="text-muted-foreground">
-                          {site.address_city || site.city}, {site.address_state || site.state}{' '}
-                          {site.address_postcode || site.zip_code}
+                      <div className="flex flex-col">
+                        <div className="mb-1">
+                          <ServiceTypeBadge type={site.service_type || 'Internal'} />
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {site.service_frequency ? (
+                            <span>
+                              {site.service_frequency.charAt(0).toUpperCase() + 
+                                site.service_frequency.slice(1)} service
+                            </span>
+                          ) : (
+                            <span>Service schedule not set</span>
+                          )}
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground mt-1">
+                          <span>
+                            {site.service_start_date
+                              ? format(new Date(site.service_start_date), 'PP')
+                              : 'No start date'}
+                          </span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{site.site_type}</TableCell>
+                    
                     <TableCell>
                       <StatusBadge status={site.status} />
                     </TableCell>
+                    
                     <TableCell>
                       {site.price_per_service ? (
                         <div className="flex items-center">
                           <DollarSign className="h-3 w-3 mr-1 text-muted-foreground" />
                           <span>${site.price_per_service}</span>
                           <span className="text-xs text-muted-foreground ml-1">
-                            /{site.price_frequency || 'month'}
+                            /{site.price_frequency || 'service'}
                           </span>
                         </div>
                       ) : (
                         '-'
                       )}
                     </TableCell>
+                    
                     <TableCell>
-                      {site.service_start_date
-                        ? format(new Date(site.service_start_date), 'PP')
-                        : '-'}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleViewSite(site.id)}>
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>Edit Site</DropdownMenuItem>
+                          <DropdownMenuItem>Add Contract</DropdownMenuItem>
+                          <DropdownMenuItem>Create Work Order</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -86,26 +86,42 @@ export const useClientForm = (form: UseFormReturn<any>) => {
 
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
-          const { weekly, monthly, annually } = calculateAllBillingFrequencies(
-            siteData.price_per_service,
-            siteData.price_frequency as BillingFrequency,
-          )
+          // Process service items if present
+          let serviceItems = null;
+          if (siteData.service_items && Array.isArray(siteData.service_items)) {
+            serviceItems = siteData.service_items;
+          }
 
           // Create site using our mapper
           const sitePayload: SiteInsert = {
             client_id: newClient.id,
             site_name: siteData.site_name,
             site_type: siteData.site_type,
+            
+            // Contact info
+            primary_contact: siteData.primary_contact || null,
+            contact_phone: siteData.contact_phone || null,
+            contact_email: siteData.contact_email || null,
+            
+            // Address
             address_street: siteData.address_street,
             address_city: siteData.address_city,
             address_state: siteData.address_state,
             address_postcode: siteData.address_postcode,
             region: siteData.region || null,
+            
+            // Service details
             service_start_date: siteData.service_start_date,
             service_end_date: siteData.service_end_date,
-            service_type: siteData.service_type,
-            price_per_service: siteData.price_per_service,
-            price_frequency: siteData.price_frequency,
+            service_frequency: siteData.service_frequency || null,
+            custom_frequency: siteData.custom_frequency || null,
+            service_type: siteData.service_type || 'Internal',
+            
+            // Pricing
+            price_per_service: siteData.price_per_service || 0,
+            price_frequency: siteData.price_frequency || 'weekly',
+            service_items: serviceItems,
+            
             special_instructions: siteData.special_instructions || null,
             status: 'Active',
           };

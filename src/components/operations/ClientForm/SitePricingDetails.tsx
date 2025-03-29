@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { formatCurrency } from '@/utils/billingCalculations';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, Calculator } from 'lucide-react';
 
 interface SitePricingDetailsProps {
   form: UseFormReturn<any>;
@@ -23,7 +23,20 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
   index,
   priceBreakdown
 }) => {
-  const [services, setServices] = useState([{ id: 0, description: '', amount: 0 }]);
+  const [services, setServices] = useState<Array<{id: number, description: string, amount: number}>>([
+    { id: 0, description: '', amount: 0 }
+  ]);
+  
+  const [totalServiceAmount, setTotalServiceAmount] = useState(0);
+
+  // Calculate total amount from services
+  useEffect(() => {
+    const total = services.reduce((sum, service) => sum + (service.amount || 0), 0);
+    setTotalServiceAmount(total);
+    
+    // Update the main price_per_service field with the total
+    form.setValue(`sites.${index}.price_per_service`, total);
+  }, [services, form, index]);
 
   // Handle adding a new service line
   const addService = () => {
@@ -45,29 +58,30 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
     setServices(prevServices => 
       prevServices.map(service => 
         service.id === serviceId 
-          ? { ...service, [field]: value }
+          ? { ...service, [field]: field === 'amount' ? Number(value) || 0 : value }
           : service
       )
     );
   };
 
-  return <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField control={form.control} name={`sites.${index}.price_per_service`} render={({
-        field
-      }) => <FormItem>
-              <FormLabel>Price Per Week, ex GST</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>} />
+  // Handle saving service items to form data
+  useEffect(() => {
+    form.setValue(`sites.${index}.service_items`, services);
+  }, [services, form, index]);
 
-        <FormField control={form.control} name={`sites.${index}.price_frequency`} render={({
-        field
-      }) => <FormItem>
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name={`sites.${index}.price_frequency`}
+          render={({ field }) => (
+            <FormItem>
               <FormLabel>Billing Frequency*</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value || 'weekly'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select frequency" />
@@ -82,13 +96,36 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
                 </SelectContent>
               </Select>
               <FormMessage />
-            </FormItem>} />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`sites.${index}.price_per_service`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Total Price Per Service (ex GST)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  {...field}
+                  value={totalServiceAmount}
+                  disabled
+                  className="bg-muted"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       {/* Service Line Items */}
       <div className="space-y-4 mt-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium">Additional Service Items</h4>
+          <h4 className="text-sm font-medium">Service Items</h4>
           <Button
             type="button"
             variant="outline"
@@ -97,7 +134,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
             className="flex items-center space-x-1"
           >
             <PlusCircle className="h-4 w-4 mr-1" />
-            <span>Add Service</span>
+            <span>Add Service Item</span>
           </Button>
         </div>
 
@@ -145,7 +182,10 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
 
       {/* Price breakdown display */}
       <div className="mt-4 p-3 bg-muted rounded-md">
-        <h4 className="text-sm font-medium mb-2">Price Breakdown</h4>
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="text-sm font-medium">Price Breakdown</h4>
+          <Calculator className="h-4 w-4 text-muted-foreground" />
+        </div>
         <div className="grid grid-cols-3 gap-2 text-sm">
           <div>
             <p className="text-muted-foreground">Weekly</p>
@@ -161,7 +201,8 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
           </div>
         </div>
       </div>
-    </>;
+    </div>
+  );
 };
 
 export default SitePricingDetails;
