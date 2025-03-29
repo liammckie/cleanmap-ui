@@ -5,24 +5,54 @@ import App from './App.tsx'
 import './index.css'
 import { captureGlobalErrors } from './utils/errorCapture.ts'
 import { checkSyntax, diagnoseSyntaxError } from './utils/syntaxChecker.ts'
+import { checkViteClientCompatibility } from './utils/browserInfo.ts'
 
 // Set up global error capturing
 captureGlobalErrors();
+
+// Check Vite client compatibility before starting
+console.log('Checking Vite client compatibility:', checkViteClientCompatibility());
 
 // Add specific error handler for Vite-related issues
 window.addEventListener('error', (event) => {
   if (event.filename?.includes('@vite') || event.message?.includes('Vite')) {
     console.error('Vite-related error detected:', event);
+    
+    // Additional debugging info for Vite client errors
+    console.info('Vite client error details:', {
+      filename: event.filename,
+      lineNumber: event.lineno,
+      columnNumber: event.colno,
+      message: event.message,
+    });
+    
     const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.innerHTML = `
         <div style="padding: 20px; font-family: sans-serif;">
           <h2>Development Environment Error</h2>
           <p>There was an error with the Vite development server.</p>
-          <p>Try refreshing the page or restarting the development server.</p>
+          <p>This is likely caused by Content Security Policy restrictions.</p>
+          <p>Try one of these solutions:</p>
+          <ul>
+            <li>Refresh the page</li>
+            <li>Restart the development server</li>
+            <li>Check browser console for specific errors</li>
+          </ul>
           <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${event.message}</pre>
+          <button id="refreshBtn" style="margin-top: 15px; padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Refresh Page
+          </button>
         </div>
       `;
+      
+      // Add click handler for the refresh button
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          window.location.reload();
+        });
+      }
     }
   }
 }, true);
