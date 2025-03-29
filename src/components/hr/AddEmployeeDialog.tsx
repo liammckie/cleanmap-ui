@@ -25,6 +25,14 @@ interface AddEmployeeDialogProps {
   onEmployeeAdded: () => void
 }
 
+// Helper function to validate termination reasons
+const isValidTerminationReason = (value: string): value is EmploymentTerminationReason => {
+  const validReasons: EmploymentTerminationReason[] = [
+    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+  ];
+  return validReasons.includes(value as EmploymentTerminationReason);
+}
+
 const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -78,15 +86,9 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
   const handleSelectChange = (name: string, value: string) => {
     // Special handling for end_of_employment_reason
     if (name === 'end_of_employment_reason') {
-      const validReasons: EmploymentTerminationReason[] = [
-        'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-      ];
-      
       setFormData((prev) => ({
         ...prev,
-        [name]: validReasons.includes(value as EmploymentTerminationReason) 
-          ? value as EmploymentTerminationReason 
-          : null,
+        [name]: isValidTerminationReason(value) ? value : null,
       }));
       return;
     }

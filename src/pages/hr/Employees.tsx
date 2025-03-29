@@ -17,7 +17,7 @@ import {
   fetchEmploymentTypes,
   fetchEmployeeStatuses,
 } from '@/services/employeeService'
-import { Employee, EmployeeFilters } from '@/types/employee.types'
+import { Employee, EmployeeFilters, EmploymentTerminationReason } from '@/types/employee.types'
 
 // Import our components
 import EmployeeFilterCard from '@/components/hr/EmployeeFilters'
@@ -25,6 +25,15 @@ import EmployeeTable from '@/components/hr/EmployeeTable'
 import EmployeeDetailsDialog from '@/components/hr/EmployeeDetailsDialog'
 import EmployeePagination from '@/components/hr/EmployeePagination'
 import AddEmployeeDialog from '@/components/hr/AddEmployeeDialog'
+
+// Helper function to validate termination reasons
+function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
+  if (!reason) return false;
+  const validReasons: EmploymentTerminationReason[] = [
+    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+  ];
+  return validReasons.includes(reason as EmploymentTerminationReason);
+}
 
 const EmployeesPage = () => {
   const { toast } = useToast()
@@ -44,7 +53,7 @@ const EmployeesPage = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const {
-    data: employees,
+    data: employeesRaw,
     isLoading,
     error,
     refetch,
@@ -62,6 +71,18 @@ const EmployeesPage = () => {
       },
     },
   })
+
+  // Process employee data to ensure correct typing
+  const employees = useMemo(() => {
+    if (!employeesRaw) return [] as Employee[];
+    
+    return employeesRaw.map(emp => ({
+      ...emp,
+      end_of_employment_reason: isValidTerminationReason(emp.end_of_employment_reason) 
+        ? emp.end_of_employment_reason 
+        : null
+    })) as Employee[];
+  }, [employeesRaw]);
 
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
@@ -114,7 +135,6 @@ const EmployeesPage = () => {
     })
   }, [employees, sortColumn, sortDirection])
 
-  // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const currentItems = sortedEmployees
@@ -123,8 +143,14 @@ const EmployeesPage = () => {
   const totalPages = sortedEmployees ? Math.ceil(sortedEmployees.length / itemsPerPage) : 0
 
   const handleViewEmployee = (employee: Employee) => {
-    setSelectedEmployee(employee)
-    setIsDetailOpen(true)
+    const processedEmployee: Employee = {
+      ...employee,
+      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason as any) 
+        ? employee.end_of_employment_reason 
+        : null
+    };
+    setSelectedEmployee(processedEmployee);
+    setIsDetailOpen(true);
   }
 
   const handleFilterChange = (newFilters: EmployeeFilters) => {
@@ -133,7 +159,6 @@ const EmployeesPage = () => {
   }
 
   const handleEmployeeAdded = () => {
-    // Refresh the employee list after adding a new employee
     refetch()
     toast({
       title: 'Success',
@@ -194,14 +219,12 @@ const EmployeesPage = () => {
         )}
       </Card>
 
-      {/* Employee Details Dialog */}
       <EmployeeDetailsDialog
         employee={selectedEmployee}
         isOpen={isDetailOpen}
         onOpenChange={setIsDetailOpen}
       />
 
-      {/* Add Employee Dialog */}
       <AddEmployeeDialog
         isOpen={isAddEmployeeOpen}
         onOpenChange={setIsAddEmployeeOpen}

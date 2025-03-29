@@ -11,6 +11,15 @@ type EmployeeStatus = Database['public']['Enums']['employee_status']
 type EmploymentType = Database['public']['Enums']['employment_type']
 type EmploymentTerminationReasonDB = Database['public']['Enums']['employment_termination_reason']
 
+// Create a helper function to validate termination reasons
+function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
+  if (!reason) return false;
+  const validReasons: EmploymentTerminationReason[] = [
+    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+  ];
+  return validReasons.includes(reason as EmploymentTerminationReason);
+}
+
 export async function fetchEmployees(
   searchTerm?: string,
   filters?: {
@@ -56,22 +65,14 @@ export async function fetchEmployees(
 
   // Transform data to ensure end_of_employment_reason is properly typed
   return data.map(employee => {
-    // Only convert if end_of_employment_reason exists and is a valid value
-    if (employee.end_of_employment_reason) {
-      const reason = employee.end_of_employment_reason as string;
-      const validReasons: EmploymentTerminationReason[] = [
-        'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-      ];
-      
-      return {
-        ...employee,
-        end_of_employment_reason: validReasons.includes(reason as EmploymentTerminationReason) 
-          ? reason as EmploymentTerminationReason 
-          : null
-      };
-    }
-    
-    return employee;
+    // Process employee data to ensure correct typing
+    return {
+      ...employee,
+      // Only set the reason if it's a valid EmploymentTerminationReason
+      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason) 
+        ? employee.end_of_employment_reason as EmploymentTerminationReason
+        : null
+    };
   });
 }
 
@@ -84,16 +85,11 @@ export async function fetchEmployeeById(id: string) {
   }
 
   // Ensure end_of_employment_reason is properly typed
-  if (data && data.end_of_employment_reason) {
-    const reason = data.end_of_employment_reason as string;
-    const validReasons: EmploymentTerminationReason[] = [
-      'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-    ];
-    
+  if (data) {
     return {
       ...data,
-      end_of_employment_reason: validReasons.includes(reason as EmploymentTerminationReason) 
-        ? reason as EmploymentTerminationReason 
+      end_of_employment_reason: isValidTerminationReason(data.end_of_employment_reason) 
+        ? data.end_of_employment_reason as EmploymentTerminationReason
         : null
     };
   }
@@ -122,6 +118,13 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
 }
 
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
+  // Validate end_of_employment_reason if present in updates
+  if (updates.end_of_employment_reason !== undefined && 
+      !isValidTerminationReason(updates.end_of_employment_reason)) {
+    // If invalid, set to null
+    updates.end_of_employment_reason = null;
+  }
+
   // Convert Date objects to ISO strings for Supabase
   const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>
 
