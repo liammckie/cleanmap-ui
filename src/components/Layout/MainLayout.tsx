@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -26,7 +27,10 @@ import {
   BarChart3,
   Settings,
   UserCog,
+  Building2,
+  Briefcase,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const MainLayout = () => {
   const isMobile = useIsMobile()
@@ -45,20 +49,30 @@ const MainLayout = () => {
     else if (path.includes('/documents')) setPageTitle('Documents')
     else if (path.includes('/settings')) setPageTitle('Settings')
     else if (path.includes('/hr')) setPageTitle('HR')
+    else if (path.includes('/operations')) {
+      if (path.includes('/clients')) setPageTitle('Clients')
+      else if (path.includes('/sites')) setPageTitle('Sites')
+      else if (path.includes('/work-orders')) setPageTitle('Work Orders')
+      else if (path.includes('/contracts')) setPageTitle('Contracts')
+      else setPageTitle('Operations')
+    }
     else setPageTitle('Dashboard')
-  }, [location])
+  }, [location.pathname]) // Only depend on pathname, not the full location object
 
   // Menu items configuration
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
-    { id: 'clients', name: 'Clients', icon: Users, path: '/operations/clients' },
+    { id: 'operations', name: 'Operations', icon: Briefcase, 
+      subItems: [
+        { id: 'clients', name: 'Clients', path: '/operations/clients' },
+        { id: 'sites', name: 'Sites', path: '/operations/site-list' },
+        { id: 'contracts', name: 'Contracts', path: '/operations/contracts' },
+        { id: 'work-orders', name: 'Work Orders', path: '/operations/work-orders' },
+      ]
+    },
     { id: 'locations', name: 'Locations', icon: Map, path: '/locations' },
     { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' },
-    { id: 'schedule', name: 'Schedule', icon: Calendar, path: '/schedule' },
-    { id: 'contracts', name: 'Contracts', icon: Clipboard, path: '/operations/contracts' },
     { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },
-    { id: 'documents', name: 'Documents', icon: Files, path: '/documents' },
-    { id: 'settings', name: 'Settings', icon: Settings, path: '/settings' },
   ]
 
   return (
@@ -78,23 +92,54 @@ const MainLayout = () => {
             <SidebarGroup>
               <SidebarGroupLabel>Navigation</SidebarGroupLabel>
               <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip={item.name}
-                      isActive={
-                        location.pathname === item.path ||
-                        (item.path !== '/' && location.pathname.includes(item.path))
-                      }
-                    >
-                      <a href={item.path}>
-                        <item.icon />
-                        <span>{item.name}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {menuItems.map((item) => {
+                  if (item.subItems) {
+                    return (
+                      <div key={item.id} className="space-y-1">
+                        <SidebarMenuItem>
+                          <SidebarMenuButton tooltip={item.name}>
+                            <item.icon />
+                            <span>{item.name}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <div className="ml-4 space-y-1 border-l border-gray-200 dark:border-gray-700 pl-2">
+                          {item.subItems.map((subItem) => (
+                            <SidebarMenuItem key={subItem.id}>
+                              <SidebarMenuButton
+                                asChild
+                                tooltip={subItem.name}
+                                isActive={location.pathname === subItem.path ||
+                                  (subItem.path !== '/' && location.pathname.includes(subItem.path))}
+                              >
+                                <Link to={subItem.path}>
+                                  <span>{subItem.name}</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.name}
+                        isActive={
+                          location.pathname === item.path ||
+                          (item.path !== '/' && location.pathname.includes(item.path))
+                        }
+                      >
+                        <Link to={item.path}>
+                          <item.icon />
+                          <span>{item.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
@@ -125,8 +170,6 @@ const MainLayout = () => {
             </p>
           </footer>
         </div>
-
-        <Toaster />
       </div>
     </SidebarProvider>
   )
