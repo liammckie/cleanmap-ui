@@ -1300,6 +1300,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string[]
       }
+      get_work_order_category_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_work_order_priority_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      get_work_order_status_enum: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
     }
     Enums: {
       client_status: "Active" | "On Hold"
