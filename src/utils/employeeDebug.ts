@@ -1,3 +1,4 @@
+
 /**
  * Temporary debugging utility for employee data issues
  */
@@ -154,7 +155,7 @@ export const validateEmployeeData = (data: any): boolean => {
 /**
  * Attempts to manually fetch employee data for debugging
  */
-export const debugEmployeeData = async (): Promise<void> => {
+export const debugEmployeeData = async (): Promise<Employee[]> => {
   try {
     console.group('Employee Data Debug');
     
@@ -217,7 +218,8 @@ export const setupMockEmployeeApi = () => {
   const originalFetch = window.fetch;
   window.fetch = function(input, init) {
     // Convert input to string if it's a Request object
-    const url = typeof input === 'string' ? input : input.url;
+    const url = typeof input === 'string' ? input : 
+               (input instanceof Request ? input.url : input.toString());
     
     if (url === '/api/employees') {
       console.log('Intercepting fetch to /api/employees, returning mock data');
