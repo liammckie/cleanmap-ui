@@ -85,13 +85,32 @@ export async function fetchClientById(id: string) {
 export async function createClient(clientData: ClientInsert) {
   try {
     // Validate and prepare client data
-    const validatedData = validateForDb(clientData, clientSchema)
+    const validatedData = validateForDb(clientData, clientSchema) as ClientInsert
     
     console.log('Validated client data for insert:', validatedData)
     
+    // Ensure we're sending the correct data shape required by Supabase
+    const dataToInsert = {
+      company_name: validatedData.company_name,
+      contact_name: validatedData.contact_name,
+      contact_email: validatedData.contact_email,
+      contact_phone: validatedData.contact_phone,
+      billing_address_street: validatedData.billing_address_street,
+      billing_address_city: validatedData.billing_address_city,
+      billing_address_state: validatedData.billing_address_state,
+      billing_address_postcode: validatedData.billing_address_postcode,
+      payment_terms: validatedData.payment_terms,
+      industry: validatedData.industry,
+      status: validatedData.status,
+      business_number: validatedData.business_number,
+      region: validatedData.region,
+      notes: validatedData.notes,
+      on_hold_reason: validatedData.on_hold_reason
+    }
+    
     const { data, error } = await supabase
       .from('clients')
-      .insert(validatedData)
+      .insert(dataToInsert)
       .select()
       .single()
 
@@ -115,11 +134,23 @@ export async function createClient(clientData: ClientInsert) {
 export async function updateClient(id: string, clientData: ClientUpdate) {
   try {
     // Validate and prepare client data
-    const validatedData = validateForDb(clientData, clientSchema)
+    const validatedData = validateForDb(clientData, clientSchema) as ClientUpdate
+    
+    // Ensure we're sending only string values for dates
+    const dataToUpdate: Record<string, any> = { ...validatedData }
+    
+    // Remove any Date objects that might cause type issues
+    if (dataToUpdate.created_at instanceof Date) {
+      dataToUpdate.created_at = dataToUpdate.created_at.toISOString()
+    }
+    
+    if (dataToUpdate.updated_at instanceof Date) {
+      dataToUpdate.updated_at = dataToUpdate.updated_at.toISOString()
+    }
     
     const { data, error } = await supabase
       .from('clients')
-      .update(validatedData)
+      .update(dataToUpdate)
       .eq('id', id)
       .select()
       .single()

@@ -29,8 +29,9 @@ export interface Client {
   on_hold_reason: string | null
   created_at: string
   updated_at: string
-  latitude: number | null
-  longitude: number | null
+  // Adding coordinates which may exist in the DB schema
+  latitude?: number | null
+  longitude?: number | null
 }
 
 // Type guard for client status
@@ -58,8 +59,8 @@ export const clientSchema = z.object({
   on_hold_reason: z.string().nullable().optional(),
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
-  created_at: z.string().or(z.date()).optional(),
-  updated_at: z.string().or(z.date()).optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 })
 
 /**
