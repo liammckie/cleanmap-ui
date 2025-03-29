@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
+import { handleInfiniteRecursionError } from '@/utils/databaseErrorHandlers'
 
 /**
  * Safely executes a Supabase query with error handling for common database issues
@@ -14,6 +16,7 @@ async function safeExecuteQuery(queryFn, errorContext = 'query') {
       // Check for infinite recursion errors
       if (result.error.code === '42P17') {
         console.error(`Infinite recursion detected in ${errorContext}:`, result.error.message);
+        handleInfiniteRecursionError(result.error, errorContext);
         throw {
           ...result.error,
           userMessage: `Database security policy error in ${errorContext}. Please contact an administrator.`

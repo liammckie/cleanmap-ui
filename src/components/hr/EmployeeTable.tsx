@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { format, parseISO } from 'date-fns'
 import { ClipboardList, Edit, AlertCircle } from 'lucide-react'
@@ -34,12 +33,10 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onSort,
   onEditEmployee,
 }) => {
-  // Helper function to safely format dates that could be strings or Date objects
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return 'N/A'
 
     try {
-      // If it's a string, parse it first
       const dateObj = typeof date === 'string' ? parseISO(date) : date
       return format(dateObj, 'dd MMM yyyy')
     } catch (e) {
@@ -60,13 +57,11 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
     ) : null
   }
 
-  // Check if employee is terminated and has end date
   const isTerminated = (employee: Employee) => {
     return employee.status === 'Terminated' && employee.end_of_employment_date
   }
 
   if (error) {
-    // Enhanced error handling with specific handling for RLS recursion errors
     const supabaseError = (error as any).error || error;
     if (supabaseError?.code === '42P17') {
       return createErrorFallbackUI(supabaseError, 'employees');
