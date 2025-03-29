@@ -1,15 +1,13 @@
 import { supabase } from '@/integrations/supabase/client'
 import {
   QuoteLineItem,
-  quoteLineItemDbSchema,
+  quoteLineItemDbSchema
 } from '@/schema/sales/quote.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**
  * Get all line items for a quote
- * @param quoteId ID of the quote
- * @returns Array of line items
  */
 export const getQuoteLineItems = async (
   quoteId: string
@@ -26,7 +24,7 @@ export const getQuoteLineItems = async (
     return data.map((item) => ({
       ...item,
       created_at: new Date(item.created_at),
-      updated_at: new Date(item.updated_at),
+      updated_at: new Date(item.updated_at)
     }))
   } catch (error) {
     console.error('Unexpected error in getQuoteLineItems:', error)
@@ -36,8 +34,6 @@ export const getQuoteLineItems = async (
 
 /**
  * Add a line item to a quote
- * @param lineItem The line item data
- * @returns The created line item or null if an error occurred
  */
 export const addQuoteLineItem = async (
   lineItem: Partial<QuoteLineItem>
@@ -46,11 +42,10 @@ export const addQuoteLineItem = async (
     if (!lineItem.quote_id) throw new Error('Quote ID is required')
     if (!lineItem.description) throw new Error('Description is required')
 
-    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lineItem,
       created_at: new Date(),
-      updated_at: new Date(),
+      updated_at: new Date()
     })
 
     const data = await apiClient.create(
@@ -63,7 +58,7 @@ export const addQuoteLineItem = async (
     return {
       ...data,
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
+      updated_at: new Date(data.updated_at)
     }
   } catch (error) {
     console.error('Unexpected error in addQuoteLineItem:', error)
@@ -79,7 +74,6 @@ export const updateQuoteLineItem = async (
   lineItem: Partial<QuoteLineItem>
 ): Promise<QuoteLineItem | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lineItem,
       updated_at: new Date()
