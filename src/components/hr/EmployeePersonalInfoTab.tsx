@@ -1,9 +1,9 @@
 
 import React from 'react'
-import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Employee } from '@/types/employee.types'
+import { formatDate } from '@/utils/dateUtils'
 
 interface EmployeePersonalInfoTabProps {
   employee: Employee
@@ -16,18 +16,6 @@ const EmployeePersonalInfoTab: React.FC<EmployeePersonalInfoTabProps> = ({
   isEditing,
   handleInputChange,
 }) => {
-  // Helper to format dates safely
-  const formatDate = (date: string | Date | undefined | null) => {
-    if (!date) return 'N/A'
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date
-      return format(dateObj, 'dd MMM yyyy')
-    } catch (error) {
-      console.error('Error formatting date:', error)
-      return 'Invalid date'
-    }
-  }
-
   return (
     <div className="grid gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

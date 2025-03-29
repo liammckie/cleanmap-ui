@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Employee } from '@/types/employee.types'
+import { formatDate } from '@/utils/dateUtils'
 
 interface BasicEmploymentDetailsProps {
   employee: Employee
@@ -60,9 +61,7 @@ const BasicEmploymentDetails: React.FC<BasicEmploymentDetailsProps> = ({
         <div>
           <Label>Start Date</Label>
           <Input
-            value={typeof employee.start_date === 'string' 
-              ? employee.start_date 
-              : employee.start_date.toLocaleDateString()}
+            value={formatDate(employee.start_date)}
             disabled
           />
         </div>

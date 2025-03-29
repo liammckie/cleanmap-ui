@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import type { Employee as EmployeeSchema } from '@/schema/hr.schema'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
@@ -9,7 +8,6 @@ import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status']
 type EmploymentType = Database['public']['Enums']['employment_type']
-type EmploymentTerminationReasonDB = Database['public']['Enums']['employment_termination_reason']
 
 // Create a helper function to validate termination reasons
 function isValidTerminationReason(reason: string | null | undefined): reason is EmploymentTerminationReason {
@@ -20,6 +18,7 @@ function isValidTerminationReason(reason: string | null | undefined): reason is 
   return validReasons.includes(reason as EmploymentTerminationReason);
 }
 
+// Fetch all employees with optional filtering
 export async function fetchEmployees(
   searchTerm?: string,
   filters?: {
@@ -65,17 +64,16 @@ export async function fetchEmployees(
 
   // Transform data to ensure end_of_employment_reason is properly typed
   return data.map(employee => {
-    // Process employee data to ensure correct typing
     return {
       ...employee,
-      // Only set the reason if it's a valid EmploymentTerminationReason
       end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason) 
-        ? employee.end_of_employment_reason as EmploymentTerminationReason
+        ? employee.end_of_employment_reason 
         : null
     };
   });
 }
 
+// Fetch a single employee by ID
 export async function fetchEmployeeById(id: string) {
   const { data, error } = await supabase.from('employees').select('*').eq('id', id).single()
 
@@ -89,7 +87,7 @@ export async function fetchEmployeeById(id: string) {
     return {
       ...data,
       end_of_employment_reason: isValidTerminationReason(data.end_of_employment_reason) 
-        ? data.end_of_employment_reason as EmploymentTerminationReason
+        ? data.end_of_employment_reason 
         : null
     };
   }
@@ -97,7 +95,7 @@ export async function fetchEmployeeById(id: string) {
   return data;
 }
 
-// Update the parameter type to accept our modified Employee type that has string | Date
+// Create a new employee
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
   try {
     // Convert Date objects to ISO strings for Supabase
@@ -117,6 +115,7 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
   }
 }
 
+// Update an existing employee
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
   // Validate end_of_employment_reason if present in updates
   if (updates.end_of_employment_reason !== undefined && 
@@ -138,6 +137,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>) {
   return data[0]
 }
 
+// Delete an employee by ID
 export async function deleteEmployee(id: string) {
   const { error } = await supabase.from('employees').delete().eq('id', id)
 

@@ -1,22 +1,20 @@
 
 import React, { useState, useEffect } from 'react'
-import { Edit, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
-import { updateEmployee, fetchEmploymentTerminationReasons } from '@/services/employeeService'
-import { useToast } from '@/hooks/use-toast'
+import { Employee } from '@/types/employee.types'
+import { fetchEmploymentTerminationReasons } from '@/services/employeeService'
 import EmployeePersonalInfoTab from './EmployeePersonalInfoTab'
 import EmployeeEmploymentTab from './EmployeeEmploymentTab'
+import DialogFooter from './employee-details/DialogFooter'
+import { useEmployeeDetails } from '@/hooks/hr/useEmployeeDetails'
 
 interface EmployeeDetailsDialogProps {
   employee: Employee | null
@@ -29,18 +27,27 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
   isOpen,
   onOpenChange,
 }) => {
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null)
   const [selectedTab, setSelectedTab] = useState('details')
   const [terminationReasons, setTerminationReasons] = useState<string[]>([])
+  
+  const {
+    employee: editedEmployee,
+    isEditing,
+    isSubmitting,
+    handleEdit,
+    handleCancelEdit,
+    handleInputChange,
+    handleSelectChange,
+    handleEndDateChange,
+    handleSave
+  } = useEmployeeDetails(employee)
+
+  // Handle end reason change specifically for the EndOfEmploymentSection
+  const handleEndReasonChange = (reason: string) => {
+    handleSelectChange('end_of_employment_reason', reason)
+  }
 
   useEffect(() => {
-    if (employee) {
-      setEditedEmployee({ ...employee })
-    }
-
     // Fetch termination reasons when component mounts
     const fetchTerminationReasons = async () => {
       try {
@@ -52,103 +59,7 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
     }
 
     fetchTerminationReasons()
-  }, [employee])
-
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-    if (employee) {
-      setEditedEmployee({ ...employee })
-    }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setEditedEmployee((prev) => (prev ? { ...prev, [name]: value } : null))
-  }
-
-  // Helper function to validate if a value is a valid EmploymentTerminationReason
-  const isValidTerminationReason = (value: string): value is EmploymentTerminationReason => {
-    const validReasons: EmploymentTerminationReason[] = [
-      'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-    ];
-    return validReasons.includes(value as EmploymentTerminationReason);
-  }
-
-  const handleSelectChange = (field: string, value: string) => {
-    setEditedEmployee((prev) => {
-      if (!prev) return null;
-      
-      // Special handling for end_of_employment_reason to ensure it's properly typed
-      if (field === 'end_of_employment_reason') {
-        // Validate if the value is a valid EmploymentTerminationReason
-        return {
-          ...prev,
-          [field]: isValidTerminationReason(value) ? value as EmploymentTerminationReason : null
-        };
-      }
-      
-      return { ...prev, [field]: value };
-    })
-  }
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    if (date) {
-      setEditedEmployee((prev) => (prev ? { ...prev, end_of_employment_date: date } : null))
-    }
-  }
-
-  const handleEndReasonChange = (reason: string) => {
-    // Validate and set the reason
-    setEditedEmployee((prev) => {
-      if (!prev) return null;
-      
-      return {
-        ...prev,
-        end_of_employment_reason: isValidTerminationReason(reason) ? reason as EmploymentTerminationReason : null
-      };
-    })
-  }
-
-  const handleSave = async () => {
-    if (!editedEmployee || !employee) return
-
-    setIsSubmitting(true)
-
-    try {
-      const updatedEmployee = await updateEmployee(employee.id, editedEmployee)
-
-      toast({
-        title: 'Success',
-        description: 'Employee details updated successfully.',
-      })
-
-      setIsEditing(false)
-      // Update the employee data with the changes
-      if (updatedEmployee) {
-        // Ensure the updated employee has the correct type for end_of_employment_reason
-        const processedEmployee: Employee = {
-          ...updatedEmployee,
-          end_of_employment_reason: isValidTerminationReason(updatedEmployee.end_of_employment_reason as string) 
-            ? updatedEmployee.end_of_employment_reason as EmploymentTerminationReason 
-            : null
-        };
-        setEditedEmployee(processedEmployee);
-      }
-    } catch (error) {
-      console.error('Error updating employee:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to update employee details. Please try again.',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  }, [])
 
   if (!employee || !editedEmployee) {
     return null
@@ -205,26 +116,14 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
           </TabsContent>
         </Tabs>
 
-        <DialogFooter>
-          {isEditing ? (
-            <div className="space-x-2">
-              <Button variant="ghost" onClick={handleCancelEdit}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          ) : (
-            <Button variant="outline" onClick={handleEdit}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Details
-            </Button>
-          )}
-          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogFooter>
+        <DialogFooter
+          isEditing={isEditing}
+          isSubmitting={isSubmitting}
+          onEdit={handleEdit}
+          onCancel={handleCancelEdit}
+          onSave={handleSave}
+          onClose={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   )
