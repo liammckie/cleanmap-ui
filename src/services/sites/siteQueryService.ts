@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import type { Site } from '@/schema/operations/site.schema'
 
@@ -112,6 +111,33 @@ export async function fetchSiteById(siteId: string): Promise<Site> {
     return transformSiteResponse(data)
   } catch (error) {
     console.error('Error fetching site by ID:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch sites for a specific client
+ * @param clientId ID of the client to fetch sites for
+ * @returns List of sites for the client
+ */
+export async function fetchSitesByClientId(clientId: string): Promise<Site[]> {
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select(`
+        *,
+        clients (
+          company_name
+        )
+      `)
+      .eq('client_id', clientId)
+
+    if (error) throw error
+
+    // Transform each site in the response
+    return data?.map(item => transformSiteResponse(item)) || []
+  } catch (error) {
+    console.error('Error fetching sites by client ID:', error)
     throw error
   }
 }

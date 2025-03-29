@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FilePlus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchContracts } from '@/services/contractService'
+import { fetchContracts } from '@/services/contracts'
 import ContractFilters from '@/components/operations/contract/ContractFilters'
 import ContractsTable from '@/components/operations/contract/ContractsTable'
 
 const ContractsPage = () => {
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{
     clientId: string
@@ -49,6 +52,10 @@ const ContractsPage = () => {
     setSearchTerm('')
   }
 
+  const handleCreateContract = () => {
+    navigate('/operations/contracts/create')
+  }
+
   return (
     <div className="container mx-auto py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
@@ -56,7 +63,7 @@ const ContractsPage = () => {
           <h1 className="text-3xl font-bold">Contracts</h1>
           <p className="text-muted-foreground">Manage service agreements with clients</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={handleCreateContract}>
           <FilePlus className="h-4 w-4" />
           New Contract
         </Button>
@@ -65,6 +72,8 @@ const ContractsPage = () => {
       <ContractFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        filters={filters}
+        setFilters={setFilters}
         clearFilters={clearFilters}
       />
 

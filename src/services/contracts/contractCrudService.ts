@@ -51,6 +51,20 @@ export async function createContract(
     }
   }
 
+  // Log the contract creation in the change log
+  try {
+    await supabase.from('contract_change_logs').insert({
+      contract_id: data[0].id,
+      change_date: new Date().toISOString(),
+      change_type: 'Created',
+      effective_date: new Date().toISOString(),
+      new_value: JSON.stringify(dbContract),
+    })
+  } catch (logError) {
+    console.error('Error logging contract creation:', logError)
+    // Don't throw here, still return the created contract
+  }
+
   return data[0] as unknown as Contract
 }
 
@@ -58,6 +72,13 @@ export async function createContract(
  * Update an existing contract
  */
 export async function updateContract(id: string, updates: Partial<Contract>, siteIds?: string[]) {
+  // Fetch the original contract to store in change log
+  const { data: originalContract } = await supabase
+    .from('contracts')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   if (
     (updates.base_fee !== undefined || updates.billing_frequency !== undefined) &&
     (updates.base_fee || updates.billing_frequency)
@@ -96,6 +117,50 @@ export async function updateContract(id: string, updates: Partial<Contract>, sit
   if (error) {
     console.error('Error updating contract:', error)
     throw error
+  }
+
+  // Update contract sites if siteIds are provided
+  if (siteIds !== undefined) {
+    // First delete existing relationships
+    const { error: deleteError } = await supabase
+      .from('contract_sites')
+      .delete()
+      .eq('contract_id', id)
+
+    if (deleteError) {
+      console.error('Error deleting existing contract-site relationships:', deleteError)
+      throw deleteError
+    }
+
+    // Then add new relationships if any sites are specified
+    if (siteIds.length > 0) {
+      const contractSites = siteIds.map((siteId) => ({
+        contract_id: id,
+        site_id: siteId,
+      }))
+
+      const { error: insertError } = await supabase.from('contract_sites').insert(contractSites)
+
+      if (insertError) {
+        console.error('Error creating contract-site relationships:', insertError)
+        throw insertError
+      }
+    }
+  }
+
+  // Log the contract update in the change log
+  try {
+    await supabase.from('contract_change_logs').insert({
+      contract_id: id,
+      change_date: new Date().toISOString(),
+      change_type: 'Updated',
+      effective_date: new Date().toISOString(),
+      old_value: JSON.stringify(originalContract),
+      new_value: JSON.stringify({...originalContract, ...dbUpdates}),
+    })
+  } catch (logError) {
+    console.error('Error logging contract update:', logError)
+    // Don't throw here, still return the updated contract
   }
 
   return data[0] as unknown as Contract

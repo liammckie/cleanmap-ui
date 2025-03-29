@@ -1,28 +1,19 @@
 
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from '@/components/ui/table'
-import { MapPin } from 'lucide-react'
+import { MapPin, Building2 } from 'lucide-react'
 import type { Contract } from '@/schema/operations/contract.schema'
 
 interface ContractSitesProps {
   contract: Contract
-}
-
-interface ContractSite {
-  id: string;
-  site?: {
-    site_name?: string;
-    address_city?: string;
-    address_state?: string;
-  };
 }
 
 const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
@@ -31,13 +22,8 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
       <Card>
         <CardHeader>
           <CardTitle>Service Locations</CardTitle>
-          <CardDescription>No sites associated with this contract</CardDescription>
+          <CardDescription>No sites are associated with this contract.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            No service locations have been added to this contract.
-          </p>
-        </CardContent>
       </Card>
     )
   }
@@ -46,30 +32,56 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
     <Card>
       <CardHeader>
         <CardTitle>Service Locations</CardTitle>
-        <CardDescription>Sites covered under this contract</CardDescription>
+        <CardDescription>Sites covered by this contract</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Site Name</TableHead>
-              <TableHead>Location</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contract.sites.map((contractSite: ContractSite) => (
-              <TableRow key={contractSite.id}>
-                <TableCell className="font-medium">
-                  {contractSite.site?.site_name || 'Unnamed Site'}
-                </TableCell>
-                <TableCell className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-                  {contractSite.site?.address_city ? 
-                    `${contractSite.site.address_city || 'Unknown City'}, ${contractSite.site.address_state || 'Unknown State'}` : 
-                    'Unknown Location'}
-                </TableCell>
-              </TableRow>
-            ))}
+            {contract.sites.map((contractSite) => {
+              const site = contractSite.site
+              return (
+                <TableRow key={contractSite.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      {site?.site_name}
+                    </div>
+                  </TableCell>
+                  <TableCell>{site?.site_type || 'N/A'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      {site ? (
+                        <div>
+                          <div>{site.address_street}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {site.address_city}, {site.address_state} {site.address_postcode}
+                          </div>
+                        </div>
+                      ) : (
+                        'N/A'
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                      ${site?.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                      site?.status === 'Inactive' ? 'bg-gray-100 text-gray-800' : 
+                      'bg-yellow-100 text-yellow-800'}`}>
+                      {site?.status || 'N/A'}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>

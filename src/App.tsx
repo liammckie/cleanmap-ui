@@ -1,59 +1,70 @@
-
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/toaster'
-import { Toaster as Sonner } from '@/components/ui/sonner'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import MainLayout from '@/components/Layout/MainLayout'
+import { MainLayout } from '@/layouts/MainLayout'
+import { Routes, Route } from 'react-router-dom'
+
+// Page imports
 import Dashboard from '@/pages/Dashboard'
 import Locations from '@/pages/Locations'
+import Employees from '@/pages/hr/Employees'
+import Clients from '@/pages/operations/Clients'
+import CreateClient from '@/pages/operations/CreateClient'
+import Sites from '@/pages/operations/Sites'
+import SiteList from '@/pages/operations/SiteList'
+import CreateSite from '@/pages/operations/CreateSite'
+import SiteDetails from '@/pages/operations/SiteDetails'
+import Contracts from '@/pages/operations/Contracts'
+import CreateContract from '@/pages/operations/CreateContract'
+import ContractDetails from '@/pages/operations/ContractDetails'
+import WorkOrders from '@/pages/operations/WorkOrders'
+import Leads from '@/pages/sales/Leads'
+import Quotes from '@/pages/sales/Quotes'
 import Reports from '@/pages/Reports'
-import EmployeesPage from '@/pages/hr/Employees'
-import ClientsPage from '@/pages/operations/Clients'
-import SitesPage from '@/pages/operations/Sites'
-import SiteListPage from '@/pages/operations/SiteList'
-import SiteDetailsPage from '@/pages/operations/SiteDetails'
-import CreateClientPage from '@/pages/operations/CreateClient'
-import CreateSitePage from '@/pages/operations/CreateSite'
-import ContractsPage from '@/pages/operations/Contracts'
-import ContractDetailsPage from '@/pages/operations/ContractDetails'
-import WorkOrdersPage from '@/pages/operations/WorkOrders'
-import LeadsPage from '@/pages/sales/Leads'
-import QuotesPage from '@/pages/sales/Quotes'
 import NotFound from '@/pages/NotFound'
 
 const queryClient = new QueryClient()
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/locations" element={<Locations />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/hr/employees" element={<EmployeesPage />} />
-            <Route path="/operations/clients" element={<ClientsPage />} />
-            <Route path="/operations/clients/create" element={<CreateClientPage />} />
-            <Route path="/operations/sites" element={<SitesPage />} />
-            <Route path="/operations/site-list" element={<SiteListPage />} />
-            <Route path="/operations/sites/:siteId" element={<SiteDetailsPage />} />
-            <Route path="/operations/sites/create" element={<CreateSitePage />} />
-            <Route path="/operations/sites/edit/:siteId" element={<SiteDetailsPage />} />
-            <Route path="/operations/contracts" element={<ContractsPage />} />
-            <Route path="/operations/contracts/:id" element={<ContractDetailsPage />} />
-            <Route path="/operations/work-orders" element={<WorkOrdersPage />} />
-            <Route path="/sales/leads" element={<LeadsPage />} />
-            <Route path="/sales/quotes" element={<QuotesPage />} />
-          </Route>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Dashboard />} />
+          
+          {/* Locations */}
+          <Route path="locations" element={<Locations />} />
+          
+          {/* HR Routes */}
+          <Route path="hr/employees" element={<Employees />} />
+          
+          {/* Operations Routes */}
+          <Route path="operations/clients" element={<Clients />} />
+          <Route path="operations/clients/create" element={<CreateClient />} />
+          <Route path="operations/sites" element={<Sites />} />
+          <Route path="operations/sites/create" element={<CreateSite />} />
+          <Route path="operations/sites/:siteId" element={<SiteDetails />} />
+          <Route path="operations/contracts" element={<Contracts />} />
+          <Route path="operations/contracts/create" element={<CreateContract />} />
+          <Route path="operations/contracts/:id" element={<ContractDetails />} />
+          <Route path="operations/work-orders" element={<WorkOrders />} />
+          
+          {/* Sales Routes */}
+          <Route path="sales/leads" element={<Leads />} />
+          <Route path="sales/quotes" element={<Quotes />} />
+          
+          {/* Reports */}
+          <Route path="reports" element={<Reports />} />
+          
+          {/* Not Found */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-)
+        </Route>
+      </Routes>
+      <Toaster />
+    </QueryClientProvider>
+  );
+}
 
 export default App
