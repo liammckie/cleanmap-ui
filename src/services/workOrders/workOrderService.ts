@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { WorkOrder } from '@/schema/operations'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
@@ -130,13 +131,8 @@ export async function logWorkOrderNote(
  */
 export async function fetchWorkOrderStatuses() {
   try {
-    const { data, error } = await supabase.from('work_orders').select('status')
-
-    if (error) throw error
-
-    // Extract unique statuses
-    const statuses = [...new Set(data.map((wo) => wo.status))].filter(Boolean)
-    return statuses as WorkOrder['status'][]
+    // Hardcoded statuses for now - in a real implementation, these might come from the database
+    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'] as WorkOrder['status'][]
   } catch (error) {
     console.error('Error fetching work order statuses:', error)
     throw error
@@ -148,13 +144,8 @@ export async function fetchWorkOrderStatuses() {
  */
 export async function fetchWorkOrderCategories() {
   try {
-    const { data, error } = await supabase.from('work_orders').select('category')
-
-    if (error) throw error
-
-    // Extract unique categories
-    const categories = [...new Set(data.map((wo) => wo.category))].filter(Boolean)
-    return categories
+    // Mock categories for demonstration
+    return ['Cleaning', 'Maintenance', 'Inspection', 'Special Request', 'Service Call']
   } catch (error) {
     console.error('Error fetching work order categories:', error)
     throw error
@@ -166,13 +157,8 @@ export async function fetchWorkOrderCategories() {
  */
 export async function fetchWorkOrderPriorities() {
   try {
-    const { data, error } = await supabase.from('work_orders').select('priority')
-
-    if (error) throw error
-
-    // Extract unique priorities
-    const priorities = [...new Set(data.map((wo) => wo.priority))].filter(Boolean)
-    return priorities as WorkOrder['priority'][]
+    // Hardcoded priorities for now
+    return ['Low', 'Medium', 'High'] as WorkOrder['priority'][]
   } catch (error) {
     console.error('Error fetching work order priorities:', error)
     throw error

@@ -1,3 +1,4 @@
+
 import { z } from 'zod'
 
 /**
@@ -26,9 +27,26 @@ export interface WorkOrder {
   actual_hours: number | null
   completion_date: Date | null
   notes: string | null
+  outcome_notes: string | null
   created_by: string | null
   created_at: Date
   updated_at: Date
+  site?: {
+    site_name: string
+    client_id: string
+    client?: {
+      company_name: string
+    }
+  }
+  assignments?: Array<{
+    id: string
+    employee?: {
+      id: string
+      first_name: string
+      last_name: string
+    }
+    assignment_type: string
+  }>
 }
 
 // Type guard for WorkOrder status
@@ -61,7 +79,21 @@ export const workOrderSchema = z.object({
   actual_hours: z.number().nullable(),
   completion_date: z.date().nullable(),
   notes: z.string().nullable(),
+  outcome_notes: z.string().nullable(),
   created_by: z.string().nullable(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
+})
+
+// Zod schema for work order creation/updates
+export const workOrderFormSchema = workOrderSchema.omit({
+  id: true,
+  work_order_number: true,
+  created_at: true,
+  updated_at: true,
+  created_by: true,
+  scheduled_end: true,
+  actual_hours: true,
+  completion_date: true,
+  outcome_notes: true,
 })

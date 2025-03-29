@@ -1,4 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client'
+import { isWorkOrderStatus, isWorkOrderPriority } from '@/schema/operations/workOrder.schema'
 
 export async function fetchWorkOrders(
   searchTerm?: string,
@@ -8,8 +10,8 @@ export async function fetchWorkOrders(
     status?: string
     category?: string
     priority?: string
-    startDate?: Date
-    endDate?: Date
+    fromDate?: string
+    toDate?: string
   },
 ) {
   let query = supabase.from('work_orders').select(`
@@ -18,37 +20,45 @@ export async function fetchWorkOrders(
         site_name,
         client_id,
         client:clients(company_name)
+      ),
+      assignments:work_order_assignments(
+        id,
+        assignment_type,
+        employee:employees(id, first_name, last_name)
       )
     `)
 
   // Apply search if provided
   if (searchTerm) {
-    query = query.or(`description.ilike.%${searchTerm}%,work_order_number.ilike.%${searchTerm}%`)
+    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,work_order_number.ilike.%${searchTerm}%`)
   }
 
   // Apply filters if provided
   if (filters) {
-    if (filters.siteId) {
+    if (filters.siteId && filters.siteId !== '') {
       query = query.eq('site_id', filters.siteId)
     }
-    if (filters.status) {
-      // Type safe casting for enum values
-      query = query.eq('status', filters.status as any)
+    if (filters.status && filters.status !== '') {
+      if (isWorkOrderStatus(filters.status)) {
+        query = query.eq('status', filters.status)
+      }
     }
-    if (filters.category) {
-      query = query.eq('category', filters.category as any)
+    if (filters.category && filters.category !== '') {
+      query = query.eq('category', filters.category)
     }
-    if (filters.priority) {
-      query = query.eq('priority', filters.priority as any)
+    if (filters.priority && filters.priority !== '') {
+      if (isWorkOrderPriority(filters.priority)) {
+        query = query.eq('priority', filters.priority)
+      }
     }
-    if (filters.startDate) {
-      query = query.gte('scheduled_start', filters.startDate.toISOString())
+    if (filters.fromDate && filters.fromDate !== '') {
+      query = query.gte('scheduled_start', filters.fromDate)
     }
-    if (filters.endDate) {
-      query = query.lte('scheduled_end', filters.endDate.toISOString())
+    if (filters.toDate && filters.toDate !== '') {
+      query = query.lte('due_date', filters.toDate)
     }
     // If clientId is provided, we need to filter through the site's client_id
-    if (filters.clientId) {
+    if (filters.clientId && filters.clientId !== '') {
       // This requires a more complex query - first get all sites for this client
       const { data: sitesData } = await supabase
         .from('sites')
@@ -64,6 +74,9 @@ export async function fetchWorkOrders(
       }
     }
   }
+
+  // Sort by scheduled start date descending (newest first)
+  query = query.order('scheduled_start', { ascending: false })
 
   const { data, error } = await query
 
@@ -85,6 +98,11 @@ export async function fetchWorkOrderById(id: string) {
         site_name,
         client_id,
         client:clients(company_name)
+      ),
+      assignments:work_order_assignments(
+        id,
+        assignment_type,
+        employee:employees(id, first_name, last_name)
       )
     `,
     )
@@ -109,10 +127,16 @@ export async function fetchWorkOrdersBySiteId(siteId: string) {
         site_name,
         client_id,
         client:clients(company_name)
+      ),
+      assignments:work_order_assignments(
+        id,
+        assignment_type,
+        employee:employees(id, first_name, last_name)
       )
     `,
     )
     .eq('site_id', siteId)
+    .order('scheduled_start', { ascending: false })
 
   if (error) {
     console.error('Error fetching work orders by site ID:', error)
@@ -146,10 +170,16 @@ export async function fetchWorkOrdersByClientId(clientId: string) {
           site_name,
           client_id,
           client:clients(company_name)
+        ),
+        assignments:work_order_assignments(
+          id,
+          assignment_type,
+          employee:employees(id, first_name, last_name)
         )
       `,
       )
       .in('site_id', siteIds)
+      .order('scheduled_start', { ascending: false })
 
     if (error) {
       console.error('Error fetching work orders for sites:', error)

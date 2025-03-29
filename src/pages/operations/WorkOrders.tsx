@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -10,52 +11,14 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { ClipboardList, Search, FilterX } from 'lucide-react'
+import { ClipboardList, ClipboardEdit } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchWorkOrders } from '@/services/workOrders'
+import { fetchWorkOrders, deleteWorkOrder } from '@/services/workOrders'
 import { format } from 'date-fns'
-
-// Status badge component
-const StatusBadge = ({ status }: { status: string }) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'scheduled':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'in progress':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'cancelled':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
-
-  return <Badge className={`${getStatusColor(status)}`}>{status}</Badge>
-}
-
-// Priority badge component
-const PriorityBadge = ({ priority }: { priority: string }) => {
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
-
-  return <Badge className={`${getPriorityColor(priority)}`}>{priority}</Badge>
-}
+import { StatusBadge, PriorityBadge } from '@/components/operations/workOrder/WorkOrderBadges'
+import { WorkOrderFilters } from '@/components/operations/workOrder/WorkOrderFilters'
+import { WorkOrderDialog } from '@/components/operations/workOrder/WorkOrderDialog'
+import { WorkOrderDetails } from '@/components/operations/workOrder/WorkOrderDetails'
 
 const WorkOrdersPage = () => {
   const { toast } = useToast()
@@ -68,12 +31,17 @@ const WorkOrdersPage = () => {
     fromDate: '',
     toDate: '',
   })
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<any>(null)
 
   // Use react-query to fetch work orders data with proper error handling
   const {
     data: workOrders,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['workOrders', searchTerm, filters],
     queryFn: () => fetchWorkOrders(searchTerm, filters),
@@ -101,6 +69,41 @@ const WorkOrdersPage = () => {
     setSearchTerm('')
   }
 
+  const handleCreateWorkOrder = () => {
+    setSelectedWorkOrder(null)
+    setIsCreateDialogOpen(true)
+  }
+
+  const handleEditWorkOrder = (workOrder: any) => {
+    setSelectedWorkOrder(workOrder)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleViewDetails = (workOrder: any) => {
+    setSelectedWorkOrder(workOrder)
+    setIsDetailsOpen(true)
+  }
+
+  const handleDeleteWorkOrder = async () => {
+    if (!selectedWorkOrder?.id) return
+
+    try {
+      await deleteWorkOrder(selectedWorkOrder.id)
+      toast({
+        title: 'Work Order Deleted',
+        description: 'The work order has been successfully deleted.',
+      })
+      refetch()
+    } catch (error) {
+      console.error('Error deleting work order:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete work order. Please try again.',
+      })
+    }
+  }
+
   // Function to get assigned staff names from work order assignments
   const getAssignedStaff = (workOrder: any) => {
     if (!workOrder.assignments || workOrder.assignments.length === 0) {
@@ -125,36 +128,19 @@ const WorkOrdersPage = () => {
           <h1 className="text-3xl font-bold">Work Orders</h1>
           <p className="text-muted-foreground">Manage scheduled jobs and tasks</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={handleCreateWorkOrder}>
           <ClipboardList className="h-4 w-4" />
           New Work Order
         </Button>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle>Search & Filter</CardTitle>
-          <CardDescription>Find work orders by title, description, or status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search work orders..."
-                className="pl-8 w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {/* More filter options would go here in a real implementation */}
-            <Button variant="outline" className="flex items-center gap-2" onClick={clearFilters}>
-              <FilterX className="h-4 w-4" />
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <WorkOrderFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filters={filters}
+        setFilters={setFilters}
+        clearFilters={clearFilters}
+      />
 
       <Card>
         <CardHeader className="pb-3">
@@ -185,11 +171,16 @@ const WorkOrdersPage = () => {
                   <TableHead>Priority</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned To</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {workOrders?.map((workOrder) => (
-                  <TableRow key={workOrder.id} className="cursor-pointer hover:bg-muted">
+                  <TableRow 
+                    key={workOrder.id} 
+                    className="hover:bg-muted"
+                    onClick={() => handleViewDetails(workOrder)}
+                  >
                     <TableCell className="font-medium">{workOrder.title}</TableCell>
                     <TableCell>
                       <div className="text-sm">
@@ -217,6 +208,19 @@ const WorkOrdersPage = () => {
                       <StatusBadge status={workOrder.status} />
                     </TableCell>
                     <TableCell>{getAssignedStaff(workOrder)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditWorkOrder(workOrder);
+                        }}
+                      >
+                        <ClipboardEdit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -224,6 +228,35 @@ const WorkOrdersPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Create Work Order Dialog */}
+      <WorkOrderDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={refetch}
+      />
+
+      {/* Edit Work Order Dialog */}
+      <WorkOrderDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        workOrder={selectedWorkOrder}
+        onSuccess={refetch}
+      />
+
+      {/* Work Order Details Sheet */}
+      {selectedWorkOrder && (
+        <WorkOrderDetails
+          workOrderId={selectedWorkOrder.id}
+          open={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+          onEdit={() => {
+            setIsDetailsOpen(false)
+            setIsEditDialogOpen(true)
+          }}
+          onDelete={handleDeleteWorkOrder}
+        />
+      )}
     </div>
   )
 }
