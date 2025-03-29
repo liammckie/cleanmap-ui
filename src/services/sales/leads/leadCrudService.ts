@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema'
 import { apiClient } from '@/utils/supabaseInsertHelper'
@@ -8,26 +7,22 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  * Create a new lead
  * @param lead The lead data
  * @returns The created lead or null if an error occurred
- * @origin {source: "internal", module: "salesService", author: "system"}
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // First prepare the data with dates converted to ISO strings
     const preparedData = prepareObjectForDb({
       ...lead,
       created_at: new Date(),
       updated_at: new Date()
     })
 
-    // Then pass the prepared data to the API client with leadDbSchema for validation
     const data = await apiClient.create(
       supabase,
       'leads',
-      preparedData, // preparedData has dates as strings now
+      preparedData,
       leadDbSchema
     )
 
-    // Convert string dates back to Date objects for the return value
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
@@ -48,14 +43,12 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare data for DB - convert all Dates to strings
-    const preparedData = prepareObjectForDb({
+    const prepared = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
     })
 
-    // Pass the prepared data (with string dates) to the update function
-    const data = await apiClient.update(supabase, 'leads', leadId, preparedData)
+    const data = await apiClient.update(supabase, 'leads', leadId, prepared)
 
     return {
       ...data,
