@@ -1,6 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client'
-import { Quote } from '@/types/supabase'
-import { quoteDbSchema } from '@/schema/db/quoteDbSchema'
+import { Quote, quoteDbSchema } from '@/schema/sales/quote.schema'
 import { apiClient } from '@/utils/supabaseInsertHelper'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
