@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmployeeFilters } from '@/types/employee.types'
 
 interface EmployeeFiltersProps {
@@ -36,26 +36,29 @@ const EmployeeFilterCard: React.FC<EmployeeFiltersProps> = ({
   onClearFilters,
 }) => {
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader className="pb-3">
-        <CardTitle>Search & Filter</CardTitle>
-        <CardDescription>Find employees by name, email, role, or other criteria</CardDescription>
+        <CardTitle className="text-lg">Search & Filter</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-grow">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search employees..."
+              placeholder="Search by name, email, position..."
               className="pl-8 w-full"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
 
-          <Button variant="outline" className="flex items-center gap-2" onClick={onClearFilters}>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 whitespace-nowrap" 
+            onClick={onClearFilters}
+          >
             <FilterX className="h-4 w-4" />
-            Clear
+            Clear Filters
           </Button>
         </div>
 
