@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import type { Site } from '@/schema/operations/site.schema'
+import type { Site, SiteInsert } from '@/schema/operations/site.schema'
 
 /**
  * Create a new site
@@ -9,9 +9,36 @@ import type { Site } from '@/schema/operations/site.schema'
  */
 export async function createSite(siteData: Partial<Site>) {
   try {
+    // Ensure required fields are present
+    if (!siteData.client_id || !siteData.site_name || !siteData.site_type || 
+        !siteData.address_street || !siteData.address_city || 
+        !siteData.address_state || !siteData.address_postcode) {
+      throw new Error('Missing required site fields')
+    }
+    
     // Ensure service_items are properly formatted
-    const formattedSiteData = {
-      ...siteData,
+    const siteInsertData: SiteInsert = {
+      client_id: siteData.client_id,
+      site_name: siteData.site_name,
+      site_type: siteData.site_type,
+      address_street: siteData.address_street,
+      address_city: siteData.address_city,
+      address_state: siteData.address_state,
+      address_postcode: siteData.address_postcode,
+      region: siteData.region,
+      service_start_date: siteData.service_start_date,
+      service_end_date: siteData.service_end_date,
+      special_instructions: siteData.special_instructions,
+      status: siteData.status || 'Active',
+      site_manager_id: siteData.site_manager_id,
+      primary_contact: siteData.primary_contact,
+      contact_phone: siteData.contact_phone,
+      contact_email: siteData.contact_email,
+      service_frequency: siteData.service_frequency,
+      custom_frequency: siteData.custom_frequency,
+      service_type: siteData.service_type || 'Internal',
+      price_per_service: siteData.price_per_service,
+      price_frequency: siteData.price_frequency,
       service_items: siteData.service_items?.map(item => ({
         id: item.id,
         description: item.description,
@@ -21,7 +48,7 @@ export async function createSite(siteData: Partial<Site>) {
 
     const { data, error } = await supabase
       .from('sites')
-      .insert(formattedSiteData)
+      .insert(siteInsertData)
       .select()
       .single()
 
@@ -36,19 +63,12 @@ export async function createSite(siteData: Partial<Site>) {
 
 /**
  * Fetch a list of sites with filtering
- * @param params Search and filter parameters
+ * @param search Search term for site name or address
+ * @param filters Filter parameters
  * @returns List of sites matching filters
  */
-export async function fetchSites(params: {
-  search?: string
-  filters?: {
-    clientId?: string
-    status?: string
-    region?: string
-  }
-}) {
+export async function fetchSites(search = '', filters = {}) {
   try {
-    const { search = '', filters = {} } = params
     let query = supabase
       .from('sites')
       .select(`
@@ -71,7 +91,12 @@ export async function fetchSites(params: {
     }
 
     if (filters.status) {
-      query = query.eq('status', filters.status)
+      // Handle status as a string and ensure it's a valid site status
+      const validStatuses = ['Active', 'Inactive', 'Pending Launch', 'Suspended']
+      const status = String(filters.status)
+      if (validStatuses.includes(status)) {
+        query = query.eq('status', status)
+      }
     }
 
     if (filters.region) {

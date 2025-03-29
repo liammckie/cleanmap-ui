@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { PlusCircle, Search, FilterX } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites } from '@/services/sites' // Updated import path
+import { fetchSites } from '@/services/sites' // Now properly exported
 import { format } from 'date-fns'
 import type { Site } from '@/schema/operations'
 

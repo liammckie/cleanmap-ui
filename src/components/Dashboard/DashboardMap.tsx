@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MapContainer } from '@/components/Map/MapContainer'
+import MapContainer from '@/components/Map/MapContainer'
 import type { MapLocation } from '@/components/Map/types'
 
 interface DashboardMapProps {

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites } from '@/services/sites'
+import { fetchSites } from '@/services/sites' // Now properly exported
 import { 
   Search, 
   FilterX, 
