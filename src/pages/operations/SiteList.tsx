@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -111,7 +110,6 @@ const SiteListPage: React.FC = () => {
     siteType: '',
   })
 
-  // Fetch sites data
   const {
     data: sites,
     isLoading,
@@ -132,7 +130,6 @@ const SiteListPage: React.FC = () => {
     },
   })
 
-  // Fetch filter options
   const { data: siteTypes = [] } = useQuery({
     queryKey: ['siteTypes'],
     queryFn: fetchSiteTypes,
@@ -171,7 +168,6 @@ const SiteListPage: React.FC = () => {
   }
 
   const handleExportSites = () => {
-    // Export the sites data as CSV
     if (!sites || sites.length === 0) return
 
     const headers = [
@@ -216,7 +212,6 @@ const SiteListPage: React.FC = () => {
     })
   }
 
-  // Transform site data for map display
   const mapLocations = sites?.map((site: any) => {
     let lat = 0
     let lng = 0
@@ -311,10 +306,10 @@ const SiteListPage: React.FC = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all-statuses">All Statuses</SelectItem>
                 {statuses.map((status: string) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
+                  <SelectItem key={status} value={status || "unknown"}>
+                    {status || "Unknown"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -328,10 +323,10 @@ const SiteListPage: React.FC = () => {
                 <SelectValue placeholder="Region" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Regions</SelectItem>
+                <SelectItem value="all-regions">All Regions</SelectItem>
                 {regions.map((region: string) => (
-                  <SelectItem key={region} value={region}>
-                    {region}
+                  <SelectItem key={region} value={region || "unknown"}>
+                    {region || "Unknown"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -345,10 +340,10 @@ const SiteListPage: React.FC = () => {
                 <SelectValue placeholder="Site Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all-types">All Types</SelectItem>
                 {siteTypes.map((type: string) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
+                  <SelectItem key={type} value={type || "unknown"}>
+                    {type || "Unknown"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -519,7 +514,6 @@ const SiteListPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Map View Dialog */}
       <Dialog open={isMapViewOpen} onOpenChange={setIsMapViewOpen}>
         <DialogContent className="max-w-5xl h-[80vh] p-0">
           <DialogHeader className="p-6 pb-0">

@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { Search, FilterX } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -72,8 +73,8 @@ const EmployeeFilterCard: React.FC<EmployeeFiltersProps> = ({
                 <SelectGroup>
                   <SelectItem value="all-departments">All Departments</SelectItem>
                   {departments.map((dept: string) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
+                    <SelectItem key={dept} value={dept || "unknown"}>
+                      {dept || "Unknown"}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -94,8 +95,8 @@ const EmployeeFilterCard: React.FC<EmployeeFiltersProps> = ({
                 <SelectGroup>
                   <SelectItem value="all-statuses">All Statuses</SelectItem>
                   {employeeStatuses.map((status: string) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
+                    <SelectItem key={status} value={status || "unknown"}>
+                      {status || "Unknown"}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -116,8 +117,8 @@ const EmployeeFilterCard: React.FC<EmployeeFiltersProps> = ({
                 <SelectGroup>
                   <SelectItem value="all-types">All Types</SelectItem>
                   {employmentTypes.map((type: string) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={type} value={type || "unknown"}>
+                      {type || "Unknown"}
                     </SelectItem>
                   ))}
                 </SelectGroup>
