@@ -5,20 +5,26 @@ import { prepareObjectForDb } from './dateFormatters'
 
 /**
  * Transforms a camelCase object to snake_case for database operations
- * Also handles Date objects conversion to strings using prepareObjectForDb
  */
 export function mapToDb<T extends Record<string, any>>(data: T): Record<string, any> {
-  // First prepare dates for DB (convert Date objects to ISO strings)
-  const preparedData = prepareObjectForDb(data)
+  if (!data) {
+    console.warn('mapToDb received null or undefined data')
+    return {}
+  }
   
-  // Then convert to snake_case
-  return snakecaseKeys(preparedData, { deep: true })
+  // Convert to snake_case
+  return snakecaseKeys(data, { deep: true })
 }
 
 /**
  * Transforms a snake_case object from the database to camelCase for UI
  */
 export function mapFromDb<T extends Record<string, any>>(data: T): Record<string, any> {
+  if (!data) {
+    console.warn('mapFromDb received null or undefined data')
+    return {}
+  }
+  
   return camelcaseKeys(data, { deep: true })
 }
 

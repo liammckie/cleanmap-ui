@@ -25,6 +25,11 @@ export const isValidTerminationReason = (value: string | null | undefined): valu
  * Maps a database employee record to the UI representation
  */
 export function mapEmployeeFromDb(dbEmployee: any): Employee {
+  if (!dbEmployee) {
+    console.warn('Received null or undefined employee data in mapEmployeeFromDb')
+    throw new Error('Invalid employee data received from database')
+  }
+
   const mappedEmployee = mapFromDb(dbEmployee) as Employee
   
   // Ensure proper typing of termination reason
@@ -46,14 +51,22 @@ export function mapEmployeesFromDb(dbEmployees: any[]): Employee[] {
   }
 
   return dbEmployees
-    .map(dbEmployee => mapEmployeeFromDb(dbEmployee))
-    .filter(Boolean) // Filter out null values
+    .map(dbEmployee => {
+      try {
+        return mapEmployeeFromDb(dbEmployee)
+      } catch (error) {
+        console.error('Error mapping employee from DB:', error, dbEmployee)
+        return null
+      }
+    })
+    .filter(Boolean) as Employee[] // Filter out null values
 }
 
 /**
  * Maps a UI employee object to database representation for insert/update
+ * Ensures all fields are properly formatted and validated
  */
-export function mapEmployeeToDb(employee: Partial<Employee>): Partial<EmployeeSchema> {
+export function mapEmployeeToDb(employee: Partial<Employee>): Record<string, any> {
   // First ensure the end_of_employment_reason is valid
   const validatedEmployee = {
     ...employee,

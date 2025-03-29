@@ -24,7 +24,7 @@ export async function fetchEmployeeById(id: string) {
  */
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
   try {
-    // First convert the employee object to DB format
+    // First convert the employee object to DB format with correct field names (snake_case)
     const dbEmployee = mapEmployeeToDb(employee)
     
     // Then prepare Date objects for Supabase (convert to ISO strings)
@@ -51,7 +51,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>) {
   // First convert the employee object to DB format using our mapper
   const dbUpdates = mapEmployeeToDb(updates)
   
-  // Then ensure dates are properly formatted as strings
+  // Then ensure dates are properly formatted as strings for Supabase
   const preparedUpdates = prepareObjectForDb(dbUpdates)
 
   const { data, error } = await supabase.from('employees').update(preparedUpdates).eq('id', id).select()
