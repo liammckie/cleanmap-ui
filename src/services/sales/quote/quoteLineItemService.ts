@@ -1,116 +1,133 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import {
-  QuoteLineItem,
-  quoteLineItemDbSchema
-} from '@/schema/sales/quote.schema'
-import { apiClient } from '@/utils/supabase/apiClient'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
+import { mapToDb } from '@/utils/mappers'
 
 /**
- * Get all line items for a quote
+ * Create a new quote line item
  */
-export const getQuoteLineItems = async (
-  quoteId: string
-): Promise<QuoteLineItem[]> => {
+export async function createQuoteLineItem(data: {
+  quote_id: string
+  description: string
+  quantity: number
+  unit_price: number
+}) {
   try {
-    const data = await apiClient.query(
-      supabase,
-      'quote_line_items',
-      { quote_id: quoteId },
-      '*',
-      { limit: 100 }
-    )
+    // Calculate amount based on quantity and unit price
+    const amount = data.quantity * data.unit_price
 
-    return data.map((item) => ({
-      ...item,
-      created_at: new Date(item.created_at),
-      updated_at: new Date(item.updated_at)
-    }))
+    const { data: lineItem, error } = await supabase
+      .from('quote_line_items')
+      .insert({
+        ...data,
+        amount
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating quote line item:', error)
+      throw error
+    }
+
+    return lineItem
   } catch (error) {
-    console.error('Unexpected error in getQuoteLineItems:', error)
-    return []
+    console.error('Error creating quote line item:', error)
+    throw error
   }
 }
 
 /**
- * Add a line item to a quote
+ * Fetch quote line items by quote ID
  */
-export const addQuoteLineItem = async (
-  lineItem: Partial<QuoteLineItem>
-): Promise<QuoteLineItem | null> => {
+export async function fetchQuoteLineItems(quoteId: string) {
   try {
-    if (!lineItem.quote_id) throw new Error('Quote ID is required')
-    if (!lineItem.description) throw new Error('Description is required')
+    const { data, error } = await supabase
+      .from('quote_line_items')
+      .select('*')
+      .eq('quote_id', quoteId)
+      .order('created_at')
 
-    const prepared = prepareObjectForDb({
-      ...lineItem,
-      created_at: new Date(),
-      updated_at: new Date()
-    })
-
-    const data = await apiClient.create(
-      supabase,
-      'quote_line_items',
-      prepared,
-      quoteLineItemDbSchema
-    )
-
-    return {
-      ...data,
-      created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at)
+    if (error) {
+      console.error('Error fetching quote line items:', error)
+      throw error
     }
+
+    return data
   } catch (error) {
-    console.error('Unexpected error in addQuoteLineItem:', error)
-    return null
-  }
-}
-
-/**
- * Update a quote line item
- */
-export const updateQuoteLineItem = async (
-  lineItemId: string,
-  lineItem: Partial<QuoteLineItem>
-): Promise<QuoteLineItem | null> => {
-  try {
-    const prepared = prepareObjectForDb({
-      ...lineItem,
-      updated_at: new Date()
-    })
-
-    const result = await apiClient.update(
-      supabase,
-      'quote_line_items',
-      lineItemId,
-      prepared
-    )
-
-    const data = Array.isArray(result) ? result[0] : result
-
-    return {
-      ...data,
-      created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at)
-    }
-  } catch (error) {
-    console.error('Unexpected error in updateQuoteLineItem:', error)
-    return null
+    console.error('Error fetching quote line items:', error)
+    throw error
   }
 }
 
 /**
  * Delete a quote line item
  */
-export const deleteQuoteLineItem = async (
-  lineItemId: string
-): Promise<boolean> => {
+export async function deleteQuoteLineItem(id: string) {
   try {
-    await apiClient.delete(supabase, 'quote_line_items', lineItemId)
-    return true
+    const { error } = await supabase
+      .from('quote_line_items')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error deleting quote line item:', error)
+      throw error
+    }
   } catch (error) {
-    console.error('Unexpected error in deleteQuoteLineItem:', error)
-    return false
+    console.error('Error deleting quote line item:', error)
+    throw error
+  }
+}
+
+/**
+ * Update a quote line item
+ */
+export async function updateQuoteLineItem(
+  id: string,
+  data: {
+    description?: string
+    quantity?: number
+    unit_price?: number
+  }
+) {
+  try {
+    const updateData = { ...data }
+    
+    // If quantity or unit_price is changed, recalculate amount
+    if (data.quantity !== undefined || data.unit_price !== undefined) {
+      // First get current item data
+      const { data: currentItem, error: fetchError } = await supabase
+        .from('quote_line_items')
+        .select('quantity, unit_price')
+        .eq('id', id)
+        .single()
+      
+      if (fetchError) throw fetchError
+      
+      const quantity = data.quantity ?? currentItem.quantity
+      const unitPrice = data.unit_price ?? currentItem.unit_price
+      
+      updateData.amount = quantity * unitPrice
+    }
+    
+    const { data: updatedItem, error } = await supabase
+      .from('quote_line_items')
+      .update(mapToDb({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      }))
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Error updating quote line item:', error)
+      throw error
+    }
+    
+    return updatedItem
+  } catch (error) {
+    console.error('Error updating quote line item:', error)
+    throw error
   }
 }

@@ -4,24 +4,7 @@ import CompanyContactSection from './form-sections/CompanyContactSection'
 import AddressSection from './form-sections/AddressSection'
 import BusinessDetailsSection from './form-sections/BusinessDetailsSection'
 import AdditionalInfoSection from './form-sections/AdditionalInfoSection'
-
-interface ClientFormData {
-  companyName: string
-  contactName: string
-  contactEmail: string
-  contactPhone: string
-  street: string
-  city: string
-  state: string
-  postcode: string
-  paymentTerms: string
-  industry: string
-  status: string
-  businessNumber: string
-  region: string
-  notes: string
-  onHoldReason: string
-}
+import { ClientFormData } from './types'
 
 interface ClientFormProps {
   formData: ClientFormData

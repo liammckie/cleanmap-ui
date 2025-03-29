@@ -1,103 +1,118 @@
+
 import { supabase } from '@/integrations/supabase/client'
-import type { Client, ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
-import { isClientStatus } from '@/schema/operations/client.schema'
-import { mapToDb } from '@/utils/mappers'
+import { mapFromDb } from '@/utils/mappers'
+import type { ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
 
 /**
- * Fetch all clients with optional filtering
+ * Fetch all clients
  */
-export async function fetchClients(
-  searchTerm: string = '',
-  filters: { status: string; industry: string } = { status: '', industry: '' },
-): Promise<Client[]> {
-  let query = supabase.from('clients').select('*')
+export async function fetchClients() {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('company_name')
 
-  // Apply search filter if provided
-  if (searchTerm) {
-    query = query.or(
-      `company_name.ilike.%${searchTerm}%,contact_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`,
-    )
-  }
+    if (error) {
+      console.error('Error fetching clients:', error)
+      throw error
+    }
 
-  // Apply status filter if provided
-  if (filters.status && isClientStatus(filters.status)) {
-    query = query.eq('status', filters.status)
-  }
-
-  // Apply industry filter if provided
-  if (filters.industry) {
-    query = query.eq('industry', filters.industry)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
+    return data.map(client => mapFromDb(client))
+  } catch (error) {
     console.error('Error fetching clients:', error)
     throw error
   }
+}
 
-  // Type cast the data to Client[] - this is safe since we know the structure
-  // matches what's defined in our Client interface
-  return (data as unknown as Client[]) || []
+/**
+ * Fetch a single client by ID
+ */
+export async function fetchClient(id: string) {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.error(`Error fetching client ${id}:`, error)
+      throw error
+    }
+
+    return mapFromDb(data)
+  } catch (error) {
+    console.error(`Error fetching client ${id}:`, error)
+    throw error
+  }
 }
 
 /**
  * Create a new client
  */
-export async function createClient(client: ClientInsert): Promise<Client> {
-  // Use our mapper utility to convert to snake_case and handle Date objects
-  const preparedClient = mapToDb(client)
+export async function createClient(clientData: ClientInsert) {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .insert(clientData)
+      .select()
+      .single()
 
-  // Log what we're inserting to help with debugging
-  console.log('Inserting client with prepared data:', preparedClient)
+    if (error) {
+      console.error('Error creating client:', error)
+      throw error
+    }
 
-  const { data, error } = await supabase.from('clients').insert(preparedClient).select()
-
-  if (error) {
+    return mapFromDb(data)
+  } catch (error) {
     console.error('Error creating client:', error)
     throw error
   }
-
-  if (!data || data.length === 0) {
-    throw new Error('Failed to create client - no data returned')
-  }
-
-  return data[0] as unknown as Client
 }
 
 /**
  * Update an existing client
  */
-export async function updateClient(id: string, updates: ClientUpdate): Promise<Client> {
-  // Use our mapper utility to convert to snake_case and handle Date objects
-  const preparedUpdates = mapToDb(updates)
+export async function updateClient(id: string, clientData: ClientUpdate) {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .update(clientData)
+      .eq('id', id)
+      .select()
+      .single()
 
-  const { data, error } = await supabase
-    .from('clients')
-    .update(preparedUpdates)
-    .eq('id', id)
-    .select()
+    if (error) {
+      console.error(`Error updating client ${id}:`, error)
+      throw error
+    }
 
-  if (error) {
-    console.error('Error updating client:', error)
+    return mapFromDb(data)
+  } catch (error) {
+    console.error(`Error updating client ${id}:`, error)
     throw error
   }
-
-  if (!data || data.length === 0) {
-    throw new Error('Failed to update client - no data returned')
-  }
-
-  return data[0] as unknown as Client
 }
 
 /**
  * Delete a client
  */
-export async function deleteClient(id: string): Promise<void> {
-  const { error } = await supabase.from('clients').delete().eq('id', id)
+export async function deleteClient(id: string) {
+  try {
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', id)
 
-  if (error) {
-    console.error('Error deleting client:', error)
+    if (error) {
+      console.error(`Error deleting client ${id}:`, error)
+      throw error
+    }
+
+    return true
+  } catch (error) {
+    console.error(`Error deleting client ${id}:`, error)
     throw error
   }
 }

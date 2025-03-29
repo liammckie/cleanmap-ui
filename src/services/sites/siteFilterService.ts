@@ -67,7 +67,7 @@ export async function fetchSiteStatuses() {
  */
 export async function filterSites(filters: {
   clientId?: string
-  status?: string
+  status?: Site['status']
   region?: string
   siteType?: string
   search?: string

@@ -3,24 +3,7 @@ import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-
-interface ClientFormData {
-  companyName: string
-  contactName: string
-  contactEmail: string
-  contactPhone: string
-  street: string
-  city: string
-  state: string
-  postcode: string
-  paymentTerms: string
-  industry: string
-  status: string
-  businessNumber: string
-  region: string
-  notes: string
-  onHoldReason: string
-}
+import { ClientFormData } from '../types'
 
 interface AdditionalInfoSectionProps {
   formData: ClientFormData
