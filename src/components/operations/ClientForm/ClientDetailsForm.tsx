@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -35,12 +36,26 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
 
         <FormField
           control={form.control}
+          name="primary_contact"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primary Contact*</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter primary contact" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="contact_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact Name*</FormLabel>
+              <FormLabel>Alternative Contact</FormLabel>
               <FormControl>
-                <Input placeholder="Enter contact name" {...field} />
+                <Input placeholder="Enter alternative contact" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>

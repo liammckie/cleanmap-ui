@@ -1,18 +1,12 @@
-import React from 'react'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { UseFormReturn } from 'react-hook-form'
+
+import React from 'react';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { UseFormReturn } from 'react-hook-form';
 
 interface SiteBasicDetailsProps {
-  form: UseFormReturn<any>
-  index: number
+  form: UseFormReturn<any>;
+  index: number;
 }
 
 const SiteBasicDetails: React.FC<SiteBasicDetailsProps> = ({ form, index }) => {
@@ -38,28 +32,43 @@ const SiteBasicDetails: React.FC<SiteBasicDetailsProps> = ({ form, index }) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Site Type*</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select site type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="Office">Office</SelectItem>
-                <SelectItem value="Retail">Retail</SelectItem>
-                <SelectItem value="Medical">Medical</SelectItem>
-                <SelectItem value="Industrial">Industrial</SelectItem>
-                <SelectItem value="Educational">Educational</SelectItem>
-                <SelectItem value="Residential">Residential</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <FormControl>
+              <Input placeholder="e.g., Office, Retail, Warehouse" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`sites.${index}.primary_contact`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Primary Contact Name</FormLabel>
+            <FormControl>
+              <Input placeholder="Site contact name" {...field} value={field.value || ''} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`sites.${index}.contact_phone`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Contact Phone</FormLabel>
+            <FormControl>
+              <Input placeholder="Site contact phone" {...field} value={field.value || ''} />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
     </div>
-  )
-}
+  );
+};
 
-export default SiteBasicDetails
+export default SiteBasicDetails;

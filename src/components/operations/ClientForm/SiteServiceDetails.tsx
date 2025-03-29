@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UseFormReturn } from 'react-hook-form';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface SiteServiceDetailsProps {
   form: UseFormReturn<any>;
@@ -14,6 +15,21 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
   form,
   index
 }) => {
+  // Function to copy client address to site address
+  const copyClientAddress = () => {
+    const clientAddress = {
+      street: form.getValues('billing_address_street'),
+      city: form.getValues('billing_address_city'),
+      state: form.getValues('billing_address_state'),
+      postcode: form.getValues('billing_address_postcode'),
+    };
+    
+    form.setValue(`sites.${index}.address_street`, clientAddress.street);
+    form.setValue(`sites.${index}.address_city`, clientAddress.city);
+    form.setValue(`sites.${index}.address_state`, clientAddress.state);
+    form.setValue(`sites.${index}.address_postcode`, clientAddress.postcode);
+  };
+
   return <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField control={form.control} name={`sites.${index}.region`} render={({
@@ -70,6 +86,23 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
               </FormControl>
               <FormMessage />
             </FormItem>} />
+
+        <FormField control={form.control} name={`sites.${index}.service_frequency`} render={({
+        field
+      }) => <FormItem>
+              <FormLabel>Service Frequency</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Daily, Twice weekly" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>} />
+      </div>
+
+      <div className="flex items-center space-x-2 mt-2">
+        <Checkbox id={`copy-client-address-${index}`} onClick={copyClientAddress} />
+        <label htmlFor={`copy-client-address-${index}`} className="text-sm text-muted-foreground cursor-pointer">
+          Use client address for this site
+        </label>
       </div>
     </>;
 };

@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -13,7 +14,8 @@ import { useClientForm, STEPS } from '@/hooks/operations/useClientForm'
 
 const clientFormSchema = z.object({
   company_name: z.string().min(1, 'Company name is required'),
-  contact_name: z.string().min(1, 'Contact name is required'),
+  primary_contact: z.string().min(1, 'Primary contact is required'),
+  contact_name: z.string().nullable().optional(),
   contact_email: z.string().email('Valid email is required').nullable().optional(),
   contact_phone: z.string().nullable().optional(),
   billing_address_street: z.string().min(1, 'Street address is required'),
@@ -34,6 +36,8 @@ const clientFormSchema = z.object({
       z.object({
         site_name: z.string().min(1, 'Site name is required'),
         site_type: z.string().min(1, 'Site type is required'),
+        primary_contact: z.string().nullable().optional(),
+        contact_phone: z.string().nullable().optional(),
         address_street: z.string().min(1, 'Street address is required'),
         address_city: z.string().min(1, 'City is required'),
         address_state: z.string().min(1, 'State is required'),
@@ -42,6 +46,7 @@ const clientFormSchema = z.object({
         service_start_date: z.date().nullable(),
         service_end_date: z.date().nullable().optional(),
         service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
+        service_frequency: z.string().nullable().optional(),
         price_per_service: z.number().min(0, 'Price must be 0 or greater'),
         price_frequency: z.string().min(1, 'Billing frequency is required'),
         special_instructions: z.string().nullable().optional(),
@@ -58,6 +63,7 @@ const ClientFormStepper: React.FC = () => {
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
       company_name: '',
+      primary_contact: '',
       contact_name: '',
       contact_email: '',
       contact_phone: '',
@@ -78,6 +84,8 @@ const ClientFormStepper: React.FC = () => {
         {
           site_name: '',
           site_type: '',
+          primary_contact: '',
+          contact_phone: '',
           address_street: '',
           address_city: '',
           address_state: '',
@@ -86,6 +94,7 @@ const ClientFormStepper: React.FC = () => {
           service_start_date: null,
           service_end_date: null,
           service_type: 'Internal',
+          service_frequency: '',
           price_per_service: 0,
           price_frequency: 'weekly',
           special_instructions: '',

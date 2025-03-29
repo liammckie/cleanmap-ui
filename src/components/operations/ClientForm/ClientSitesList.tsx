@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -18,12 +19,17 @@ const ClientSitesList: React.FC<ClientSitesListProps> = ({ form }) => {
       {
         site_name: '',
         site_type: '',
+        primary_contact: '',
+        contact_phone: '',
         address_street: '',
         address_city: '',
         address_state: '',
         address_postcode: '',
         region: '',
         service_start_date: null,
+        service_end_date: null,
+        service_type: 'Internal',
+        service_frequency: '',
         price_per_service: 0,
         price_frequency: 'monthly',
         special_instructions: '',

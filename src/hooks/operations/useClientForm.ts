@@ -4,11 +4,10 @@ import { UseFormReturn } from 'react-hook-form'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { createClient } from '@/services/clients'
-import { createSite } from '@/services/sites' // Updated import path
+import { createSite } from '@/services/sites'
 import { calculateAllBillingFrequencies } from '@/utils/billingCalculations'
 import type { BillingFrequency } from '@/utils/billingCalculations'
-import type { Site, SiteInsert } from '@/schema/operations/site.schema'
-import { mapToDb } from '@/utils/mappers'
+import type { SiteInsert } from '@/schema/operations/site.schema'
 import type { ClientInsert } from '@/schema/operations/client.schema'
 
 export const STEPS = {
@@ -27,7 +26,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
     if (currentStep === STEPS.CLIENT_DETAILS) {
       const clientFields = [
         'company_name',
-        'contact_name',
+        'primary_contact',
         'billing_address_street',
         'billing_address_city',
         'billing_address_state',
@@ -65,7 +64,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
       // Create the client using our mapper
       const clientPayload: ClientInsert = {
         company_name: clientData.company_name,
-        contact_name: clientData.contact_name,
+        contact_name: clientData.contact_name || null,
         contact_email: clientData.contact_email || null,
         contact_phone: clientData.contact_phone || null,
         billing_address_street: clientData.billing_address_street,
