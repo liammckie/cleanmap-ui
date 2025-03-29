@@ -22,7 +22,7 @@ export async function fetchSites(
   // Apply search if provided
   if (searchTerm) {
     query = query.or(
-      `site_name.ilike.%${searchTerm}%,street_address.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%,state.ilike.%${searchTerm}%`,
+      `site_name.ilike.%${searchTerm}%,address_street.ilike.%${searchTerm}%,address_city.ilike.%${searchTerm}%,address_state.ilike.%${searchTerm}%`,
     )
   }
 
@@ -76,9 +76,31 @@ export async function fetchSiteById(id: string) {
   return data
 }
 
-export async function createSite(site: Omit<Site, 'id' | 'created_at' | 'updated_at'>) {
+export async function createSite(site: Partial<Site>) {
+  // Map the site fields to match the database schema
+  const mappedSite = {
+    client_id: site.client_id,
+    site_name: site.site_name,
+    site_type: site.site_type,
+    status: site.status || 'Active',
+    // Map address fields correctly
+    address_street: site.address_street || site.street_address,
+    address_city: site.address_city || site.city,
+    address_state: site.address_state || site.state,
+    address_postcode: site.address_postcode || site.zip_code,
+    // Other fields
+    region: site.region,
+    service_start_date: site.service_start_date,
+    site_manager_id: site.site_manager_id,
+    special_instructions: site.special_instructions || site.notes,
+    service_type: site.service_type,
+    price_per_service: site.price_per_service,
+    price_frequency: site.price_frequency,
+  };
+
   // Convert Date objects to ISO strings for Supabase
-  const dbSite = prepareObjectForDb(site)
+  const dbSite = prepareObjectForDb(mappedSite)
+  console.log('Inserting site with prepared data:', dbSite);
 
   const { data, error } = await supabase
     .from('sites')

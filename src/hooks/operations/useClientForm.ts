@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { useToast } from '@/hooks/use-toast'
@@ -54,10 +55,12 @@ export const useClientForm = (form: UseFormReturn<any>) => {
   const onSubmit = async (data: any) => {
     try {
       setIsSubmitting(true)
+      console.log('Form data submitted:', data);
 
       const { sites, ...clientData } = data
 
-      const newClient = await createClient({
+      // Create the client with proper field mapping
+      const clientPayload = {
         company_name: clientData.company_name,
         contact_name: clientData.contact_name,
         contact_email: clientData.contact_email || null,
@@ -65,8 +68,8 @@ export const useClientForm = (form: UseFormReturn<any>) => {
         billing_address_street: clientData.billing_address_street,
         billing_address_city: clientData.billing_address_city,
         billing_address_state: clientData.billing_address_state,
-        billing_address_zip: clientData.billing_address_postcode, // Using postcode for zip as well
         billing_address_postcode: clientData.billing_address_postcode,
+        // Don't include billing_address_zip
         payment_terms: clientData.payment_terms,
         status: clientData.status as 'Active' | 'On Hold',
         industry: clientData.industry || null,
@@ -74,9 +77,11 @@ export const useClientForm = (form: UseFormReturn<any>) => {
         notes: clientData.notes || null,
         business_number: clientData.business_number || null,
         on_hold_reason: clientData.on_hold_reason || null,
-        latitude: null,
-        longitude: null,
-      })
+      };
+
+      console.log('Sending client data to API:', clientPayload);
+      const newClient = await createClient(clientPayload)
+      console.log('Client created successfully:', newClient);
 
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
@@ -85,32 +90,28 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             siteData.price_frequency as BillingFrequency,
           )
 
-          await createSite({
+          // Create site with properly mapped fields
+          const sitePayload = {
             client_id: newClient.id,
             site_name: siteData.site_name,
-            site_code: null,
-            street_address: siteData.address_street,
-            city: siteData.address_city,
-            state: siteData.address_state,
-            zip_code: siteData.address_postcode,
-            country: 'Australia',
-            contact_name: null,
-            contact_email: null,
-            contact_phone: null,
-            square_footage: null,
-            floors: null,
             site_type: siteData.site_type,
+            address_street: siteData.address_street,
+            address_city: siteData.address_city,
+            address_state: siteData.address_state,
+            address_postcode: siteData.address_postcode,
             region: siteData.region || null,
-            status: 'Active',
-            notes: siteData.special_instructions || null,
-            latitude: null,
-            longitude: null,
             service_start_date: siteData.service_start_date,
             service_end_date: siteData.service_end_date,
             service_type: siteData.service_type,
             price_per_service: siteData.price_per_service,
             price_frequency: siteData.price_frequency,
-          })
+            special_instructions: siteData.special_instructions || null,
+            status: 'Active',
+          };
+
+          console.log('Sending site data to API:', sitePayload);
+          const newSite = await createSite(sitePayload);
+          console.log('Site created successfully:', newSite);
         }
       }
 

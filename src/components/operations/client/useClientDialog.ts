@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/services/clients'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 interface UseClientDialogProps {
   onClientAdded?: () => void
@@ -89,7 +88,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     try {
       setLoading(true)
 
-      // Prepare client data
+      // Prepare client data - properly map the form fields to the database fields
       const clientData = {
         company_name: formData.companyName,
         contact_name: formData.contactName,
@@ -99,7 +98,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         billing_address_city: formData.city,
         billing_address_state: formData.state,
         billing_address_postcode: formData.postcode,
-        billing_address_zip: formData.postcode, // Using postcode for zip as well
+        // Remove billing_address_zip field which doesn't match the schema
         payment_terms: formData.paymentTerms,
         industry: formData.industry || null,
         status: formData.status as 'Active' | 'On Hold',
@@ -108,6 +107,8 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
       }
+
+      console.log('Sending client data to API:', clientData);
 
       // Create client in database
       const result = await createClient(clientData)

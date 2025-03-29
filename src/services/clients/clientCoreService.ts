@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 import type { Client, ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
@@ -50,7 +51,7 @@ export async function createClient(client: ClientInsert): Promise<Client> {
   const preparedClient = prepareObjectForDb(client) as ClientInsert
 
   // Log what we're inserting to help with debugging
-  console.log('Inserting client:', preparedClient)
+  console.log('Inserting client with prepared data:', preparedClient)
 
   const { data, error } = await supabase.from('clients').insert(preparedClient).select()
 
