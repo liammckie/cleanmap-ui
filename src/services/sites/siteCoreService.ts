@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'
 
@@ -108,6 +109,7 @@ export async function fetchSites(search = '', filters: any = {}) {
       // Handle status as a proper site status enum value
       const status = String(filters.status)
       
+      // Validate status before applying filter
       if (VALID_SITE_STATUSES.includes(status as SiteStatus)) {
         query = query.eq('status', status)
       }

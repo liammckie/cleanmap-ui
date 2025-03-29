@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { parseCoordinatesFromStorage } from '@/utils/googleMaps'
 
@@ -59,7 +60,7 @@ export async function getNewWorkOrders() {
     const { count, error } = await supabase
       .from('work_orders')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'New')
+      .eq('status', 'Scheduled') // Changed from 'New' to 'Scheduled' which is a valid status
 
     if (error) {
       throw error
@@ -106,6 +107,7 @@ export async function getSiteLocations() {
         name: site.site_name,
         lat,
         lng,
+        count: 1, // This would normally be something like staff assigned to this site
         address: site.address_street,
         city: site.address_city,
         clientName: site.clients?.company_name,
