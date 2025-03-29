@@ -7,6 +7,7 @@ import { createClient } from '@/services/clients'
 import { createSite } from '@/services/siteService'
 import { calculateAllBillingFrequencies } from '@/utils/billingCalculations'
 import type { BillingFrequency } from '@/utils/billingCalculations'
+import type { Site } from '@/schema/operations/site.schema'
 
 export const STEPS = {
   CLIENT_DETAILS: 0,
@@ -69,7 +70,6 @@ export const useClientForm = (form: UseFormReturn<any>) => {
         billing_address_city: clientData.billing_address_city,
         billing_address_state: clientData.billing_address_state,
         billing_address_postcode: clientData.billing_address_postcode,
-        // Don't include billing_address_zip
         payment_terms: clientData.payment_terms,
         status: clientData.status as 'Active' | 'On Hold',
         industry: clientData.industry || null,
@@ -91,7 +91,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
           )
 
           // Create site with properly mapped fields
-          const sitePayload = {
+          const sitePayload: Partial<Site> = {
             client_id: newClient.id,
             site_name: siteData.site_name,
             site_type: siteData.site_type,
@@ -106,7 +106,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             price_per_service: siteData.price_per_service,
             price_frequency: siteData.price_frequency,
             special_instructions: siteData.special_instructions || null,
-            status: 'Active',
+            status: 'Active' as const,
           };
 
           console.log('Sending site data to API:', sitePayload);

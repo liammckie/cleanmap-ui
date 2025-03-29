@@ -92,7 +92,7 @@ export async function createSite(site: Partial<Site>) {
     region: site.region,
     service_start_date: site.service_start_date,
     site_manager_id: site.site_manager_id,
-    special_instructions: site.special_instructions || site.notes,
+    special_instructions: site.special_instructions,
     service_type: site.service_type,
     price_per_service: site.price_per_service,
     price_frequency: site.price_frequency,

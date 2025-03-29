@@ -70,3 +70,25 @@ export const siteSchema = z.object({
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
 })
+
+// Define types for DB operations
+export type SiteInsert = {
+  client_id: string
+  site_name: string
+  site_type: string
+  address_street: string
+  address_city: string
+  address_state: string
+  address_postcode: string
+  region?: string | null
+  service_start_date?: Date | null
+  service_end_date?: Date | null
+  special_instructions?: string | null
+  status: 'Active' | 'Inactive' | 'Pending Launch' | 'Suspended'
+  site_manager_id?: string | null
+  service_type?: 'Internal' | 'Contractor'
+  price_per_service?: number | null
+  price_frequency?: string | null
+}
+
+export type SiteUpdate = Partial<SiteInsert>
