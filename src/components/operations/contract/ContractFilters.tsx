@@ -84,7 +84,7 @@ const ContractFilters: React.FC<ContractFiltersProps> = ({
                   <SelectValue placeholder="Filter by client" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.company_name}
@@ -103,7 +103,7 @@ const ContractFilters: React.FC<ContractFiltersProps> = ({
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   {contractStatuses.map((status) => (
                     <SelectItem key={status} value={status}>
                       {status}
@@ -122,7 +122,7 @@ const ContractFilters: React.FC<ContractFiltersProps> = ({
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {contractTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}

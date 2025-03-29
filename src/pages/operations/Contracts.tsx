@@ -19,9 +19,9 @@ const ContractsPage = () => {
     status: string
     contractType: string
   }>({
-    clientId: '',
-    status: '',
-    contractType: '',
+    clientId: 'all',
+    status: 'all',
+    contractType: 'all',
   })
 
   const {
@@ -45,9 +45,9 @@ const ContractsPage = () => {
 
   const clearFilters = () => {
     setFilters({
-      clientId: '',
-      status: '',
-      contractType: '',
+      clientId: 'all',
+      status: 'all',
+      contractType: 'all',
     })
     setSearchTerm('')
   }
