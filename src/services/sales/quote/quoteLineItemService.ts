@@ -47,6 +47,7 @@ export const addQuoteLineItem = async (
     if (!lineItem.quote_id) throw new Error('Quote ID is required')
     if (!lineItem.description) throw new Error('Description is required')
 
+    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lineItem,
       created_at: new Date(),
@@ -79,6 +80,7 @@ export const updateQuoteLineItem = async (
   lineItem: Partial<QuoteLineItem>
 ): Promise<QuoteLineItem | null> => {
   try {
+    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lineItem,
       updated_at: new Date()

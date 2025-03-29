@@ -44,6 +44,7 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...lead,
       updated_at: new Date()

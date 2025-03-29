@@ -11,6 +11,7 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
+    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...quote,
       created_at: new Date(),
@@ -48,6 +49,7 @@ export const updateQuote = async (
   updates: Partial<Quote>
 ): Promise<Quote | null> => {
   try {
+    // Make sure we fully prepare all the data including dates for DB
     const prepared = prepareObjectForDb({
       ...updates,
       updated_at: new Date()
