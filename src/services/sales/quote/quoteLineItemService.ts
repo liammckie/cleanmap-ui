@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import {
   QuoteLineItem,
@@ -82,11 +83,10 @@ export const updateQuoteLineItem = async (
   lineItem: Partial<QuoteLineItem>,
 ): Promise<QuoteLineItem | null> => {
   try {
-    // Prepare data for DB - convert Dates to ISO strings
+    // Prepare data for DB - properly convert all Date objects to strings
     const preparedData = prepareObjectForDb({
       ...lineItem,
-      created_at: lineItem.created_at ? lineItem.created_at.toISOString() : undefined, // Convert to string if present
-      updated_at: new Date().toISOString(), // Ensure updated_at is a string
+      updated_at: new Date()
     });
 
     // Update the line item using the helper

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { Quote, quoteSchema, quoteDbSchema } from '@/schema/sales/quote.schema'
 import { apiClient } from '@/utils/supabaseInsertHelper'
@@ -47,13 +48,13 @@ export const updateQuote = async (
   quote: Partial<Quote>,
 ): Promise<Quote | null> => {
   try {
-    // Prepare data for DB - convert Dates to strings
+    // Prepare data for DB - convert all Dates to strings
     const preparedData = prepareObjectForDb({
       ...quote,
       updated_at: new Date(),
     })
 
-    // Update the quote using our improved helper
+    // Update the quote using our improved helper with properly converted dates
     const data = await apiClient.update(supabase, 'quotes', quoteId, preparedData)
 
     // Convert string dates back to Date objects

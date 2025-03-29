@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema'
 import { apiClient } from '@/utils/supabaseInsertHelper'
@@ -42,11 +43,13 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Use prepareObjectForDb to convert Date objects to strings
     const preparedData = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
     })
 
+    // Pass the prepared data (with string dates) to the update function
     const data = await apiClient.update(supabase, 'leads', leadId, preparedData)
 
     return {
