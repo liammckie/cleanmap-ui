@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { fetchSites } from '@/services/sites' // Now properly exported
+import { fetchSites } from '@/services/sites'
+import { fetchSiteTypes, fetchSiteRegions, fetchSiteStatuses } from '@/services/sites/siteFilterService'
 import { 
   Search, 
   FilterX, 
@@ -25,10 +26,13 @@ import {
   Building,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  FileDown,
+  FileText,
+  Map
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +41,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { parseCoordinatesFromStorage } from '@/utils/googleMaps'
 import type { Site } from '@/schema/operations'
+import SiteMap from '@/components/Map/SiteMap'
 
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
@@ -75,7 +96,9 @@ const ServiceTypeBadge = ({ type }: { type: string }) => {
 
 const SiteListPage: React.FC = () => {
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+  const [isMapViewOpen, setIsMapViewOpen] = useState(false)
   const [filters, setFilters] = useState<{
     clientId: string
     status: string
@@ -88,6 +111,7 @@ const SiteListPage: React.FC = () => {
     siteType: '',
   })
 
+  // Fetch sites data
   const {
     data: sites,
     isLoading,
@@ -108,6 +132,22 @@ const SiteListPage: React.FC = () => {
     },
   })
 
+  // Fetch filter options
+  const { data: siteTypes = [] } = useQuery({
+    queryKey: ['siteTypes'],
+    queryFn: fetchSiteTypes,
+  })
+
+  const { data: regions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: fetchSiteRegions,
+  })
+
+  const { data: statuses = [] } = useQuery({
+    queryKey: ['siteStatuses'],
+    queryFn: fetchSiteStatuses,
+  })
+
   const clearFilters = () => {
     setFilters({
       clientId: '',
@@ -119,10 +159,87 @@ const SiteListPage: React.FC = () => {
   }
 
   const handleViewSite = (siteId: string) => {
-    // Future implementation: navigate to site detail page
-    console.log('View site details:', siteId)
-    // Will be implemented in a future task to show site details
+    navigate(`/operations/sites/${siteId}`)
   }
+
+  const handleEditSite = (siteId: string) => {
+    navigate(`/operations/sites/edit/${siteId}`)
+  }
+
+  const handleCreateWorkOrder = (siteId: string) => {
+    navigate(`/operations/work-orders/create?siteId=${siteId}`)
+  }
+
+  const handleExportSites = () => {
+    // Export the sites data as CSV
+    if (!sites || sites.length === 0) return
+
+    const headers = [
+      'Site Name',
+      'Client',
+      'Address',
+      'City',
+      'State',
+      'Postcode',
+      'Type',
+      'Status',
+      'Service Start',
+      'Region'
+    ].join(',')
+
+    const rows = sites.map((site: any) => [
+      `"${site.site_name}"`,
+      `"${site.clients?.company_name || ''}"`,
+      `"${site.address_street}"`,
+      `"${site.address_city}"`,
+      `"${site.address_state}"`,
+      `"${site.address_postcode}"`,
+      `"${site.site_type}"`,
+      `"${site.status}"`,
+      site.service_start_date ? `"${format(new Date(site.service_start_date), 'yyyy-MM-dd')}"` : '',
+      `"${site.region || ''}"`
+    ].join(','))
+
+    const csv = [headers, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `sites-export-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    toast({
+      title: 'Export Successful',
+      description: `${sites.length} sites exported to CSV.`,
+    })
+  }
+
+  // Transform site data for map display
+  const mapLocations = sites?.map((site: any) => {
+    let lat = 0
+    let lng = 0
+
+    if (site.coordinates) {
+      const coords = parseCoordinatesFromStorage(site.coordinates)
+      if (coords) {
+        lat = coords.lat
+        lng = coords.lng
+      }
+    }
+
+    return {
+      id: site.id,
+      name: site.site_name,
+      lat,
+      lng,
+      count: 1,
+      address: site.address_street,
+      city: site.address_city,
+      clientName: site.clients?.company_name
+    }
+  }).filter((location: any) => location.lat !== 0 && location.lng !== 0) || []
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
@@ -144,6 +261,28 @@ const SiteListPage: React.FC = () => {
               Add Client with Sites
             </Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Actions</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsMapViewOpen(true)}>
+                <Map className="h-4 w-4 mr-2" />
+                View Map
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportSites}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export to CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/operations/sites/import')}
+                disabled
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Import Sites
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -153,8 +292,8 @@ const SiteListPage: React.FC = () => {
           <CardDescription>Find sites by name, location, or other criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-grow">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="lg:col-span-2 relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search sites..."
@@ -163,10 +302,64 @@ const SiteListPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2" onClick={clearFilters}>
-              <FilterX className="h-4 w-4" />
-              Clear
-            </Button>
+            
+            <Select
+              value={filters.status}
+              onValueChange={(value) => setFilters({ ...filters, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                {statuses.map((status: string) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select
+              value={filters.region}
+              onValueChange={(value) => setFilters({ ...filters, region: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Region" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Regions</SelectItem>
+                {regions.map((region: string) => (
+                  <SelectItem key={region} value={region}>
+                    {region}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select
+              value={filters.siteType}
+              onValueChange={(value) => setFilters({ ...filters, siteType: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Site Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Types</SelectItem>
+                {siteTypes.map((type: string) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="lg:col-span-5 flex justify-end">
+              <Button variant="outline" className="flex items-center gap-2" onClick={clearFilters}>
+                <FilterX className="h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -205,7 +398,7 @@ const SiteListPage: React.FC = () => {
               <TableBody>
                 {sites?.map((site: any) => (
                   <TableRow key={site.id} className="hover:bg-muted">
-                    <TableCell>
+                    <TableCell className="cursor-pointer" onClick={() => handleViewSite(site.id)}>
                       <div className="flex flex-col">
                         <span className="font-medium">{site.site_name}</span>
                         <div className="flex items-center text-xs text-muted-foreground mt-1">
@@ -283,12 +476,12 @@ const SiteListPage: React.FC = () => {
                     </TableCell>
                     
                     <TableCell>
-                      {site.price_per_service ? (
+                      {site.price_per_week ? (
                         <div className="flex items-center">
                           <DollarSign className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span>${site.price_per_service}</span>
+                          <span>${site.price_per_week}</span>
                           <span className="text-xs text-muted-foreground ml-1">
-                            /{site.price_frequency || 'service'}
+                            /{site.price_frequency || 'week'}
                           </span>
                         </div>
                       ) : (
@@ -309,9 +502,12 @@ const SiteListPage: React.FC = () => {
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>Edit Site</DropdownMenuItem>
-                          <DropdownMenuItem>Add Contract</DropdownMenuItem>
-                          <DropdownMenuItem>Create Work Order</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditSite(site.id)}>
+                            Edit Site
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCreateWorkOrder(site.id)}>
+                            Create Work Order
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -322,6 +518,35 @@ const SiteListPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Map View Dialog */}
+      <Dialog open={isMapViewOpen} onOpenChange={setIsMapViewOpen}>
+        <DialogContent className="max-w-5xl h-[80vh] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Sites Map View</DialogTitle>
+            <DialogDescription>
+              Geographic view of all service locations
+            </DialogDescription>
+          </DialogHeader>
+          <div className="h-full p-6 pt-0">
+            <div className="h-[calc(80vh-120px)]">
+              {mapLocations.length > 0 ? (
+                <SiteMap locations={mapLocations} isFullscreen={false} />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-muted/20 rounded-lg">
+                  <div className="text-center p-6">
+                    <Map className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <h3 className="text-lg font-medium">No locations to display</h3>
+                    <p className="text-muted-foreground mt-1">
+                      No sites with valid coordinates were found. Try adjusting your filters.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

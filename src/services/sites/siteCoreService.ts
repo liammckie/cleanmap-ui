@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'
 
@@ -127,6 +126,136 @@ export async function fetchSites(search = '', filters: any = {}) {
     return data || []
   } catch (error) {
     console.error('Error fetching sites:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch a single site by ID
+ * @param siteId ID of the site to fetch
+ * @returns Site details
+ */
+export async function fetchSiteById(siteId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select(`
+        *,
+        clients (
+          id,
+          company_name
+        )
+      `)
+      .eq('id', siteId)
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error('Error fetching site by ID:', error)
+    throw error
+  }
+}
+
+/**
+ * Update an existing site
+ * @param siteId ID of the site to update
+ * @param siteData Updated site data
+ * @returns The updated site
+ */
+export async function updateSite(siteId: string, siteData: Partial<Site>) {
+  try {
+    // Convert Date objects to ISO strings for database compatibility
+    const formattedStartDate = siteData.service_start_date instanceof Date 
+      ? siteData.service_start_date.toISOString()
+      : siteData.service_start_date;
+      
+    const formattedEndDate = siteData.service_end_date instanceof Date
+      ? siteData.service_end_date.toISOString()
+      : siteData.service_end_date;
+    
+    // Prepare data for update
+    const updateData = {
+      ...siteData,
+      service_start_date: formattedStartDate,
+      service_end_date: formattedEndDate,
+      updated_at: new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from('sites')
+      .update(updateData)
+      .eq('id', siteId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error('Error updating site:', error)
+    throw error
+  }
+}
+
+/**
+ * Delete a site
+ * @param siteId ID of the site to delete
+ * @returns Success status
+ */
+export async function deleteSite(siteId: string) {
+  try {
+    const { error } = await supabase
+      .from('sites')
+      .delete()
+      .eq('id', siteId)
+
+    if (error) throw error
+
+    return true
+  } catch (error) {
+    console.error('Error deleting site:', error)
+    throw error
+  }
+}
+
+/**
+ * Bulk import sites
+ * @param sites Array of site data to import
+ * @returns The imported sites
+ */
+export async function bulkImportSites(sites: Partial<Site>[]) {
+  try {
+    // Format sites for database
+    const formattedSites = sites.map(site => {
+      const formattedStartDate = site.service_start_date instanceof Date 
+        ? site.service_start_date.toISOString()
+        : site.service_start_date;
+        
+      const formattedEndDate = site.service_end_date instanceof Date
+        ? site.service_end_date.toISOString()
+        : site.service_end_date;
+      
+      return {
+        ...site,
+        service_start_date: formattedStartDate,
+        service_end_date: formattedEndDate,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    })
+
+    const { data, error } = await supabase
+      .from('sites')
+      .insert(formattedSites)
+      .select()
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error('Error bulk importing sites:', error)
     throw error
   }
 }
