@@ -1,7 +1,7 @@
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Employee, EmployeeFilters } from '@/types/employee.types'
+import { Employee } from '@/types/employee.types'
 import { 
   fetchEmployees, 
   fetchDepartments, 
@@ -9,32 +9,23 @@ import {
   fetchEmployeeStatuses 
 } from '@/services/employeeService'
 import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
-
-// Helper function to validate termination reasons - moved outside to avoid eval
-function isValidTerminationReason(reason: string | null | undefined): boolean {
-  if (!reason) return false;
-  const validReasons = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason);
-}
+import { useEmployeeFilters } from './useEmployeeFilters'
+import { useEmployeeSorting } from './useEmployeeSorting'
+import { useEmployeePagination } from './useEmployeePagination'
+import { useEmployeeDialogs } from './useEmployeeDialogs'
+import { processEmployeeData } from '@/utils/employeeDataUtils'
 
 export function useEmployeeList() {
   console.log('Initializing useEmployeeList hook');
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<EmployeeFilters>({
-    department: '',
-    status: '',
-    employmentType: '',
-  })
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10)
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false)
-
-  const [sortColumn, setSortColumn] = useState<keyof Employee | null>('last_name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  
+  // Extract filter functionality
+  const {
+    searchTerm,
+    setSearchTerm,
+    filters,
+    handleFilterChange,
+    clearFilters
+  } = useEmployeeFilters();
 
   try {
     console.log('Setting up employee query');
@@ -54,15 +45,24 @@ export function useEmployeeList() {
     // Process employee data to ensure correct typing
     const employees = useMemo(() => {
       console.log('Processing employee data', employeesRaw);
-      if (!employeesRaw) return [] as Employee[];
-      
-      return employeesRaw.map(emp => ({
-        ...emp,
-        end_of_employment_reason: isValidTerminationReason(emp.end_of_employment_reason) 
-          ? emp.end_of_employment_reason 
-          : null
-      })) as Employee[];
+      return processEmployeeData(employeesRaw) as Employee[];
     }, [employeesRaw]);
+
+    // Extract sorting functionality
+    const { sortColumn, sortDirection, handleSort, sortedEmployees } = useEmployeeSorting(employees);
+
+    // Extract pagination functionality
+    const { currentPage, setCurrentPage, currentItems, totalPages, resetPagination } = useEmployeePagination(sortedEmployees);
+
+    // Extract dialog functionality
+    const {
+      selectedEmployee,
+      setSelectedEmployee,
+      isDetailOpen,
+      setIsDetailOpen,
+      isAddEmployeeOpen,
+      setIsAddEmployeeOpen,
+    } = useEmployeeDialogs();
 
     console.log('Setting up department query');
     const { data: departments = [] } = useQuery({
@@ -91,56 +91,17 @@ export function useEmployeeList() {
       },
     });
 
-    const handleFilterChange = (newFilters: EmployeeFilters) => {
-      setFilters(newFilters)
-      setCurrentPage(1) // Reset to first page when filters change
-    }
-
-    const clearFilters = () => {
-      setFilters({
-        department: '',
-        status: '',
-        employmentType: '',
-      })
-      setSearchTerm('')
-    }
-
-    const handleSort = (column: keyof Employee) => {
-      if (sortColumn === column) {
-        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-      } else {
-        setSortColumn(column)
-        setSortDirection('asc')
-      }
-    }
-
-    const sortedEmployees = useMemo(() => {
-      if (!employees || !sortColumn) return employees || []
-
-      return [...employees].sort((a, b) => {
-        const aValue = a[sortColumn]
-        const bValue = b[sortColumn]
-
-        if (aValue == null) return 1
-        if (bValue == null) return -1
-
-        const comparison = String(aValue).localeCompare(String(bValue), undefined, { numeric: true })
-        return sortDirection === 'asc' ? comparison : -comparison
-      })
-    }, [employees, sortColumn, sortDirection]);
-
-    const indexOfLastItem = currentPage * itemsPerPage
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage
-    const currentItems = sortedEmployees
-      ? sortedEmployees.slice(indexOfFirstItem, indexOfLastItem)
-      : []
-    const totalPages = sortedEmployees ? Math.ceil(sortedEmployees.length / itemsPerPage) : 0
+    // Enhanced filter change that also resets pagination
+    const handleFilterChangeWithReset = (newFilters) => {
+      handleFilterChange(newFilters);
+      resetPagination();
+    };
 
     return {
       searchTerm,
       setSearchTerm,
       filters,
-      handleFilterChange,
+      handleFilterChange: handleFilterChangeWithReset,
       clearFilters,
       currentPage,
       setCurrentPage,
