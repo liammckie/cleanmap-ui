@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { fetchContracts } from '@/services/contracts'
 import ContractFilters from '@/components/operations/contract/ContractFilters'
 import ContractsTable from '@/components/operations/contract/ContractsTable'
+import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
 
 const ContractsPage = () => {
   const { toast } = useToast()
@@ -31,13 +32,8 @@ const ContractsPage = () => {
   } = useQuery({
     queryKey: ['contracts', searchTerm, filters],
     queryFn: () => fetchContracts(searchTerm, filters),
-    onError: (err: Error) => {
-      console.error('Failed to fetch contracts:', err)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load contracts data. Please try again.',
-      })
+    meta: {
+      onError: createQueryErrorHandler('contracts')
     },
   })
 
