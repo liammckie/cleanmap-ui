@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, LeadSource } from '@/schema/sales/lead.schema'
-import { apiClient } from '@/utils/supabaseInsertHelper'
+import { apiClient } from '@/utils/supabase/apiClient'
 
 /**
  * Fetch all leads with optional search

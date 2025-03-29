@@ -4,7 +4,7 @@ import {
   QuoteLineItem,
   quoteLineItemDbSchema,
 } from '@/schema/sales/quote.schema'
-import { apiClient } from '@/utils/supabaseInsertHelper'
+import { apiClient } from '@/utils/supabase/apiClient'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**

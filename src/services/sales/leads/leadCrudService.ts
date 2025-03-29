@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema'
-import { apiClient } from '@/utils/supabaseInsertHelper'
+import { apiClient } from '@/utils/supabase/apiClient'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**
