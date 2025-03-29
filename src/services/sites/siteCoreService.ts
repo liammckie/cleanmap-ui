@@ -111,7 +111,7 @@ export async function fetchSites(search = '', filters: any = {}) {
       
       // Validate status before applying filter
       if (VALID_SITE_STATUSES.includes(status as SiteStatus)) {
-        query = query.eq('status', status)
+        query = query.eq('status', status as SiteStatus)
       }
     }
 

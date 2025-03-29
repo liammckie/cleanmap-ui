@@ -69,8 +69,8 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Active Contracts"
-          value={stats.activeContracts}
+          title="Active Clients"
+          value={stats.activeClients}
           icon={<Activity className="h-8 w-8 text-blue-500" />}
           change={2.5}
           changeLabel="from last month"
