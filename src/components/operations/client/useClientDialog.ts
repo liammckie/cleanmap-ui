@@ -1,6 +1,8 @@
+
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/services/clients'
+import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 interface UseClientDialogProps {
   onClientAdded?: () => void
@@ -37,7 +39,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     city: '',
     state: '',
     postcode: '',
-    paymentTerms: '',
+    paymentTerms: 'Net 30',
     industry: '',
     status: 'Active',
     businessNumber: '',
@@ -56,7 +58,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
       city: '',
       state: '',
       postcode: '',
-      paymentTerms: '',
+      paymentTerms: 'Net 30',
       industry: '',
       status: 'Active',
       businessNumber: '',
@@ -73,10 +75,21 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Basic form validation
+    if (!formData.companyName || !formData.contactName || !formData.street || 
+        !formData.city || !formData.state || !formData.postcode) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+      })
+      return
+    }
+
     try {
       setLoading(true)
 
-      // Validate form data
+      // Prepare client data
       const clientData = {
         company_name: formData.companyName,
         contact_name: formData.contactName,
@@ -94,12 +107,12 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         region: formData.region || null,
         notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
-        latitude: null,
-        longitude: null,
       }
 
       // Create client in database
-      await createClient(clientData)
+      const result = await createClient(clientData)
+      
+      console.log('Client created successfully:', result)
 
       // Show success toast
       toast({

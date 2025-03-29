@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,204 +61,198 @@ const ClientForm: React.FC<ClientFormProps> = ({ formData, onChange, loading = f
 
   return (
     <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="companyName" className="text-right">
-          Company Name
-        </Label>
-        <Input
-          type="text"
-          id="companyName"
-          value={companyName}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+      {/* Company and Contact Information - First Column */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="companyName">Company Name*</Label>
+          <Input
+            type="text"
+            id="companyName"
+            value={companyName}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="contactName">Contact Name*</Label>
+          <Input
+            type="text"
+            id="contactName"
+            value={contactName}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="contactName" className="text-right">
-          Contact Name
-        </Label>
-        <Input
-          type="text"
-          id="contactName"
-          value={contactName}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="contactEmail">Contact Email</Label>
+          <Input
+            type="email"
+            id="contactEmail"
+            value={contactEmail}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="contactPhone">Contact Phone</Label>
+          <Input
+            type="tel"
+            id="contactPhone"
+            value={contactPhone}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="contactEmail" className="text-right">
-          Contact Email
-        </Label>
-        <Input
-          type="email"
-          id="contactEmail"
-          value={contactEmail}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="contactPhone" className="text-right">
-          Contact Phone
-        </Label>
-        <Input
-          type="tel"
-          id="contactPhone"
-          value={contactPhone}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="street" className="text-right">
-          Street Address
-        </Label>
+
+      {/* Address Information */}
+      <div className="mt-2 space-y-2">
+        <Label htmlFor="street">Street Address*</Label>
         <Input
           type="text"
           id="street"
           value={street}
           onChange={handleChange}
-          className="col-span-3"
           disabled={loading}
+          required
         />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="city" className="text-right">
-          City
-        </Label>
-        <Input
-          type="text"
-          id="city"
-          value={city}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city">City*</Label>
+          <Input
+            type="text"
+            id="city"
+            value={city}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="state">State*</Label>
+          <Input
+            type="text"
+            id="state"
+            value={state}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="postcode">Postcode*</Label>
+          <Input
+            type="text"
+            id="postcode"
+            value={postcode}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="state" className="text-right">
-          State
-        </Label>
-        <Input
-          type="text"
-          id="state"
-          value={state}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+
+      {/* Business Details */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="paymentTerms">Payment Terms*</Label>
+          <Input
+            type="text"
+            id="paymentTerms"
+            value={paymentTerms}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="industry">Industry</Label>
+          <Input
+            type="text"
+            id="industry"
+            value={industry}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="postcode" className="text-right">
-          Postcode
-        </Label>
-        <Input
-          type="text"
-          id="postcode"
-          value={postcode}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="status">Status*</Label>
+          <Select
+            value={status}
+            onValueChange={(value) => onChange('status', value)}
+            disabled={loading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="On Hold">On Hold</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="businessNumber">Business Number</Label>
+          <Input
+            type="text"
+            id="businessNumber"
+            value={businessNumber}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="paymentTerms" className="text-right">
-          Payment Terms
-        </Label>
-        <Input
-          type="text"
-          id="paymentTerms"
-          value={paymentTerms}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="industry" className="text-right">
-          Industry
-        </Label>
-        <Input
-          type="text"
-          id="industry"
-          value={industry}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">
-          Status
-        </Label>
-        <Select
-          value={status}
-          onValueChange={(value) => onChange('status', value)}
-          disabled={loading}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="On Hold">On Hold</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+
       {status === 'On Hold' && (
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="onHoldReason" className="text-right">
-            On Hold Reason
-          </Label>
+        <div className="space-y-2">
+          <Label htmlFor="onHoldReason">On Hold Reason*</Label>
           <Input
             type="text"
             id="onHoldReason"
             value={onHoldReason}
             onChange={handleChange}
-            className="col-span-3"
             disabled={loading}
+            required
           />
         </div>
       )}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="businessNumber" className="text-right">
-          Business Number
-        </Label>
-        <Input
-          type="text"
-          id="businessNumber"
-          value={businessNumber}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="region">Region</Label>
+          <Input
+            type="text"
+            id="region"
+            value={region}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="region" className="text-right">
-          Region
-        </Label>
-        <Input
-          type="text"
-          id="region"
-          value={region}
-          onChange={handleChange}
-          className="col-span-3"
-          disabled={loading}
-        />
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="notes" className="text-right mt-2">
-          Notes
-        </Label>
+
+      <div className="space-y-2">
+        <Label htmlFor="notes">Notes</Label>
         <Textarea
           id="notes"
           value={notes}
           onChange={handleChange}
-          className="col-span-3"
+          className="h-20"
           disabled={loading}
         />
       </div>

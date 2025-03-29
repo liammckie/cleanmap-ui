@@ -1,3 +1,4 @@
+
 import React from 'react'
 import {
   AlertDialog,
@@ -26,7 +27,7 @@ const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdd
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle>Add New Client</AlertDialogTitle>
           <AlertDialogDescription>Enter the details for the new client.</AlertDialogDescription>
@@ -35,8 +36,8 @@ const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdd
           <ClientForm formData={formData} onChange={handleChange} loading={loading} />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={loading} onClick={handleSubmit}>
-              {loading ? 'Creating...' : 'Create'}
+            <AlertDialogAction type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Client'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

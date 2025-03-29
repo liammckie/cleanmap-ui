@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, leadDbSchema } from '@/schema/sales/lead.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
@@ -38,6 +39,7 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Prepare all data for DB including the updated_at timestamp
     const prepared = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
