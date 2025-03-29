@@ -21,8 +21,9 @@ const BankingInformation: React.FC<BankingInformationProps> = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Bank BSB</Label>
+          <Label htmlFor="bank_bsb">Bank BSB</Label>
           <Input
+            id="bank_bsb"
             name="bank_bsb"
             value={employee.bank_bsb || ''}
             onChange={handleInputChange}
@@ -30,8 +31,9 @@ const BankingInformation: React.FC<BankingInformationProps> = ({
           />
         </div>
         <div>
-          <Label>Bank Account Number</Label>
+          <Label htmlFor="bank_account_number">Bank Account Number</Label>
           <Input
+            id="bank_account_number"
             name="bank_account_number"
             value={employee.bank_account_number || ''}
             onChange={handleInputChange}
@@ -42,8 +44,9 @@ const BankingInformation: React.FC<BankingInformationProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Superannuation Fund</Label>
+          <Label htmlFor="super_fund_name">Superannuation Fund</Label>
           <Input
+            id="super_fund_name"
             name="super_fund_name"
             value={employee.super_fund_name || ''}
             onChange={handleInputChange}
@@ -51,8 +54,9 @@ const BankingInformation: React.FC<BankingInformationProps> = ({
           />
         </div>
         <div>
-          <Label>Super Member Number</Label>
+          <Label htmlFor="super_member_number">Super Member Number</Label>
           <Input
+            id="super_member_number"
             name="super_member_number"
             value={employee.super_member_number || ''}
             onChange={handleInputChange}

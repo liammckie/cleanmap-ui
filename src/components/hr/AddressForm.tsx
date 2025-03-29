@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -25,15 +26,23 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
     form.setValue(postcodeName, address.postcode)
   }
 
+  // Generate unique IDs for form elements to fix label issues
+  const streetId = `street-${streetName}`
+  const cityId = `city-${cityName}`
+  const stateId = `state-${stateName}`
+  const postcodeId = `postcode-${postcodeName}`
+  const autocompleteId = "address-autocomplete"
+
   return (
     <div className="space-y-4">
       <div>
         <FormItem>
-          <FormLabel>Address Lookup</FormLabel>
+          <FormLabel htmlFor={autocompleteId}>Address Lookup</FormLabel>
           <AddressAutocomplete
             onAddressSelected={handleAddressSelected}
             placeholder="Search for an address"
             className="w-full"
+            id={autocompleteId}
           />
           <p className="text-xs text-muted-foreground mt-1">
             Search for an address to auto-fill the fields below, or enter manually
@@ -46,9 +55,9 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
         name={streetName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Street Address</FormLabel>
+            <FormLabel htmlFor={streetId}>Street Address</FormLabel>
             <FormControl>
-              <Input placeholder="123 Main St" {...field} />
+              <Input id={streetId} placeholder="123 Main St" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -61,9 +70,9 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
           name={cityName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>City</FormLabel>
+              <FormLabel htmlFor={cityId}>City</FormLabel>
               <FormControl>
-                <Input placeholder="Sydney" {...field} />
+                <Input id={cityId} placeholder="Sydney" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -75,9 +84,9 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
           name={stateName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>State</FormLabel>
+              <FormLabel htmlFor={stateId}>State</FormLabel>
               <FormControl>
-                <Input placeholder="NSW" {...field} />
+                <Input id={stateId} placeholder="NSW" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,9 +98,9 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
           name={postcodeName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Postcode</FormLabel>
+              <FormLabel htmlFor={postcodeId}>Postcode</FormLabel>
               <FormControl>
-                <Input placeholder="2000" {...field} />
+                <Input id={postcodeId} placeholder="2000" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

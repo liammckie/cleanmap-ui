@@ -10,6 +10,15 @@ import {
 } from '@/services/employeeService'
 import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
 
+// Helper function to validate termination reasons - moved outside to avoid eval
+function isValidTerminationReason(reason: string | null | undefined): boolean {
+  if (!reason) return false;
+  const validReasons = [
+    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
+  ];
+  return validReasons.includes(reason);
+}
+
 export function useEmployeeList() {
   console.log('Initializing useEmployeeList hook');
   const [searchTerm, setSearchTerm] = useState('')
@@ -115,13 +124,10 @@ export function useEmployeeList() {
         if (aValue == null) return 1
         if (bValue == null) return -1
 
-        const comparison = aValue
-          .toString()
-          .localeCompare(bValue.toString(), undefined, { numeric: true })
-
+        const comparison = String(aValue).localeCompare(String(bValue), undefined, { numeric: true })
         return sortDirection === 'asc' ? comparison : -comparison
       })
-    }, [employees, sortColumn, sortDirection])
+    }, [employees, sortColumn, sortDirection]);
 
     const indexOfLastItem = currentPage * itemsPerPage
     const indexOfFirstItem = indexOfLastItem - itemsPerPage
@@ -188,13 +194,4 @@ export function useEmployeeList() {
       refetch: () => Promise.resolve()
     }
   }
-}
-
-// Helper function to validate termination reasons
-function isValidTerminationReason(reason: string | null | undefined): reason is import('@/types/employee.types').EmploymentTerminationReason {
-  if (!reason) return false;
-  const validReasons: import('@/types/employee.types').EmploymentTerminationReason[] = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason as import('@/types/employee.types').EmploymentTerminationReason);
 }

@@ -28,8 +28,9 @@ const PayInformation: React.FC<PayInformationProps> = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Wage Classification</Label>
+          <Label htmlFor="wage_classification">Wage Classification</Label>
           <Input
+            id="wage_classification"
             name="wage_classification"
             value={employee.wage_classification || ''}
             onChange={handleInputChange}
@@ -37,8 +38,9 @@ const PayInformation: React.FC<PayInformationProps> = ({
           />
         </div>
         <div>
-          <Label>Pay Rate ($/hr)</Label>
+          <Label htmlFor="pay_rate">Pay Rate ($/hr)</Label>
           <Input
+            id="pay_rate"
             name="pay_rate"
             type="number"
             value={employee.pay_rate?.toString() || ''}
@@ -50,13 +52,13 @@ const PayInformation: React.FC<PayInformationProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Pay Cycle</Label>
+          <Label htmlFor="pay_cycle">Pay Cycle</Label>
           <Select
             value={employee.pay_cycle || ''}
             onValueChange={(value) => handleSelectChange('pay_cycle', value)}
             disabled={!isEditing}
           >
-            <SelectTrigger>
+            <SelectTrigger id="pay_cycle">
               <SelectValue placeholder="Select Pay Cycle" />
             </SelectTrigger>
             <SelectContent>
@@ -67,8 +69,9 @@ const PayInformation: React.FC<PayInformationProps> = ({
           </Select>
         </div>
         <div>
-          <Label>Tax File Number</Label>
+          <Label htmlFor="tax_id">Tax File Number</Label>
           <Input
+            id="tax_id"
             name="tax_id"
             value={employee.tax_id || ''}
             onChange={handleInputChange}
