@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'
 
@@ -123,7 +124,29 @@ export async function fetchSites(search = '', filters: any = {}) {
 
     if (error) throw error
 
-    return data || []
+    // Transform the response to match our Site interface
+    return data?.map(item => {
+      // Extract client data and format it to match our Site interface
+      const { clients, ...siteData } = item;
+      
+      return {
+        ...siteData,
+        client: clients ? {
+          company_name: clients.company_name
+        } : undefined,
+        // Set default values for any required fields that might be missing
+        service_end_date: item.service_end_date || null,
+        primary_contact: item.primary_contact || null,
+        contact_phone: item.contact_phone || null,
+        contact_email: item.contact_email || null,
+        service_frequency: item.service_frequency || null,
+        custom_frequency: item.custom_frequency || null,
+        service_type: item.service_type || 'Internal',
+        price_per_week: item.price_per_week || null,
+        price_frequency: item.price_frequency || null,
+        service_items: item.service_items || null
+      } as Site;
+    }) || []
   } catch (error) {
     console.error('Error fetching sites:', error)
     throw error
@@ -151,12 +174,27 @@ export async function fetchSiteById(siteId: string): Promise<Site> {
 
     if (error) throw error
 
-    // Transform the response to match the Site interface
+    // Extract client data from the response
+    const { clients, ...siteData } = data;
+    
+    // Transform the response to match the Site interface with all required properties
     const transformedData: Site = {
-      ...data,
-      client: data.clients ? {
-        company_name: data.clients.company_name
-      } : undefined
+      ...siteData,
+      // Set the client property correctly
+      client: clients ? {
+        company_name: clients.company_name
+      } : undefined,
+      // Add all the required properties from the Site interface with default values if they're missing
+      service_end_date: data.service_end_date || null,
+      primary_contact: data.primary_contact || null,
+      contact_phone: data.contact_phone || null,
+      contact_email: data.contact_email || null,
+      service_frequency: data.service_frequency || null,
+      custom_frequency: data.custom_frequency || null,
+      service_type: data.service_type || 'Internal',
+      price_per_week: data.price_per_week || null,
+      price_frequency: data.price_frequency || null,
+      service_items: data.service_items || null
     }
 
     return transformedData
