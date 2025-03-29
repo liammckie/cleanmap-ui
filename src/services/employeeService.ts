@@ -4,6 +4,7 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
 import type { TablesInsert } from '@/integrations/supabase/types'
 import { Database } from '@/integrations/supabase/types'
 import { Employee, EmploymentTerminationReason } from '@/types/employee.types'
+import { mapEmployeeFromDb, mapEmployeesFromDb, mapEmployeeToDb } from '@/mappers/employeeMappers'
 
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status']
@@ -62,15 +63,8 @@ export async function fetchEmployees(
     throw error
   }
 
-  // Transform data to ensure end_of_employment_reason is properly typed
-  return data.map(employee => {
-    return {
-      ...employee,
-      end_of_employment_reason: isValidTerminationReason(employee.end_of_employment_reason) 
-        ? employee.end_of_employment_reason 
-        : null
-    };
-  });
+  // Transform data using our mapper
+  return mapEmployeesFromDb(data)
 }
 
 // Fetch a single employee by ID
@@ -117,15 +111,8 @@ export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at
 
 // Update an existing employee
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
-  // Validate end_of_employment_reason if present in updates
-  if (updates.end_of_employment_reason !== undefined && 
-      !isValidTerminationReason(updates.end_of_employment_reason)) {
-    // If invalid, set to null
-    updates.end_of_employment_reason = null;
-  }
-
-  // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>
+  // Use the mapper to convert the employee object to DB format
+  const dbUpdates = mapEmployeeToDb(updates) as TablesInsert<'employees'>
 
   const { data, error } = await supabase.from('employees').update(dbUpdates).eq('id', id).select()
 
@@ -134,7 +121,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>) {
     throw error
   }
 
-  return data[0]
+  return mapEmployeeFromDb(data[0])
 }
 
 // Delete an employee by ID

@@ -1,32 +1,19 @@
 
-// Helper function to validate termination reasons
-export function isValidTerminationReason(reason: string | null | undefined): boolean {
-  if (!reason) return false;
-  const validReasons = [
-    'Resignation', 'Contract End', 'Termination', 'Retirement', 'Other'
-  ];
-  return validReasons.includes(reason);
-}
+/**
+ * Employee Data Utilities
+ * 
+ * @deprecated Consider using functions from src/mappers/employeeMappers.ts instead
+ */
 
+import { mapEmployeesFromDb, isValidTerminationReason } from '@/mappers/employeeMappers'
+
+// Re-export the function for backward compatibility
+export { isValidTerminationReason }
+
+/**
+ * Process raw employee data from API/database into properly typed employee objects
+ * @deprecated Use mapEmployeesFromDb from src/mappers/employeeMappers.ts instead
+ */
 export function processEmployeeData(employeesRaw: any[] | undefined) {
-  if (!employeesRaw || !Array.isArray(employeesRaw)) {
-    console.warn('processEmployeeData received invalid data:', employeesRaw);
-    return [];
-  }
-  
-  try {
-    return employeesRaw.map(emp => {
-      if (!emp) return null;
-      
-      return {
-        ...emp,
-        end_of_employment_reason: isValidTerminationReason(emp.end_of_employment_reason) 
-          ? emp.end_of_employment_reason 
-          : null
-      };
-    }).filter(Boolean); // Filter out null values
-  } catch (error) {
-    console.error('Error in processEmployeeData:', error);
-    return [];
-  }
+  return mapEmployeesFromDb(employeesRaw || [])
 }
