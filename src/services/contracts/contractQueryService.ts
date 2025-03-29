@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { Contract } from '@/schema/operations/contract.schema'
 import { isContractStatus } from '@/schema/operations/contract.schema'
@@ -29,15 +30,15 @@ export async function fetchContracts(
   }
 
   if (filters) {
-    if (filters.clientId) {
+    if (filters.clientId && filters.clientId !== 'all') {
       query = query.eq('client_id', filters.clientId)
     }
-    if (filters.status && typeof filters.status === 'string') {
+    if (filters.status && filters.status !== 'all') {
       if (isContractStatus(filters.status)) {
         query = query.eq('status', filters.status)
       }
     }
-    if (filters.contractType) {
+    if (filters.contractType && filters.contractType !== 'all') {
       query = query.eq('contract_type', filters.contractType)
     }
     if (filters.fromDate) {
