@@ -1,4 +1,3 @@
-
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
@@ -6,6 +5,7 @@ import './index.css'
 import { captureGlobalErrors } from './utils/errorCapture.ts'
 import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo.ts'
 import { setupMockEmployeeApi } from './utils/employeeDebug.ts'
+import { debugUtils } from './utils/debugUtils.ts'
 
 // Set up global error capturing
 captureGlobalErrors();
@@ -26,11 +26,18 @@ const renderApp = () => {
       return
     }
     
-    // Check for potential issues with Vite client
-    console.log('Checking Vite client compatibility:', checkViteClientCompatibility());
+    // Enhanced Vite client debugging
+    console.log('Enhanced Vite client status check:', debugUtils.viteClientCheck());
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Attempting to diagnose and fix Vite client issues:', debugUtils.diagnoseAndFixViteClient());
+      debugUtils.debugViteHMR();
+    }
+    
+    // Legacy compatibility checks (keeping for backward compatibility)
+    console.log('Legacy Vite client compatibility check:', checkViteClientCompatibility());
     diagnoseViteClientIssues();
     
-    // Add specific error handler for Vite-related issues
+    // Add specific error handler for Vite-related issues with improved diagnostics
     window.addEventListener('error', (event) => {
       if (event.filename?.includes('@vite') || event.message?.includes('Vite')) {
         console.error('Vite-related error detected:', event);
@@ -42,6 +49,7 @@ const renderApp = () => {
           columnNumber: event.colno,
           message: event.message,
           stack: event.error?.stack,
+          viteStatus: debugUtils.viteClientCheck()
         });
         
         // Try to inspect the specific error type
@@ -51,6 +59,11 @@ const renderApp = () => {
           console.info('1. unsafe-eval for script-src');
           console.info('2. unsafe-inline for script-src');
           console.info('3. ws: and wss: for connect-src');
+          
+          // Attempt auto-recovery in development mode
+          if (process.env.NODE_ENV === 'development') {
+            debugUtils.diagnoseAndFixViteClient();
+          }
         }
         
         return false; // Allow other handlers to process this error
@@ -79,12 +92,30 @@ const renderApp = () => {
           <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto; margin-bottom: 15px;">
             ${error instanceof Error ? error.stack || error.message : String(error)}
           </pre>
+          <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 4px solid #0066cc; margin-bottom: 15px;">
+            <strong>Vite Client Status:</strong>
+            <pre style="margin: 5px 0 0 0; font-size: 12px;">${JSON.stringify(debugUtils.viteClientCheck(), null, 2)}</pre>
+          </div>
           <p>Check the browser console for more details.</p>
+          <button id="diagnoseBtn" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+            Run Diagnostics
+          </button>
           <button onclick="window.location.reload()" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
             Refresh Page
           </button>
         </div>
       `
+      
+      // Add diagnostics button functionality
+      const diagnoseBtn = document.getElementById('diagnoseBtn');
+      if (diagnoseBtn) {
+        diagnoseBtn.addEventListener('click', () => {
+          console.log('Running Vite client diagnostics...');
+          const results = debugUtils.diagnoseAndFixViteClient();
+          alert('Diagnostics complete. Check console for results.');
+          console.log('Diagnostic results:', results);
+        });
+      }
     }
   }
 }
