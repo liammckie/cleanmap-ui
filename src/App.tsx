@@ -1,3 +1,4 @@
+
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -12,6 +13,7 @@ import ClientsPage from '@/pages/operations/Clients'
 import SitesPage from '@/pages/operations/Sites'
 import SiteListPage from '@/pages/operations/SiteList'
 import CreateClientPage from '@/pages/operations/CreateClient'
+import CreateSitePage from '@/pages/operations/CreateSite'
 import ContractsPage from '@/pages/operations/Contracts'
 import ContractDetailsPage from '@/pages/operations/ContractDetails'
 import WorkOrdersPage from '@/pages/operations/WorkOrders'
@@ -37,6 +39,7 @@ const App = () => (
             <Route path="/operations/clients/create" element={<CreateClientPage />} />
             <Route path="/operations/sites" element={<SitesPage />} />
             <Route path="/operations/site-list" element={<SiteListPage />} />
+            <Route path="/operations/sites/create" element={<CreateSitePage />} />
             <Route path="/operations/contracts" element={<ContractsPage />} />
             <Route path="/operations/contracts/:id" element={<ContractDetailsPage />} />
             <Route path="/operations/work-orders" element={<WorkOrdersPage />} />

@@ -131,12 +131,20 @@ const SiteListPage: React.FC = () => {
           <h1 className="text-3xl font-bold">Sites</h1>
           <p className="text-muted-foreground">Manage your service locations</p>
         </div>
-        <Button className="flex items-center gap-2" asChild>
-          <Link to="/operations/clients/create">
-            <PlusCircle className="h-4 w-4" />
-            Add Client with Sites
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button className="flex items-center gap-2" asChild>
+            <Link to="/operations/sites/create">
+              <PlusCircle className="h-4 w-4" />
+              Add Site
+            </Link>
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2" asChild>
+            <Link to="/operations/clients/create">
+              <PlusCircle className="h-4 w-4" />
+              Add Client with Sites
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6">

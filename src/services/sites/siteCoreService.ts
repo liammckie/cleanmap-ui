@@ -83,6 +83,12 @@ export async function fetchSiteById(id: string) {
  * Create a new site
  */
 export async function createSite(site: Partial<Site>): Promise<Site> {
+  // Process service items if present
+  let serviceItemsData = null;
+  if (site.service_items && Array.isArray(site.service_items)) {
+    serviceItemsData = site.service_items;
+  }
+
   const mappedSite = mapToDb({
     client_id: site.client_id,
     site_name: site.site_name,
@@ -111,7 +117,7 @@ export async function createSite(site: Partial<Site>): Promise<Site> {
     // Pricing information
     price_per_service: site.price_per_service,
     price_frequency: site.price_frequency,
-    service_items: site.service_items ? JSON.stringify(site.service_items) : null,
+    service_items: serviceItemsData,
     
     // Other fields
     site_manager_id: site.site_manager_id,
@@ -139,9 +145,6 @@ export async function createSite(site: Partial<Site>): Promise<Site> {
 export async function updateSite(id: string, updates: Partial<Site>): Promise<Site> {
   // Prepare service_items for DB storage if present
   let preparedUpdates = { ...updates };
-  if (updates.service_items) {
-    preparedUpdates.service_items = JSON.stringify(updates.service_items);
-  }
   
   const mappedUpdates = mapToDb(preparedUpdates)
 
