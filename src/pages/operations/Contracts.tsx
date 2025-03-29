@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FilePlus } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/components/ui/use-toast' 
 import { fetchContracts } from '@/services/contracts'
 import ContractFilters from '@/components/operations/contract/ContractFilters'
 import ContractsTable from '@/components/operations/contract/ContractsTable'
+import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
 
 const ContractsPage = () => {
   const { toast } = useToast()
@@ -32,14 +33,7 @@ const ContractsPage = () => {
     queryKey: ['contracts', searchTerm, filters],
     queryFn: () => fetchContracts(searchTerm, filters),
     meta: {
-      onError: (err: Error) => {
-        console.error('Failed to fetch contracts:', err)
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load contracts data. Please try again.',
-        })
-      },
+      onError: createQueryErrorHandler('contracts')
     },
   })
 

@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { format, parseISO } from 'date-fns'
 import { ClipboardList, Edit, AlertCircle } from 'lucide-react'
@@ -12,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import StatusBadge from './StatusBadge'
 import { Employee } from '@/types/employee.types'
+import { createErrorFallbackUI } from '@/utils/databaseErrorHandlers'
 
 interface EmployeeTableProps {
   employees: Employee[] | null
@@ -32,12 +34,10 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onSort,
   onEditEmployee,
 }) => {
-  // Helper function to safely format dates that could be strings or Date objects
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return 'N/A'
 
     try {
-      // If it's a string, parse it first
       const dateObj = typeof date === 'string' ? parseISO(date) : date
       return format(dateObj, 'dd MMM yyyy')
     } catch (e) {
@@ -58,11 +58,27 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
     ) : null
   }
 
+  const isTerminated = (employee: Employee) => {
+    return employee.status === 'Terminated' && employee.end_of_employment_date
+  }
+
   if (error) {
+    console.error('Error in EmployeeTable:', error);
+    const supabaseError = (error as any).error || error;
+    
+    if (supabaseError?.code === '42P17' || 
+        supabaseError?.message?.includes('infinite recursion')) {
+      return createErrorFallbackUI(supabaseError, 'employees');
+    }
+    
     return (
       <div className="text-center py-4 text-red-500">
         <AlertCircle className="h-8 w-8 mx-auto mb-2" />
         Failed to load employees data. Please try again.
+        <p className="text-sm mt-2 text-red-400">Error: {error.message}</p>
+        <p className="text-xs mt-1 text-red-300">
+          If this problem persists, please contact the system administrator.
+        </p>
       </div>
     )
   }
@@ -107,7 +123,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
           >
             Start Date {sortColumn === 'start_date' && (sortDirection === 'asc' ? '▲' : '▼')}
           </TableHead>
-          <TableHead>Onboarding Progress</TableHead>
+          <TableHead>Onboarding/End Date</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -121,7 +137,15 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             <TableCell>{employee.job_title}</TableCell>
             <TableCell>{employee.department}</TableCell>
             <TableCell>{formatDate(employee.start_date)}</TableCell>
-            <TableCell>{getOnboardingTasksIndicator(employee)}</TableCell>
+            <TableCell>
+              {isTerminated(employee) ? (
+                <div className="text-sm text-red-600">
+                  End: {formatDate(employee.end_of_employment_date)}
+                </div>
+              ) : (
+                getOnboardingTasksIndicator(employee)
+              )}
+            </TableCell>
             <TableCell>
               <StatusBadge status={employee.status} />
             </TableCell>
