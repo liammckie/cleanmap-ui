@@ -1,3 +1,4 @@
+
 export interface MapLocation {
   id: string
   name: string

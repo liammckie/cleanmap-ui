@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { format, subDays } from 'date-fns'
@@ -43,8 +44,8 @@ export function useDashboardData() {
   // Fetch total cleaning locations (sites)
   const {
     data: totalSitesData,
-    isLoading: isLoadingSites,
-    error: sitesError,
+    isLoading: isLoadingTotalSites,
+    error: totalSitesError,
   } = useQuery({
     queryKey: ['dashboard', 'totalSites'],
     queryFn: async () => {
@@ -229,11 +230,17 @@ export function useDashboardData() {
         .select(`
           id, 
           title, 
+          description,
           due_date, 
           priority,
           status,
+          scheduled_start,
           site_id,
-          sites(site_name)
+          sites(
+            site_name,
+            client_id,
+            clients(company_name)
+          )
         `)
         .in('status', ['Scheduled', 'In Progress'])
         .order('due_date', { ascending: true })
@@ -265,9 +272,9 @@ export function useDashboardData() {
 
   // Add a new query to fetch site locations for the map
   const {
-    data: sitesData,
-    isLoading: isLoadingSites,
-    error: sitesError,
+    data: sitesMapData,
+    isLoading: isLoadingSitesMap,
+    error: sitesMapError,
   } = useQuery({
     queryKey: ['dashboard', 'siteLocations'],
     queryFn: async () => {
@@ -290,41 +297,65 @@ export function useDashboardData() {
       if (error) throw new Error(error.message)
       
       // Transform to MapLocation format
-      return data.map(site => ({
-        id: site.id,
-        title: site.site_name,
-        address: `${site.address_street}, ${site.address_city}, ${site.address_state} ${site.address_postcode}`,
-        coordinates: site.coordinates ? JSON.parse(site.coordinates) : null,
-        status: 'Active',
-        type: 'site',
-        clientName: site.clients?.company_name || 'Unknown Client'
-      })) as MapLocation[]
+      const locations: MapLocation[] = data.map(site => {
+        // Default coordinates (around Sydney)
+        let lat = -33.8688 + (Math.random() - 0.5) * 0.1
+        let lng = 151.2093 + (Math.random() - 0.5) * 0.1
+        
+        // Parse coordinates if they exist
+        if (site.coordinates) {
+          try {
+            const parsedCoords = JSON.parse(site.coordinates)
+            if (parsedCoords && parsedCoords.lat && parsedCoords.lng) {
+              lat = parsedCoords.lat
+              lng = parsedCoords.lng
+            }
+          } catch (e) {
+            console.error('Failed to parse coordinates:', e)
+          }
+        }
+        
+        return {
+          id: site.id,
+          name: site.site_name,
+          lat,
+          lng,
+          count: 1, // Default count value
+          address: site.address_street || '',
+          city: site.address_city || '',
+          clientName: site.clients?.company_name || 'Unknown'
+        }
+      })
+      
+      return locations
     },
   })
 
   const isLoading = 
     isLoadingTotalClients || 
     isLoadingActiveClients || 
-    isLoadingSites || 
+    isLoadingTotalSites || 
     isLoadingSitesAwaitingContracts ||
     isLoadingNewWorkOrders || 
     isLoadingUpcomingContracts ||
     isLoadingMonthlyRevenue ||
     isLoadingRevenueChart ||
     isLoadingPendingTasks ||
-    isLoadingKpi
+    isLoadingKpi ||
+    isLoadingSitesMap
 
   const error = 
     totalClientsError || 
     activeClientsError || 
-    sitesError || 
+    totalSitesError || 
     sitesAwaitingContractsError ||
     newWorkOrdersError || 
     upcomingContractsError ||
     monthlyRevenueError ||
     revenueChartError ||
     pendingTasksError ||
-    kpiError
+    kpiError ||
+    sitesMapError
 
   return {
     data: {
@@ -344,7 +375,7 @@ export function useDashboardData() {
         employeeProductivity: 0,
         sitesSatisfactionRate: 0
       },
-      sites: sitesData || [] // Add the sites data for map
+      sites: sitesMapData || [] // Add the sites data for map
     },
     isLoading,
     error,

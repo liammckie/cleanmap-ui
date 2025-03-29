@@ -7,14 +7,14 @@ import { calculateAllBillingFrequencies, BillingFrequency } from '@/utils/billin
 export interface PriceBreakdown {
   weekly: number
   monthly: number
-  annual: number
+  annually: number
 }
 
 export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown>({
     weekly: 0,
     monthly: 0,
-    annual: 0, // This should be 'annual' to match the interface
+    annually: 0,
   })
 
   // Recalculate price breakdown whenever price or frequency changes
@@ -28,7 +28,7 @@ export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
     setPriceBreakdown({
       weekly: breakdown.weekly,
       monthly: breakdown.monthly,
-      annual: breakdown.annually // Map the annually value from the calculation to annual
+      annually: breakdown.annually
     });
   }, [
     form,
