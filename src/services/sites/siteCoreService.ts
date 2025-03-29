@@ -152,7 +152,16 @@ export async function fetchSiteById(siteId: string): Promise<Site> {
 
     if (error) throw error
 
-    return data as Site
+    // Transform the response to match the Site interface
+    const transformedData: Site = {
+      ...data,
+      client: data.clients ? {
+        company_name: data.clients.company_name
+      } : undefined,
+      clients: undefined // Remove the 'clients' property as it's not in the Site interface
+    }
+
+    return transformedData
   } catch (error) {
     console.error('Error fetching site by ID:', error)
     throw error

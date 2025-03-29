@@ -20,13 +20,13 @@ export interface Site {
   address_state: string
   address_postcode: string
   region: string | null
-  service_start_date: Date | null
-  service_end_date: Date | null
+  service_start_date: Date | string | null
+  service_end_date: Date | string | null
   special_instructions: string | null
   status: 'Active' | 'Inactive' | 'Pending Launch' | 'Suspended'
   site_manager_id: string | null
-  created_at: Date
-  updated_at: Date
+  created_at: Date | string
+  updated_at: Date | string
   
   // Contact information
   primary_contact: string | null

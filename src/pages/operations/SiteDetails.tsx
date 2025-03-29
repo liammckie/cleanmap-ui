@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -130,24 +129,22 @@ const SiteDetailsPage: React.FC = () => {
     )
   }
 
-  // Parse coordinates for map display
-  const coordinates = site.coordinates
+  const coordinates = site?.coordinates
     ? site.coordinates.split(',').map(Number)
     : [0, 0]
   
   const siteLocation = {
-    id: site.id,
-    name: site.site_name,
+    id: site?.id || '',
+    name: site?.site_name || '',
     lat: coordinates[0] || 0,
     lng: coordinates[1] || 0,
     count: 1,
-    address: site.address_street,
-    city: site.address_city,
-    clientName: site.clients?.company_name
+    address: site?.address_street || '',
+    city: site?.address_city || '',
+    clientName: site?.client?.company_name || ''
   }
 
-  // Determine service type with fallback
-  const serviceType = site.service_type || 'Internal'
+  const serviceType = site?.service_type || 'Internal'
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
@@ -158,11 +155,11 @@ const SiteDetailsPage: React.FC = () => {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{site.site_name}</h1>
+            <h1 className="text-3xl font-bold">{site?.site_name || 'Site'}</h1>
             <p className="text-muted-foreground flex items-center">
               <MapPin className="h-4 w-4 mr-1" />
-              {site.address_city}, {site.address_state}
-              {site.region && <span className="ml-2">• Region: {site.region}</span>}
+              {site?.address_city || 'City'}, {site?.address_state}
+              {site?.region && <span className="ml-2">• Region: {site?.region}</span>}
             </p>
           </div>
         </div>
@@ -194,7 +191,7 @@ const SiteDetailsPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center mb-4">
-                  <StatusBadge status={site.status} />
+                  <StatusBadge status={site?.status || 'Active'} />
                   {serviceType && <ServiceTypeBadge type={serviceType} />}
                 </div>
 
@@ -207,7 +204,7 @@ const SiteDetailsPage: React.FC = () => {
                         <Building className="h-4 w-4 mt-1 mr-2 text-muted-foreground" />
                         <div>
                           <div className="font-medium">Site Type</div>
-                          <div className="text-muted-foreground">{site.site_type}</div>
+                          <div className="text-muted-foreground">{site?.site_type}</div>
                         </div>
                       </div>
                       
@@ -233,9 +230,9 @@ const SiteDetailsPage: React.FC = () => {
                         <div>
                           <div className="font-medium">Service Schedule</div>
                           <div className="text-muted-foreground">
-                            {site.service_frequency ? 
+                            {site?.service_frequency ? 
                               `${site.service_frequency.charAt(0).toUpperCase()}${site.service_frequency.slice(1)} service` : 
-                              site.custom_frequency ? site.custom_frequency : 'Not specified'}
+                              site?.custom_frequency ? site.custom_frequency : 'Not specified'}
                           </div>
                         </div>
                       </div>
@@ -245,8 +242,8 @@ const SiteDetailsPage: React.FC = () => {
                         <div>
                           <div className="font-medium">Service Period</div>
                           <div className="text-muted-foreground">
-                            Start: {site.service_start_date ? format(new Date(site.service_start_date), 'PPP') : 'Not set'}<br />
-                            End: {site.service_end_date ? format(new Date(site.service_end_date), 'PPP') : 'Ongoing'}
+                            Start: {site?.service_start_date ? format(new Date(site.service_start_date), 'PPP') : 'Not set'}<br />
+                            End: {site?.service_end_date ? format(new Date(site.service_end_date), 'PPP') : 'Ongoing'}
                           </div>
                         </div>
                       </div>
@@ -256,7 +253,7 @@ const SiteDetailsPage: React.FC = () => {
 
                 <Separator className="my-6" />
 
-                {site.special_instructions && (
+                {site?.special_instructions && (
                   <div>
                     <h3 className="text-md font-semibold mb-2">Special Instructions</h3>
                     <div className="text-muted-foreground bg-muted/30 p-3 rounded-md">
@@ -277,17 +274,17 @@ const SiteDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <div className="font-semibold text-lg">{site.clients?.company_name}</div>
+                    <div className="font-semibold text-lg">{site?.client?.company_name || 'Unknown Client'}</div>
                     <Button 
                       variant="link" 
                       className="p-0 h-auto text-sm"
-                      onClick={() => navigate(`/operations/clients/${site.client_id}`)}
+                      onClick={() => navigate(`/operations/clients/${site?.client_id}`)}
                     >
                       View Client Details
                     </Button>
                   </div>
 
-                  {site.primary_contact && (
+                  {site?.primary_contact && (
                     <div>
                       <div className="font-medium">Site Contact</div>
                       <div className="text-muted-foreground">
@@ -313,7 +310,7 @@ const SiteDetailsPage: React.FC = () => {
                   <div>
                     <div className="font-medium">Pricing</div>
                     <div className="text-muted-foreground">
-                      {site.price_per_week ? (
+                      {site?.price_per_week ? (
                         <div className="flex items-center">
                           <span>${site.price_per_week}</span>
                           <span className="text-xs text-muted-foreground ml-1">
