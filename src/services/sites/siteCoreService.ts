@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'
 
@@ -157,8 +156,7 @@ export async function fetchSiteById(siteId: string): Promise<Site> {
       ...data,
       client: data.clients ? {
         company_name: data.clients.company_name
-      } : undefined,
-      clients: undefined // Remove the 'clients' property as it's not in the Site interface
+      } : undefined
     }
 
     return transformedData
