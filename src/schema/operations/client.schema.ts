@@ -13,7 +13,7 @@ import { z } from 'zod'
 export interface Client {
   id: string
   company_name: string
-  contact_name?: string | null
+  contact_name: string | null
   contact_email: string | null
   contact_phone: string | null
   billing_address_street: string
@@ -23,7 +23,7 @@ export interface Client {
   payment_terms: string
   status: 'Active' | 'On Hold'
   industry: string | null
-  region?: string | null
+  region: string | null
   notes: string | null
   business_number: string | null
   on_hold_reason: string | null
@@ -40,7 +40,7 @@ export function isClientStatus(value: string): value is Client['status'] {
 export const clientSchema = z.object({
   id: z.string().optional(),
   company_name: z.string().min(1, 'Company name is required'),
-  contact_name: z.string().optional().nullable(),
+  contact_name: z.string().nullable().optional(),
   contact_email: z.string().email('Invalid email address').nullable().optional(),
   contact_phone: z.string().nullable().optional(),
   billing_address_street: z.string().min(1, 'Street address is required'),
@@ -67,20 +67,20 @@ export const clientSchema = z.object({
 // Define the shape expected by Supabase when inserting a new client
 export type ClientInsert = {
   company_name: string
-  contact_name?: string | null
-  contact_email?: string | null
-  contact_phone?: string | null
+  contact_name: string | null
+  contact_email: string | null
+  contact_phone: string | null
   billing_address_street: string
   billing_address_city: string
   billing_address_state: string
   billing_address_postcode: string
   payment_terms: string
   status: 'Active' | 'On Hold'
-  industry?: string | null
-  region?: string | null
-  notes?: string | null
-  business_number?: string | null
-  on_hold_reason?: string | null
+  industry: string | null
+  region: string | null
+  notes: string | null
+  business_number: string | null
+  on_hold_reason: string | null
 }
 
 // Define the shape expected by Supabase when updating an existing client

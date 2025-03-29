@@ -82,7 +82,7 @@ export async function fetchClientById(id: string) {
  * Create a new client
  * @param clientData Client data to insert
  */
-export async function createClient(clientData: ClientInsert) {
+export async function createClient(clientData: ClientInsert): Promise<Client> {
   try {
     // Validate client data against schema
     const validatedData = validateForDb(clientData, clientSchema) as ClientInsert
@@ -90,26 +90,10 @@ export async function createClient(clientData: ClientInsert) {
     // Log the validated data for debugging
     console.log('Validated client data for insert:', validatedData)
     
-    // The insert operation expects specific fields, so we explicitly define them
+    // Insert the validated data
     const { data, error } = await supabase
       .from('clients')
-      .insert({
-        company_name: validatedData.company_name,
-        contact_name: validatedData.contact_name,
-        contact_email: validatedData.contact_email,
-        contact_phone: validatedData.contact_phone,
-        billing_address_street: validatedData.billing_address_street,
-        billing_address_city: validatedData.billing_address_city,
-        billing_address_state: validatedData.billing_address_state,
-        billing_address_postcode: validatedData.billing_address_postcode,
-        payment_terms: validatedData.payment_terms,
-        status: validatedData.status,
-        industry: validatedData.industry,
-        business_number: validatedData.business_number,
-        region: validatedData.region,
-        notes: validatedData.notes,
-        on_hold_reason: validatedData.on_hold_reason
-      })
+      .insert(validatedData)
       .select()
       .single()
 
@@ -118,7 +102,7 @@ export async function createClient(clientData: ClientInsert) {
       throw error
     }
 
-    return data
+    return data as Client
   } catch (error) {
     console.error('Error creating client:', error)
     throw error
@@ -130,26 +114,17 @@ export async function createClient(clientData: ClientInsert) {
  * @param id Client ID
  * @param clientData Client data to update
  */
-export async function updateClient(id: string, clientData: ClientUpdate) {
+export async function updateClient(id: string, clientData: ClientUpdate): Promise<Client> {
   try {
     // Validate client data against schema
     const validatedData = validateForDb(clientData, clientSchema) as ClientUpdate
     
-    // Ensure dates are properly formatted as strings
-    const dataToUpdate: Record<string, any> = { ...validatedData }
-    
-    // Convert any Date objects to ISO strings (if they exist)
-    if (dataToUpdate.created_at instanceof Date) {
-      dataToUpdate.created_at = dataToUpdate.created_at.toISOString()
-    }
-    
-    if (dataToUpdate.updated_at instanceof Date) {
-      dataToUpdate.updated_at = dataToUpdate.updated_at.toISOString()
-    }
+    // Log the validated data for debugging
+    console.log('Validated client data for update:', validatedData)
     
     const { data, error } = await supabase
       .from('clients')
-      .update(dataToUpdate)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single()
@@ -159,7 +134,7 @@ export async function updateClient(id: string, clientData: ClientUpdate) {
       throw error
     }
 
-    return data
+    return data as Client
   } catch (error) {
     console.error('Error updating client:', error)
     throw error
