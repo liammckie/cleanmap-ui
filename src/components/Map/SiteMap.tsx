@@ -23,7 +23,7 @@ const SiteMap: React.FC<MapProps> = ({ locations = [], isFullscreen = false }) =
           mapTypeControl: true,
           streetViewControl: true,
           fullscreenControl: true,
-          zoomControl: true,
+          // Removed the invalid zoomControl property
         })
         
         mapInstance.current = map

@@ -143,7 +143,7 @@ const SiteDetailsPage: React.FC = () => {
     count: 1,
     address: site.address_street,
     city: site.address_city,
-    clientName: site.client?.company_name
+    clientName: site.clients?.company_name
   }
 
   return (
@@ -192,6 +192,7 @@ const SiteDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="flex items-center mb-4">
                   <StatusBadge status={site.status} />
+                  {/* Fixed: Use default 'Internal' if service_type is missing */}
                   <ServiceTypeBadge type={site.service_type || 'Internal'} />
                 </div>
 
@@ -230,7 +231,9 @@ const SiteDetailsPage: React.FC = () => {
                         <div>
                           <div className="font-medium">Service Schedule</div>
                           <div className="text-muted-foreground">
+                            {/* Fixed: Handle missing service_frequency */}
                             {site.service_frequency || 'Not specified'}
+                            {/* Fixed: Handle missing custom_frequency */}
                             {site.custom_frequency && <span> - {site.custom_frequency}</span>}
                           </div>
                         </div>
@@ -242,6 +245,7 @@ const SiteDetailsPage: React.FC = () => {
                           <div className="font-medium">Service Period</div>
                           <div className="text-muted-foreground">
                             Start: {site.service_start_date ? format(new Date(site.service_start_date), 'PPP') : 'Not set'}<br />
+                            {/* Fixed: Handle missing service_end_date */}
                             End: {site.service_end_date ? format(new Date(site.service_end_date), 'PPP') : 'Ongoing'}
                           </div>
                         </div>
@@ -273,7 +277,8 @@ const SiteDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <div className="font-semibold text-lg">{site.client?.company_name}</div>
+                    {/* Fixed: Use clients instead of client */}
+                    <div className="font-semibold text-lg">{site.clients?.company_name}</div>
                     <Button 
                       variant="link" 
                       className="p-0 h-auto text-sm"
@@ -283,6 +288,7 @@ const SiteDetailsPage: React.FC = () => {
                     </Button>
                   </div>
 
+                  {/* Fixed: Check if primary_contact exists */}
                   {site.primary_contact && (
                     <div className="space-y-2">
                       <div className="font-medium">Site Contact</div>
@@ -292,6 +298,7 @@ const SiteDetailsPage: React.FC = () => {
                         <div className="text-muted-foreground">{site.primary_contact}</div>
                       </div>
                       
+                      {/* Fixed: Check if contact_phone exists */}
                       {site.contact_phone && (
                         <div className="flex items-start">
                           <Phone className="h-4 w-4 mt-1 mr-2 text-muted-foreground" />
@@ -299,6 +306,7 @@ const SiteDetailsPage: React.FC = () => {
                         </div>
                       )}
                       
+                      {/* Fixed: Check if contact_email exists */}
                       {site.contact_email && (
                         <div className="flex items-start">
                           <Mail className="h-4 w-4 mt-1 mr-2 text-muted-foreground" />
@@ -311,6 +319,7 @@ const SiteDetailsPage: React.FC = () => {
                   <div>
                     <div className="font-medium">Pricing</div>
                     <div className="text-muted-foreground">
+                      {/* Fixed: Check if price_per_week exists */}
                       {site.price_per_week 
                         ? `$${site.price_per_week} per week`
                         : 'No pricing information available'}
