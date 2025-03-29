@@ -909,6 +909,7 @@ export type Database = {
           address_state: string
           address_street: string
           client_id: string
+          coordinates: string | null
           created_at: string
           id: string
           region: string | null
@@ -926,6 +927,7 @@ export type Database = {
           address_state: string
           address_street: string
           client_id: string
+          coordinates?: string | null
           created_at?: string
           id?: string
           region?: string | null
@@ -943,6 +945,7 @@ export type Database = {
           address_state?: string
           address_street?: string
           client_id?: string
+          coordinates?: string | null
           created_at?: string
           id?: string
           region?: string | null

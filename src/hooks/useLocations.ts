@@ -31,12 +31,10 @@ export const useLocations = (options?: { clientId?: string; onlyActive?: boolean
           .eq('client_id', options?.clientId || undefined)
           .order('site_name')
 
-        if (error) {
-          throw error
-        }
+        if (error) throw error
 
         // Process the data to match the expected MapLocation format
-        const locations: LocationData[] = (sites || []).map((site) => {
+        const locations: LocationData[] = (sites || []).map((site: any) => {
           // Default coordinates (around Sydney)
           let lat = -33.8688 + (Math.random() - 0.5) * 0.1
           let lng = 151.2093 + (Math.random() - 0.5) * 0.1

@@ -1,6 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert } from '@/schema/operations/site.schema'
+
+const VALID_SITE_STATUSES = ['Active', 'Inactive', 'Pending Launch', 'Suspended'] as const
+type SiteStatus = typeof VALID_SITE_STATUSES[number]
 
 /**
  * Create a new site
@@ -104,11 +106,9 @@ export async function fetchSites(search = '', filters: any = {}) {
 
     if (filters.status) {
       // Handle status as a proper site status enum value
-      // Fix: Validate the status to ensure it's one of the allowed values
-      const validStatuses = ['Active', 'Inactive', 'Pending Launch', 'Suspended'];
-      const status = String(filters.status);
+      const status = String(filters.status)
       
-      if (validStatuses.includes(status)) {
+      if (VALID_SITE_STATUSES.includes(status as SiteStatus)) {
         query = query.eq('status', status)
       }
     }
