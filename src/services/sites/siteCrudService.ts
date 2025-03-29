@@ -1,6 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client'
 import type { Site, SiteInsert, SiteUpdate } from '@/schema/operations/site.schema'
-import { mapSiteToDb, mapSiteFromDb } from '@/mappers/siteMappers'
+import { mapSiteToDb, mapSiteFromDb, mapSiteForInsert } from '@/mappers/siteMappers'
 
 /**
  * Create a new site
@@ -18,7 +19,7 @@ export async function createSite(siteData: Partial<Site>) {
     
     // Prepare data for insertion using our mapper
     // This ensures dates are properly formatted as strings for the database
-    const siteInsertData = mapSiteToDb(siteData)
+    const siteInsertData = mapSiteForInsert(siteData)
 
     const { data, error } = await supabase
       .from('sites')

@@ -146,8 +146,8 @@ export async function getSiteCounts(groupBy: 'region' | 'status'): Promise<{ lab
     // Transform the data to match the expected return type
     if (data && Array.isArray(data)) {
       return data.map(item => ({
-        label: item.group_value || 'Unknown',
-        count: parseInt(item.count, 10)
+        label: String(item.group_value) || 'Unknown',
+        count: Number(item.count)
       }))
     }
     

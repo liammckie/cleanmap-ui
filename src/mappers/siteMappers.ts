@@ -1,4 +1,3 @@
-
 /**
  * Site Data Mappers
  * 
@@ -89,13 +88,21 @@ export function mapSiteToDb(site: Partial<Site>): Record<string, any> {
 /**
  * Maps a site for insertion with type safety
  */
-export function mapSiteForInsert(site: Partial<Site>): SiteInsert {
-  return mapSiteToDb(site) as SiteInsert
+export function mapSiteForInsert(site: Partial<Site>): any {
+  // First convert to database format
+  const dbSite = mapSiteToDb(site)
+  
+  // Then ensure it's compatible with Supabase's insert method
+  return dbSite
 }
 
 /**
  * Maps a site for update with type safety
  */
-export function mapSiteForUpdate(site: Partial<Site>): SiteUpdate {
-  return mapSiteToDb(site) as SiteUpdate
+export function mapSiteForUpdate(site: Partial<Site>): any {
+  // Remove properties that shouldn't be updated
+  const { created_at, ...updateData } = mapSiteToDb(site)
+  
+  // Ensure it's compatible with Supabase's update method
+  return updateData
 }

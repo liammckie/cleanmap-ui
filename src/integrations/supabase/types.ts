@@ -1310,6 +1310,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string[]
       }
+      get_site_counts: {
+        Args: {
+          group_field: string
+        }
+        Returns: {
+          group_value: string
+          count: number
+        }[]
+      }
       get_work_order_category_enum: {
         Args: Record<PropertyKey, never>
         Returns: string[]
