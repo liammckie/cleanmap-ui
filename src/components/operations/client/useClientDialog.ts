@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/services/clients'
 import { mapClientFormToDb } from '@/mappers/clientMappers'
 import { ClientFormData } from './types'
+import { clientSchema } from '@/schema/operations/client.schema'
 
 interface UseClientDialogProps {
   onClientAdded?: () => void
@@ -55,17 +56,51 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const validateForm = (): boolean => {
     // Basic form validation
-    if (!formData.companyName || !formData.contactName || !formData.street || 
-        !formData.city || !formData.state || !formData.postcode) {
+    if (!formData.companyName) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Please fill in all required fields.',
+        description: 'Company name is required',
       })
+      return false
+    }
+
+    if (!formData.contactName) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Contact name is required',
+      })
+      return false
+    }
+
+    if (!formData.street || !formData.city || !formData.state || !formData.postcode) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Complete address is required',
+      })
+      return false
+    }
+
+    if (formData.status === 'On Hold' && !formData.onHoldReason) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Please provide a reason for On Hold status',
+      })
+      return false
+    }
+
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
       return
     }
 
@@ -75,7 +110,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
       // Transform camelCase form data to snake_case DB format using our mapper
       const clientData = mapClientFormToDb(formData)
 
-      console.log('Sending client data to API:', clientData);
+      console.log('Sending client data to API:', clientData)
 
       // Create client in database
       const result = await createClient(clientData)

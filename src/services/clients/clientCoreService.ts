@@ -82,11 +82,16 @@ export async function fetchClientById(id: string) {
  * Create a new client
  * @param clientData Client data to insert
  */
-export async function createClient(clientData: any) {
+export async function createClient(clientData: ClientInsert) {
   try {
+    // Validate and prepare client data
+    const validatedData = validateForDb(clientData, clientSchema)
+    
+    console.log('Validated client data for insert:', validatedData)
+    
     const { data, error } = await supabase
       .from('clients')
-      .insert(clientData)
+      .insert(validatedData)
       .select()
       .single()
 
@@ -107,11 +112,14 @@ export async function createClient(clientData: any) {
  * @param id Client ID
  * @param clientData Client data to update
  */
-export async function updateClient(id: string, clientData: any) {
+export async function updateClient(id: string, clientData: ClientUpdate) {
   try {
+    // Validate and prepare client data
+    const validatedData = validateForDb(clientData, clientSchema)
+    
     const { data, error } = await supabase
       .from('clients')
-      .update(clientData)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single()

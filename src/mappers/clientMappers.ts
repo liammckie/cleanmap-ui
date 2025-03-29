@@ -1,7 +1,7 @@
 
 import { mapToDb, mapFromDb } from '@/utils/mappers'
 import type { ClientFormData } from '@/components/operations/client/types'
-import type { ClientInsert } from '@/schema/operations/client.schema'
+import type { ClientInsert, Client } from '@/schema/operations/client.schema'
 
 /**
  * Maps client form data to database structure
@@ -18,7 +18,7 @@ export function mapClientFormToDb(formData: ClientFormData): ClientInsert {
     billing_address_postcode: formData.postcode,
     payment_terms: formData.paymentTerms,
     industry: formData.industry || null,
-    status: formData.status as 'Active' | 'On Hold',
+    status: formData.status,
     business_number: formData.businessNumber || null,
     region: formData.region || null,
     notes: formData.notes || null,
@@ -29,7 +29,7 @@ export function mapClientFormToDb(formData: ClientFormData): ClientInsert {
 /**
  * Maps database client data to form structure
  */
-export function mapDbToClientForm(dbClient: any): ClientFormData {
+export function mapDbToClientForm(dbClient: Client): ClientFormData {
   return {
     companyName: dbClient.company_name,
     contactName: dbClient.contact_name,

@@ -37,16 +37,6 @@ const ClientsPage = () => {
         industry: filters.industry || undefined
       }
     }),
-    meta: {
-      onError: (err: Error) => {
-        console.error('Failed to fetch clients:', err)
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load clients data. Please try again.',
-        })
-      },
-    },
   })
 
   const clearFilters = () => {
@@ -58,7 +48,12 @@ const ClientsPage = () => {
   }
 
   const handleClientAdded = () => {
+    // Refetch clients data when a new client is added
     refetch()
+    toast({
+      title: 'Client list updated',
+      description: 'The client list has been refreshed with the new client.',
+    })
   }
 
   return (
@@ -127,7 +122,7 @@ const ClientsPage = () => {
           {clients.map((client) => (
             <ClientCard
               key={client.id}
-              client={client as unknown as Client}
+              client={client as Client}
               onClick={() => {
                 console.log('Clicked client:', client.id)
               }}

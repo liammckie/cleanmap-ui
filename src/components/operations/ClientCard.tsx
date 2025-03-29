@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import {
   Card,
@@ -23,7 +24,7 @@ import type { Client } from '@/schema/operations/client.schema'
 import { cn } from '@/lib/utils'
 
 interface ClientCardProps {
-  client: any // Using a more relaxed type to handle the Supabase returned data
+  client: Client
   onClick?: () => void
 }
 
@@ -50,7 +51,7 @@ export const ClientCard = ({ client, onClick }: ClientCardProps) => {
   return (
     <Card
       className={cn(
-        'overflow-hidden transition-all duration-300',
+        'overflow-hidden transition-all duration-300 cursor-pointer',
         isHovered ? 'shadow-lg transform translate-y-[-4px]' : 'shadow-sm',
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -115,6 +116,13 @@ export const ClientCard = ({ client, onClick }: ClientCardProps) => {
               <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
               <span className="text-sm">Terms: {paymentTerms}</span>
             </div>
+
+            {client.region && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <span className="text-sm">Region: {client.region}</span>
+              </div>
+            )}
           </div>
 
           {client.on_hold_reason && (

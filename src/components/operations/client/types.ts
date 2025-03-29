@@ -1,4 +1,7 @@
 
+/**
+ * Client form data types
+ */
 export interface ClientFormData {
   companyName: string
   contactName: string
@@ -10,7 +13,7 @@ export interface ClientFormData {
   postcode: string
   paymentTerms: string
   industry: string
-  status: string
+  status: 'Active' | 'On Hold'
   businessNumber: string
   region: string
   notes: string
