@@ -18,6 +18,7 @@ import SiteAddressFields from '@/components/operations/ClientForm/SiteAddressFie
 import SiteServiceDetails from '@/components/operations/ClientForm/SiteServiceDetails'
 import SitePricingDetails from '@/components/operations/ClientForm/SitePricingDetails'
 import SiteSpecialInstructions from '@/components/operations/ClientForm/SiteSpecialInstructions'
+import { useClientSiteForm } from '@/hooks/operations/useClientSiteForm'
 
 // Form schema for a site
 const siteSchema = z.object({
@@ -98,6 +99,9 @@ const CreateSitePage: React.FC = () => {
     },
   })
 
+  // Use the custom hook to calculate price breakdown
+  const { priceBreakdown } = useClientSiteForm(form, -1)
+
   // When client changes, fetch its data to potentially use for contact info
   const handleClientChange = (clientId: string) => {
     setSelectedClient(clientId)
@@ -117,9 +121,17 @@ const CreateSitePage: React.FC = () => {
     try {
       setIsSubmitting(true)
       
+      // Ensure service_items matches the expected type structure
+      const serviceItems = data.service_items?.map(item => ({
+        id: item.id,
+        description: item.description,
+        amount: Number(item.amount)
+      })) || []
+      
       const siteData = {
         ...data,
         price_per_service: Number(data.price_per_service),
+        service_items: serviceItems
       }
       
       console.log('Submitting site data:', siteData)
@@ -202,11 +214,7 @@ const CreateSitePage: React.FC = () => {
                 <SitePricingDetails 
                   form={form} 
                   index={-1} 
-                  priceBreakdown={{
-                    weekly: form.watch('price_per_service') || 0,
-                    monthly: (form.watch('price_per_service') || 0) * 4.33,
-                    annually: (form.watch('price_per_service') || 0) * 52,
-                  }} 
+                  priceBreakdown={priceBreakdown} 
                 />
                 <SiteSpecialInstructions form={form} index={-1} />
               </CardContent>
