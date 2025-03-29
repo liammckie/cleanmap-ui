@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UseFormReturn } from 'react-hook-form';
+
 interface SiteServiceDetailsProps {
   form: UseFormReturn<any>;
   index: number;
 }
+
 const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
   form,
   index
@@ -18,7 +21,7 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
       }) => <FormItem>
               <FormLabel>Region</FormLabel>
               <FormControl>
-                <Input placeholder="Enter region" {...field} />
+                <Input placeholder="Enter region" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>} />
@@ -70,4 +73,5 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({
       </div>
     </>;
 };
+
 export default SiteServiceDetails;

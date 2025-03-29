@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { formatCurrency } from '@/utils/billingCalculations';
+
 interface SitePricingDetailsProps {
   form: UseFormReturn<any>;
   index: number;
@@ -13,6 +15,7 @@ interface SitePricingDetailsProps {
     annually: number;
   };
 }
+
 const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
   form,
   index,
@@ -23,7 +26,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
         <FormField control={form.control} name={`sites.${index}.price_per_service`} render={({
         field
       }) => <FormItem>
-              <FormLabel>Price Per Eeek, ex gst</FormLabel>
+              <FormLabel>Price Per Week, ex GST</FormLabel>
               <FormControl>
                 <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
               </FormControl>
@@ -72,4 +75,5 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
       </div>
     </>;
 };
+
 export default SitePricingDetails;
