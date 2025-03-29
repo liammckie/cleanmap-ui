@@ -1,54 +1,38 @@
-import React from 'react'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { UseFormReturn } from 'react-hook-form'
-import { formatCurrency } from '@/utils/billingCalculations'
-
+import React from 'react';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UseFormReturn } from 'react-hook-form';
+import { formatCurrency } from '@/utils/billingCalculations';
 interface SitePricingDetailsProps {
-  form: UseFormReturn<any>
-  index: number
+  form: UseFormReturn<any>;
+  index: number;
   priceBreakdown: {
-    weekly: number
-    monthly: number
-    annually: number
-  }
+    weekly: number;
+    monthly: number;
+    annually: number;
+  };
 }
-
-const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, priceBreakdown }) => {
-  return (
-    <>
+const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
+  form,
+  index,
+  priceBreakdown
+}) => {
+  return <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name={`sites.${index}.price_per_service`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price per Service*</FormLabel>
+        <FormField control={form.control} name={`sites.${index}.price_per_service`} render={({
+        field
+      }) => <FormItem>
+              <FormLabel>Price Per Eeek, ex gst</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                />
+                <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
+            </FormItem>} />
 
-        <FormField
-          control={form.control}
-          name={`sites.${index}.price_frequency`}
-          render={({ field }) => (
-            <FormItem>
+        <FormField control={form.control} name={`sites.${index}.price_frequency`} render={({
+        field
+      }) => <FormItem>
               <FormLabel>Billing Frequency*</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
@@ -65,9 +49,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
                 </SelectContent>
               </Select>
               <FormMessage />
-            </FormItem>
-          )}
-        />
+            </FormItem>} />
       </div>
 
       {/* Price breakdown display */}
@@ -88,8 +70,6 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
           </div>
         </div>
       </div>
-    </>
-  )
-}
-
-export default SitePricingDetails
+    </>;
+};
+export default SitePricingDetails;
