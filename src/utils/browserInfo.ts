@@ -1,4 +1,3 @@
-
 /**
  * Utility for capturing browser information and checking compatibility
  */
@@ -77,7 +76,7 @@ export const checkViteClientCompatibility = () => {
     hasWebSocket: typeof WebSocket !== 'undefined',
     hasEval: typeof eval === 'function',
     hasSessionStorage: typeof sessionStorage !== 'undefined',
-    hasImport: typeof import === 'function' || 'import' in window,
+    hasImport: 'import' in window || typeof window.import === 'function',
     hasCspIssues: false,
     cspDetails: null,
   };
