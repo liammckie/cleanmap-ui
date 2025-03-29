@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface SitePricingDetailsProps {
   form: UseFormReturn<any>;
@@ -44,7 +45,13 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
     
     form.setValue(getServiceItemsFieldName(), [
       ...items,
-      { id: newId, description: '', amount: 0 }
+      { 
+        id: newId, 
+        description: '', 
+        amount: 0,
+        frequency: 'weekly',
+        provider: 'Internal' 
+      }
     ]);
   };
 
@@ -71,10 +78,10 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name={getFieldName('price_per_service')}
+          name={getFieldName('price_per_week')}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price Per Service*</FormLabel>
+              <FormLabel>Price Per Week*</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -120,15 +127,108 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
         <h4 className="text-sm font-medium mb-3">Service Line Items</h4>
         
         {serviceItems.map((_, itemIndex) => (
-          <div key={itemIndex} className="grid grid-cols-12 gap-2 mb-2">
-            <div className="col-span-8">
+          <div key={itemIndex} className="mb-4 p-3 bg-muted/10 rounded-md">
+            <div className="grid grid-cols-12 gap-2 mb-3">
+              <div className="col-span-12 md:col-span-6">
+                <FormField
+                  control={form.control}
+                  name={`${getServiceItemAt(itemIndex)}.description`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Description</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Item description" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="col-span-6 md:col-span-3">
+                <FormField
+                  control={form.control}
+                  name={`${getServiceItemAt(itemIndex)}.amount`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Amount</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="0.00" 
+                          {...field} 
+                          onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="col-span-6 md:col-span-3">
+                <FormField
+                  control={form.control}
+                  name={`${getServiceItemAt(itemIndex)}.frequency`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Frequency</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value || "weekly"}
+                        value={field.value || "weekly"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="biannually">Bi-annually</SelectItem>
+                          <SelectItem value="annually">Annually</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            
+            <div className="mb-1">
               <FormField
                 control={form.control}
-                name={`${getServiceItemAt(itemIndex)}.description`}
+                name={`${getServiceItemAt(itemIndex)}.provider`}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-xs">Service Provider</FormLabel>
                     <FormControl>
-                      <Input placeholder="Item description" {...field} />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || "Internal"}
+                        value={field.value || "Internal"}
+                        className="flex items-center space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Internal" id={`internal-item-${index}-${itemIndex}`} />
+                          <label htmlFor={`internal-item-${index}-${itemIndex}`} className="text-sm font-normal">
+                            Internal
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Contractor" id={`contractor-item-${index}-${itemIndex}`} />
+                          <label htmlFor={`contractor-item-${index}-${itemIndex}`} className="text-sm font-normal">
+                            Contractor
+                          </label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -136,36 +236,17 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
               />
             </div>
             
-            <div className="col-span-3">
-              <FormField
-                control={form.control}
-                name={`${getServiceItemAt(itemIndex)}.amount`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0.00" 
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                        value={field.value || 0}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="col-span-1 flex items-center justify-center">
+            <div className="flex justify-end">
               <Button 
                 type="button" 
                 variant="ghost" 
                 size="sm"
                 onClick={() => removeServiceItem(itemIndex)}
                 disabled={serviceItems.length <= 1}
+                className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4 mr-1" />
+                Remove
               </Button>
             </div>
           </div>

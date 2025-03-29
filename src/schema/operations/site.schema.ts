@@ -39,9 +39,18 @@ export interface Site {
   service_type: 'Internal' | 'Contractor'
   
   // Pricing information
-  price_per_service: number | null
+  price_per_week: number | null
   price_frequency: string | null
-  service_items: Array<{id: number, description: string, amount: number}> | null
+  service_items: Array<{
+    id: number, 
+    description: string, 
+    amount: number, 
+    frequency: string,
+    provider: 'Internal' | 'Contractor'
+  }> | null
+  
+  // Location information
+  coordinates: string | null
   
   // UI-specific fields (not in database)
   street_address?: string
@@ -59,6 +68,15 @@ export interface Site {
 export function isSiteStatus(value: string): value is Site['status'] {
   return ['Active', 'Inactive', 'Pending Launch', 'Suspended'].includes(value)
 }
+
+// Service item schema with frequency and provider
+const serviceItemSchema = z.object({
+  id: z.number(),
+  description: z.string().min(1, 'Description is required'),
+  amount: z.number().min(0, 'Amount must be 0 or greater'),
+  frequency: z.string().default('weekly'),
+  provider: z.enum(['Internal', 'Contractor']).default('Internal')
+});
 
 // Zod schema for run-time validation
 export const siteSchema = z.object({
@@ -86,15 +104,12 @@ export const siteSchema = z.object({
   service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
   
   // Pricing information
-  price_per_service: z.number().nullable().optional(),
+  price_per_week: z.number().nullable().optional(),
   price_frequency: z.string().nullable().optional(),
-  service_items: z.array(
-    z.object({
-      id: z.number(),
-      description: z.string(),
-      amount: z.number()
-    })
-  ).nullable().optional(),
+  service_items: z.array(serviceItemSchema).nullable().optional(),
+  
+  // Location information
+  coordinates: z.string().nullable().optional(),
   
   special_instructions: z.string().nullable().optional(),
   status: z.enum(['Active', 'Inactive', 'Pending Launch', 'Suspended']).default('Active'),
@@ -129,9 +144,18 @@ export type SiteInsert = {
   service_type?: 'Internal' | 'Contractor'
   
   // Pricing information
-  price_per_service?: number | null
+  price_per_week?: number | null
   price_frequency?: string | null
-  service_items?: Array<{id: number, description: string, amount: number}> | null
+  service_items?: Array<{
+    id: number, 
+    description: string, 
+    amount: number, 
+    frequency: string,
+    provider: 'Internal' | 'Contractor'
+  }> | null
+  
+  // Location information
+  coordinates?: string | null
 }
 
 export type SiteUpdate = Partial<SiteInsert>

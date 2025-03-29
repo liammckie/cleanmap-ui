@@ -19,6 +19,16 @@ import SiteServiceDetails from '@/components/operations/ClientForm/SiteServiceDe
 import SitePricingDetails from '@/components/operations/ClientForm/SitePricingDetails'
 import SiteSpecialInstructions from '@/components/operations/ClientForm/SiteSpecialInstructions'
 import { useClientSiteForm } from '@/hooks/operations/useClientSiteForm'
+import { getCoordinatesFromAddress, formatCoordinatesForStorage } from '@/utils/googleMaps'
+
+// Define the service item schema
+const serviceItemSchema = z.object({
+  id: z.number(),
+  description: z.string().min(1, 'Description is required'),
+  amount: z.number().min(0, 'Amount must be 0 or greater'),
+  frequency: z.string().default('weekly'),
+  provider: z.enum(['Internal', 'Contractor']).default('Internal')
+});
 
 // Form schema for a site
 const siteSchema = z.object({
@@ -46,17 +56,14 @@ const siteSchema = z.object({
   custom_frequency: z.string().nullable().optional(),
   
   // Pricing details
-  price_per_service: z.number().min(0, 'Price must be 0 or greater'),
+  price_per_week: z.number().min(0, 'Price must be 0 or greater'),
   price_frequency: z.string().min(1, 'Billing frequency is required'),
-  service_items: z.array(
-    z.object({
-      id: z.number(),
-      description: z.string().min(1, 'Description is required'),
-      amount: z.number().min(0, 'Amount must be 0 or greater')
-    })
-  ).optional(),
+  service_items: z.array(serviceItemSchema).optional(),
   
   special_instructions: z.string().nullable().optional(),
+  
+  // Location information (will be populated programmatically)
+  coordinates: z.string().nullable().optional(),
 })
 
 type SiteFormValues = z.infer<typeof siteSchema>
@@ -92,10 +99,11 @@ const CreateSitePage: React.FC = () => {
       service_type: 'Internal',
       service_frequency: 'weekly',
       custom_frequency: '',
-      price_per_service: 0,
+      price_per_week: 0,
       price_frequency: 'weekly',
-      service_items: [{ id: 0, description: 'Regular cleaning', amount: 0 }],
+      service_items: [{ id: 0, description: 'Regular cleaning', amount: 0, frequency: 'weekly', provider: 'Internal' }],
       special_instructions: '',
+      coordinates: null,
     },
   })
 
@@ -121,17 +129,31 @@ const CreateSitePage: React.FC = () => {
     try {
       setIsSubmitting(true)
       
+      // Get coordinates from the address
+      let coordinates = null
+      try {
+        const fullAddress = `${data.address_street}, ${data.address_city}, ${data.address_state} ${data.address_postcode}, Australia`
+        const coords = await getCoordinatesFromAddress(fullAddress)
+        coordinates = formatCoordinatesForStorage(coords)
+      } catch (error) {
+        console.error('Error geocoding address:', error)
+        // Continue without coordinates if geocoding fails
+      }
+      
       // Ensure service_items matches the expected type structure
       const serviceItems = data.service_items?.map(item => ({
         id: item.id,
         description: item.description,
-        amount: Number(item.amount)
+        amount: Number(item.amount),
+        frequency: item.frequency || 'weekly',
+        provider: item.provider || 'Internal'
       })) || []
       
       const siteData = {
         ...data,
-        price_per_service: Number(data.price_per_service),
-        service_items: serviceItems
+        price_per_week: Number(data.price_per_week),
+        service_items: serviceItems,
+        coordinates
       }
       
       console.log('Submitting site data:', siteData)

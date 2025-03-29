@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 
 /**
@@ -176,7 +175,7 @@ export async function fetchPendingTasks(limit = 5) {
 
 /**
  * Get site locations with coordinates for map
- * This is a stub - in a real implementation, you would fetch actual coordinates
+ * Uses actual coordinates from the database when available
  * @returns Array of map locations with coordinates
  */
 export async function fetchMapLocations() {
@@ -190,6 +189,7 @@ export async function fetchMapLocations() {
         address_city,
         address_state,
         address_postcode,
+        coordinates,
         client_id,
         clients (
           company_name
@@ -200,22 +200,35 @@ export async function fetchMapLocations() {
 
     if (error) throw error
 
-    // In a real implementation, you would use a geocoding service to get coordinates
-    // For this example, we'll generate fake coordinates around Australia
-    const centerLat = -25.2744;
-    const centerLng = 133.7751;
-    
-    return data?.map(site => ({
-      id: site.id,
-      name: site.site_name,
-      // Generate random coordinates within roughly Australia's bounds
-      lat: centerLat + (Math.random() * 10 - 5),
-      lng: centerLng + (Math.random() * 10 - 5),
-      count: 1, // Could represent number of services at this site
-      address: site.address_street,
-      city: site.address_city,
-      clientName: site.clients?.company_name
-    })) || []
+    // Parse coordinates or generate them if not available
+    return data?.map(site => {
+      // Default coordinates (approximately Australia)
+      let lat = -25.2744 + (Math.random() * 10 - 5);
+      let lng = 133.7751 + (Math.random() * 10 - 5);
+      
+      // Parse coordinates if they exist
+      if (site.coordinates) {
+        const [latStr, lngStr] = site.coordinates.split(',');
+        const parsedLat = parseFloat(latStr);
+        const parsedLng = parseFloat(lngStr);
+        
+        if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+          lat = parsedLat;
+          lng = parsedLng;
+        }
+      }
+      
+      return {
+        id: site.id,
+        name: site.site_name,
+        lat,
+        lng,
+        count: 1, // Could represent number of services at this site
+        address: site.address_street,
+        city: site.address_city,
+        clientName: site.clients?.company_name
+      }
+    }) || []
   } catch (error) {
     console.error('Error fetching map locations:', error)
     return []

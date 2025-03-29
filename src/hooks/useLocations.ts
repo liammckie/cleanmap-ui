@@ -1,6 +1,8 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { MapLocation } from '@/components/Map/types'
+import { parseCoordinatesFromStorage } from '@/utils/googleMaps'
 
 export type LocationData = MapLocation
 
@@ -9,10 +11,7 @@ export const useLocations = (options?: { clientId?: string; onlyActive?: boolean
     queryKey: ['locations', options?.clientId, options?.onlyActive],
     queryFn: async (): Promise<LocationData[]> => {
       try {
-        // In a real app, this would fetch from the sites table and join with client
-        // and count employees assigned to each location
-
-        // Placeholder implementation
+        // Fetch sites data from Supabase with client information
         const { data: sites, error } = await supabase
           .from('sites')
           .select(
@@ -23,53 +22,51 @@ export const useLocations = (options?: { clientId?: string; onlyActive?: boolean
             address_city,
             address_state,
             address_postcode,
+            coordinates,
             client_id,
             clients(company_name)
           `,
           )
-          .eq('status', 'Active')
+          .eq('status', options?.onlyActive === false ? undefined : 'Active')
+          .eq('client_id', options?.clientId || undefined)
           .order('site_name')
 
         if (error) {
           throw error
         }
 
-        // Process the data to match the expected format
-        // In a real implementation, you'd have geo coordinates stored in the DB
-        const locations: LocationData[] = await Promise.all(
-          (sites || []).map(async (site) => {
-            // Get random coordinates near Sydney for demo purposes
-            const baseLat = -33.8688
-            const baseLng = 151.2093
-            const lat = baseLat + (Math.random() - 0.5) * 0.1
-            const lng = baseLng + (Math.random() - 0.5) * 0.1
-
-            return {
-              id: site.id,
-              name: site.site_name,
-              lat,
-              lng,
-              count: Math.floor(Math.random() * 10) + 1, // Random staff count for demo
-              address: site.address_street,
-              city: site.address_city,
-              clientName: site.clients?.company_name,
+        // Process the data to match the expected MapLocation format
+        const locations: LocationData[] = (sites || []).map((site) => {
+          // Parse coordinates if they exist, otherwise generate random coordinates around Sydney
+          let lat = -33.8688 + (Math.random() - 0.5) * 0.1
+          let lng = 151.2093 + (Math.random() - 0.5) * 0.1
+          
+          if (site.coordinates) {
+            const parsedCoords = parseCoordinatesFromStorage(site.coordinates)
+            if (parsedCoords) {
+              lat = parsedCoords.lat
+              lng = parsedCoords.lng
             }
-          }),
-        )
+          }
+
+          // Build the location object
+          return {
+            id: site.id,
+            name: site.site_name,
+            lat,
+            lng,
+            count: 1, // This would normally be something like staff assigned to this site
+            address: site.address_street,
+            city: site.address_city,
+            clientName: site.clients?.company_name,
+          }
+        })
 
         return locations
       } catch (error) {
         console.error('Error fetching locations:', error)
-        // Return mock data as fallback
-        return sampleLocations.map((loc) => ({
-          id: loc.id.toString(),
-          name: loc.name,
-          lat: loc.lat,
-          lng: loc.lng,
-          count: loc.count,
-          address: '123 Sample St',
-          city: 'Sydney',
-        }))
+        // Return empty array as fallback
+        return []
       }
     },
     meta: {
@@ -79,10 +76,3 @@ export const useLocations = (options?: { clientId?: string; onlyActive?: boolean
     },
   })
 }
-
-// Sample locations data as fallback
-const sampleLocations = [
-  { id: 1, name: 'Office Building A', lat: -33.865143, lng: 151.2099, count: 3 },
-  { id: 2, name: 'Business Plaza', lat: -33.88213, lng: 151.19537, count: 9 },
-  { id: 3, name: 'Corporate Headquarters', lat: -33.889967, lng: 151.274846, count: 3 },
-]

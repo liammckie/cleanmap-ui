@@ -20,7 +20,7 @@ export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
   useEffect(() => {
     // Handle both standalone and in-client-form cases
     const fieldPrefix = index === -1 ? '' : `sites.${index}.`;
-    const price = form.watch(`${fieldPrefix}price_per_service`) || 0;
+    const price = form.watch(`${fieldPrefix}price_per_week`) || 0;
     const frequency = (form.watch(`${fieldPrefix}price_frequency`) as BillingFrequency) || 'weekly';
 
     const breakdown = calculateAllBillingFrequencies(price, frequency);
@@ -28,7 +28,7 @@ export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
   }, [
     form,
     index,
-    form.watch(index === -1 ? 'price_per_service' : `sites.${index}.price_per_service`),
+    form.watch(index === -1 ? 'price_per_week' : `sites.${index}.price_per_week`),
     form.watch(index === -1 ? 'price_frequency' : `sites.${index}.price_frequency`),
   ])
 

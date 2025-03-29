@@ -46,12 +46,15 @@ export async function createSite(siteData: Partial<Site>) {
       service_frequency: siteData.service_frequency,
       custom_frequency: siteData.custom_frequency,
       service_type: siteData.service_type || 'Internal',
-      price_per_service: siteData.price_per_service,
+      price_per_week: siteData.price_per_week,
       price_frequency: siteData.price_frequency,
+      coordinates: siteData.coordinates,
       service_items: siteData.service_items?.map(item => ({
         id: item.id,
         description: item.description,
-        amount: Number(item.amount)
+        amount: Number(item.amount),
+        frequency: item.frequency || 'weekly',
+        provider: item.provider || 'Internal'
       }))
     }
 
