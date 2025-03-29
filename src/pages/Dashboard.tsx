@@ -1,140 +1,147 @@
 
 import React from 'react'
-import { Activity, Users, Building2, DollarSign } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Activity, Building2, DollarSign, Users, Clock, AlertCircle } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/Dashboard/StatCard'
-import TasksList from '@/components/Dashboard/TasksList'
-import UpcomingContracts from '@/components/Dashboard/UpcomingContracts'
-import DashboardMap from '@/components/Dashboard/DashboardMap'
 import RevenueChart from '@/components/Dashboard/RevenueChart'
 import KpiMetrics from '@/components/Dashboard/KpiMetrics'
-import { useDashboardData } from '@/hooks/useDashboardData'
-import { Skeleton } from '@/components/ui/skeleton'
+import DashboardMap from '@/components/Dashboard/DashboardMap'
+import UpcomingContracts from '@/components/Dashboard/UpcomingContracts'
+import TasksList from '@/components/Dashboard/TasksList'
+import { formatDate } from '@/utils/dateFormatters'
 
-const Dashboard = () => {
-  const navigate = useNavigate()
-  const { 
-    stats, 
-    upcomingContracts, 
-    pendingTasks, 
-    mapLocations, 
-    revenueTrend,
-    kpiMetrics,
-    isLoading, 
-    hasError 
-  } = useDashboardData()
+const Dashboard: React.FC = () => {
+  const { data, isLoading, error } = useDashboardData()
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-AU', {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-AU', {
       style: 'currency',
       currency: 'AUD',
       maximumFractionDigits: 0,
-    })
+    }).format(amount)
   }
 
-  const handleCardClick = (path: string) => {
-    navigate(path)
-  }
-
-  // Show loading state while data is being fetched
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="container mx-auto py-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-6 bg-white rounded-lg shadow-sm border">
-              <Skeleton className="h-6 w-32 mb-1" />
-              <Skeleton className="h-10 w-24 mb-2" />
-              <Skeleton className="h-4 w-20" />
-            </div>
+            <Card key={i} className="h-32">
+              <CardContent className="pt-6">
+                <div className="h-full w-full bg-muted/20 animate-pulse rounded-md"></div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Skeleton className="h-80 rounded-lg" />
-          <Skeleton className="h-80 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Skeleton className="h-64 rounded-lg" />
-          <Skeleton className="h-64 rounded-lg" />
-        </div>
-        <Skeleton className="h-80 w-full rounded-lg" />
       </div>
     )
   }
 
-  // Show error state if data fetch failed
-  if (hasError) {
+  if (error) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-8">
-          <p className="font-medium">Error loading dashboard data</p>
-          <p className="text-sm">Please try refreshing the page or contact support if the problem persists.</p>
-        </div>
+      <div className="container mx-auto py-6">
+        <Card className="p-6 text-center">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <AlertCircle className="h-10 w-10 text-destructive" />
+            <h2 className="text-xl font-bold">Error Loading Dashboard</h2>
+            <p className="text-muted-foreground">
+              {error instanceof Error ? error.message : 'An unexpected error occurred.'}
+            </p>
+          </div>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard
           title="Active Clients"
-          value={stats.activeClients}
-          icon={<Users className="h-8 w-8 text-blue-500" />}
-          change={2.5}
-          changeLabel="from last month"
-          onClick={() => handleCardClick('/operations/clients')}
+          value={data.activeClients}
+          icon={<Users className="h-5 w-5" />}
+          changeLabel="of total clients"
+          change={data.totalClients > 0 ? (data.activeClients / data.totalClients) * 100 : 0}
+          onClick={() => window.location.href = '/operations/clients'}
         />
-        <StatCard
-          title="Total Clients"
-          value={stats.totalClients}
-          icon={<Building2 className="h-8 w-8 text-green-500" />}
-          change={4.1}
-          changeLabel="new this month"
-          onClick={() => handleCardClick('/operations/clients')}
-        />
+
         <StatCard
           title="Cleaning Locations"
-          value={stats.cleaningLocations}
-          icon={<Activity className="h-8 w-8 text-purple-500" />}
-          change={1.8}
-          changeLabel="from last month"
-          onClick={() => handleCardClick('/operations/site-list')}
+          value={data.cleaningLocations}
+          icon={<Building2 className="h-5 w-5" />}
+          change={data.sitesAwaitingContracts > 0 ? 5.2 : 0}
+          changeLabel={`${data.sitesAwaitingContracts} awaiting contracts`}
+          onClick={() => window.location.href = '/operations/sites'}
         />
+
         <StatCard
           title="Monthly Revenue"
-          value={formatCurrency(stats.monthlyRevenue)}
-          icon={<DollarSign className="h-8 w-8 text-amber-500" />}
-          change={stats.revenueChange}
-          changeLabel="from last month"
-          isCurrency
+          value={formatCurrency(data.monthlyRevenue)}
+          icon={<DollarSign className="h-5 w-5" />}
+          change={data.revenueChange}
+          isCurrency={true}
+          onClick={() => window.location.href = '/operations/contracts'}
+        />
+
+        <StatCard
+          title="Work Orders"
+          value={data.newWorkOrders}
+          icon={<Activity className="h-5 w-5" />}
+          change={0}
+          changeLabel="scheduled"
+          onClick={() => window.location.href = '/operations/work-orders'}
         />
       </div>
 
-      {/* Revenue Chart and KPI Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <RevenueChart data={revenueTrend} />
-        <KpiMetrics 
-          taskCompletionRate={kpiMetrics.taskCompletionRate}
-          clientRetentionRate={kpiMetrics.clientRetentionRate}
-          staffUtilization={kpiMetrics.staffUtilization}
-          customerSatisfaction={kpiMetrics.customerSatisfaction}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
+        <div className="lg:col-span-2">
+          <RevenueChart data={data.revenueChartData} />
+        </div>
+        <div>
+          <KpiMetrics kpi={data.kpi} />
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 mb-6">
+        <TasksList 
+          title="Pending Tasks" 
+          tasks={data.pendingTasks.map(task => ({
+            id: task.id,
+            title: task.title,
+            dueDate: formatDate(task.due_date),
+            priority: task.priority,
+            status: task.status,
+            location: task.sites?.site_name || 'Unknown location'
+          }))} 
+        />
+        
+        <UpcomingContracts 
+          contracts={data.upcomingContracts.map(contract => ({
+            id: contract.id,
+            number: contract.contract_number,
+            client: contract.clients?.company_name || 'Unknown client',
+            endDate: contract.end_date
+          }))} 
         />
       </div>
 
-      {/* Tasks and Contracts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <TasksList tasks={pendingTasks || []} />
-        <UpcomingContracts contracts={upcomingContracts || []} />
+      <div className="mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cleaning Locations</CardTitle>
+            <CardDescription>Map of active service locations</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="h-[400px]">
+              <DashboardMap />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Map */}
-      <DashboardMap locations={mapLocations || []} />
     </div>
   )
 }

@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -16,7 +15,9 @@ import { useClientForm, STEPS } from '@/hooks/operations/useClientForm'
 const serviceItemSchema = z.object({
   id: z.number(),
   description: z.string().min(1, 'Description is required'),
-  amount: z.number().min(0, 'Amount must be 0 or greater')
+  amount: z.number().min(0, 'Amount must be 0 or greater'),
+  frequency: z.string().default('weekly'),
+  provider: z.enum(['Internal', 'Contractor']).default('Internal')
 });
 
 const clientFormSchema = z.object({
@@ -118,7 +119,13 @@ const ClientFormStepper: React.FC = () => {
           custom_frequency: '',
           price_per_service: 0,
           price_frequency: 'weekly',
-          service_items: [{ id: 0, description: 'Regular cleaning', amount: 0 }],
+          service_items: [{ 
+            id: 1, 
+            description: 'Regular cleaning', 
+            amount: 0,
+            frequency: 'weekly',
+            provider: 'Internal'
+          }],
           special_instructions: '',
         },
       ],
