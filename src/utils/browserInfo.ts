@@ -1,4 +1,3 @@
-
 /**
  * Utility for capturing browser information and checking compatibility
  */
@@ -70,12 +69,12 @@ export const checkForBrowserCompatibilityIssues = () => {
   return issues;
 };
 
-// Safely check if dynamic imports are supported
+// Safely check if dynamic imports are supported without using new Function
 const checkDynamicImportSupport = () => {
   try {
-    // Use Function constructor to avoid direct 'import' syntax that causes parsing errors
-    new Function('try { return new Function("return import(\\"\\")"); } catch(e) { return false; }')();
-    return true;
+    // Just check if the 'import' keyword is supported as an identifier
+    // This doesn't execute any actual dynamic import
+    return typeof import !== 'undefined';
   } catch (e) {
     return false;
   }

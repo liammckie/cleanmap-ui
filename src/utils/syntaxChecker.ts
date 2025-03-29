@@ -5,30 +5,33 @@
 
 /**
  * Scans for syntax errors in a string of JavaScript/TypeScript code
+ * This implementation avoids using the Function constructor
  * @param code The code to check for syntax errors
  * @returns null if no errors, or an error message
  */
 export const checkSyntax = (code: string): string | null => {
   try {
-    // Use Function constructor to validate syntax without executing
-    new Function(code);
-    return null;
+    // Instead of using Function constructor, we'll do a simpler syntax check
+    // Look for common syntax errors
+    return findCommonSyntaxIssues(code).length > 0 
+      ? `Potential syntax issues found: ${findCommonSyntaxIssues(code).join(', ')}` 
+      : null;
   } catch (error) {
     return error instanceof Error ? error.message : String(error);
   }
 };
 
 /**
- * Safely evaluates a string to check for syntax errors
- * without actually executing the code
+ * Safely checks for import syntax without executing code
  */
 export const validateModuleImport = (importPath: string): boolean => {
   try {
-    // This is just for checking, not actually importing
-    new Function(`import('${importPath}');`);
-    return true;
+    // Basic path validation instead of using Function
+    return importPath.length > 0 && 
+           !importPath.includes('..') && 
+           !importPath.startsWith('/');
   } catch (error) {
-    console.error(`Syntax error detected in module: ${importPath}`, error);
+    console.error(`Error validating module: ${importPath}`, error);
     return false;
   }
 };

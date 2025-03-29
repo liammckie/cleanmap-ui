@@ -63,15 +63,40 @@ export const checkType = (
 
 /**
  * Helps detect syntax errors in code strings (for debugging)
+ * Modified to not use Function constructor for CSP compliance
  * @param codeString String containing code to evaluate
  * @returns Error message if syntax error found, null otherwise
  */
 export const detectSyntaxError = (codeString: string): string | null => {
   try {
-    // Use Function constructor instead of eval for safer parsing
-    // This only checks for syntax errors without executing the code
-    new Function(codeString);
-    return null;
+    // Simple checks for common syntax errors instead of using Function constructor
+    const issues = [];
+    
+    // Check for unbalanced brackets/braces/parentheses
+    const bracketsStack: string[] = [];
+    const bracketPairs: Record<string, string> = {
+      ')': '(',
+      '}': '{',
+      ']': '['
+    };
+    
+    for (let i = 0; i < codeString.length; i++) {
+      const char = codeString[i];
+      
+      if (char === '(' || char === '{' || char === '[') {
+        bracketsStack.push(char);
+      } else if (char === ')' || char === '}' || char === ']') {
+        if (bracketsStack.length === 0 || bracketsStack.pop() !== bracketPairs[char]) {
+          issues.push(`Unbalanced bracket/brace at position ${i}: ${char}`);
+        }
+      }
+    }
+    
+    if (bracketsStack.length > 0) {
+      issues.push(`Unclosed brackets/braces: ${bracketsStack.join('')}`);
+    }
+    
+    return issues.length > 0 ? issues.join(', ') : null;
   } catch (error) {
     return error instanceof Error ? error.message : String(error);
   }
