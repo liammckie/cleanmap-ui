@@ -1,9 +1,10 @@
 
 import React from 'react'
 import AddressForm from './AddressForm'
+import { UseFormReturn } from 'react-hook-form'
 
 interface EmployeeFormAddressSectionProps {
-  form: any
+  form: UseFormReturn<any>
 }
 
 const EmployeeFormAddressSection: React.FC<EmployeeFormAddressSectionProps> = ({ form }) => {

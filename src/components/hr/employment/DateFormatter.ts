@@ -1,14 +1,15 @@
 
-import { format } from 'date-fns'
+import { format, isValid, parseISO } from 'date-fns'
 
 export const formatDate = (date: string | Date | undefined | null): string => {
   if (!date) return 'N/A'
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date
+    // Handle string dates by parsing them first
+    const dateObj = typeof date === 'string' ? parseISO(date) : date
     
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
+    // Check if the date is valid using isValid
+    if (!isValid(dateObj)) {
       return 'Invalid date'
     }
     
