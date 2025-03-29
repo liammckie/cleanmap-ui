@@ -23,8 +23,8 @@
       content="https://lovable.dev/opengraph-image-p98pqg.png"
     />
     
-    <!-- Updated Content Security Policy to fix Vite HMR issues -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' ws: wss: https://*.lovableproject.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://*.lovableproject.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none';" />
+    <!-- Updated Content Security Policy to better support Vite HMR -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' ws: wss: https://*.lovableproject.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://*.lovableproject.com https://*.vite-dev-server.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none';" />
   </head>
 
   <body>

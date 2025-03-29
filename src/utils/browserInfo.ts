@@ -71,21 +71,103 @@ export const checkForBrowserCompatibilityIssues = (): string[] => {
  */
 export const checkViteClientCompatibility = (): boolean => {
   try {
-    // Test if we can create a WebSocket connection (important for Vite)
-    const testWs = 'WebSocket' in window;
+    console.group('Vite Client Compatibility Check');
     
-    // Check if CSP allows eval (needed for some Vite operations)
+    // Test if we can create a WebSocket connection (important for Vite)
+    const hasWebSocket = 'WebSocket' in window;
+    console.log('WebSocket support:', hasWebSocket);
+    
+    // Check if CSP allows connections to Vite domains
+    const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    console.log('CSP meta tag found:', !!cspMeta);
+    
+    if (cspMeta) {
+      const cspContent = cspMeta.getAttribute('content');
+      console.log('CSP Content:', cspContent);
+      
+      // Check for key Vite requirements in CSP
+      const hasUnsafeEval = cspContent?.includes("'unsafe-eval'");
+      const hasUnsafeInline = cspContent?.includes("'unsafe-inline'");
+      const hasWsConnections = cspContent?.includes('ws:') || cspContent?.includes('wss:');
+      
+      console.log('CSP allows unsafe-eval:', hasUnsafeEval);
+      console.log('CSP allows unsafe-inline:', hasUnsafeInline);
+      console.log('CSP allows WebSocket connections:', hasWsConnections);
+      
+      if (!hasUnsafeEval || !hasUnsafeInline || !hasWsConnections) {
+        console.warn('CSP may block Vite functionality. Consider adjusting CSP settings.');
+      }
+    }
+    
+    // Test if eval is allowed (needed for some Vite operations)
     try {
       // This will throw if eval is blocked by CSP
       // eslint-disable-next-line no-eval
       eval('true');
-      return testWs;
+      console.log('eval() is allowed by CSP');
+      console.groupEnd();
+      return hasWebSocket;
     } catch (e) {
-      console.warn('CSP blocks eval() which may affect Vite development server');
+      console.warn('CSP blocks eval() which may affect Vite development server', e);
+      console.groupEnd();
       return false;
     }
   } catch (e) {
     console.error('Error checking Vite compatibility:', e);
+    console.groupEnd();
     return false;
+  }
+};
+
+/**
+ * Attempts to diagnose Vite client loading issues
+ */
+export const diagnoseViteClientIssues = () => {
+  try {
+    console.group('Vite Client Diagnostics');
+    
+    // Check if the Vite client script tag exists
+    const viteClientScript = document.querySelector('script[src*="@vite/client"]');
+    console.log('Vite client script tag found:', !!viteClientScript);
+    
+    if (viteClientScript) {
+      console.log('Vite client src:', viteClientScript.getAttribute('src'));
+    } else {
+      // Try to manually load the Vite client script to test loading
+      const testScript = document.createElement('script');
+      testScript.type = 'module';
+      testScript.src = '/@vite/client';
+      testScript.id = 'vite-client-test';
+      
+      // Log when the script errors
+      testScript.onerror = (event) => {
+        console.error('Vite client test script failed to load:', event);
+      };
+      
+      // Add to DOM temporarily
+      document.head.appendChild(testScript);
+      setTimeout(() => {
+        if (document.getElementById('vite-client-test')) {
+          document.head.removeChild(testScript);
+        }
+      }, 3000);
+    }
+    
+    // Check for error events related to Vite
+    window.addEventListener('error', (event) => {
+      if (event.filename?.includes('@vite') || event.message?.includes('Vite')) {
+        console.error('Vite-related error detected:', {
+          filename: event.filename,
+          message: event.message,
+          lineno: event.lineno,
+          colno: event.colno
+        });
+      }
+    }, { once: true });
+    
+    console.groupEnd();
+  } catch (e) {
+    console.error('Error diagnosing Vite client:', e);
+    console.groupEnd();
   }
 };

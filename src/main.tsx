@@ -5,13 +5,16 @@ import App from './App.tsx'
 import './index.css'
 import { captureGlobalErrors } from './utils/errorCapture.ts'
 import { checkSyntax, diagnoseSyntaxError } from './utils/syntaxChecker.ts'
-import { checkViteClientCompatibility } from './utils/browserInfo.ts'
+import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo.ts'
 
 // Set up global error capturing
 captureGlobalErrors();
 
 // Check Vite client compatibility before starting
 console.log('Checking Vite client compatibility:', checkViteClientCompatibility());
+
+// Add diagnostic for Vite client issues
+diagnoseViteClientIssues();
 
 // Add specific error handler for Vite-related issues
 window.addEventListener('error', (event) => {
@@ -24,7 +27,17 @@ window.addEventListener('error', (event) => {
       lineNumber: event.lineno,
       columnNumber: event.colno,
       message: event.message,
+      stack: event.error?.stack,
     });
+    
+    // Try to inspect the specific error type
+    if (event.message?.includes('SyntaxError') && event.filename?.includes('@vite/client')) {
+      console.error('Syntax error in Vite client. This is likely due to a CSP issue.');
+      console.info('Check that your Content-Security-Policy allows:');
+      console.info('1. unsafe-eval for script-src');
+      console.info('2. unsafe-inline for script-src');
+      console.info('3. ws: and wss: for connect-src');
+    }
     
     const rootElement = document.getElementById('root');
     if (rootElement) {
@@ -38,6 +51,7 @@ window.addEventListener('error', (event) => {
             <li>Refresh the page</li>
             <li>Restart the development server</li>
             <li>Check browser console for specific errors</li>
+            <li>Verify that your Content Security Policy allows 'unsafe-eval' and WebSocket connections</li>
           </ul>
           <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${event.message}</pre>
           <button id="refreshBtn" style="margin-top: 15px; padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">
