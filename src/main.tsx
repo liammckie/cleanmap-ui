@@ -9,6 +9,24 @@ import { checkSyntax, diagnoseSyntaxError } from './utils/syntaxChecker.ts'
 // Set up global error capturing
 captureGlobalErrors();
 
+// Add specific error handler for Vite-related issues
+window.addEventListener('error', (event) => {
+  if (event.filename?.includes('@vite') || event.message?.includes('Vite')) {
+    console.error('Vite-related error detected:', event);
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="padding: 20px; font-family: sans-serif;">
+          <h2>Development Environment Error</h2>
+          <p>There was an error with the Vite development server.</p>
+          <p>Try refreshing the page or restarting the development server.</p>
+          <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${event.message}</pre>
+        </div>
+      `;
+    }
+  }
+}, true);
+
 // Enhanced error boundary for better error reporting
 const renderApp = () => {
   try {
