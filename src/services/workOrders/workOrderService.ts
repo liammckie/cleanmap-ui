@@ -2,27 +2,17 @@
 import { supabase } from '@/integrations/supabase/client'
 import type { WorkOrder } from '@/schema/operations'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
-import { generateWorkOrderNumber } from '@/utils/identifierGenerators'
-import { isWorkOrderStatus, isWorkOrderPriority } from '@/schema/operations/workOrder.schema'
+import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
 
 /**
  * Create a new work order
  */
 export async function createWorkOrder(
-  workOrder: Omit<WorkOrder, 'id' | 'created_at' | 'updated_at' | 'work_order_number'>,
+  workOrder: Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>,
 ) {
   try {
-    // Generate work order number
-    const workOrderNumber = await generateWorkOrderNumber()
-
-    // Prepare the work order data with the generated number
-    const fullWorkOrder = {
-      ...workOrder,
-      work_order_number: workOrderNumber,
-    }
-
     // Convert Date objects to ISO strings for Supabase
-    const dbWorkOrder = prepareObjectForDb(fullWorkOrder)
+    const dbWorkOrder = prepareObjectForDb(workOrder)
 
     // Insert into database
     const { data, error } = await supabase
@@ -94,23 +84,6 @@ export async function logWorkOrderNote(
     // placeholder functionality to avoid TypeScript errors
     console.log('Logging work order note:', { workOrderId, note, authorId, visibility })
 
-    // TODO: Once the work_order_notes table is created, uncomment this code
-    /*
-    const { data, error } = await supabase
-      .from('work_order_notes')
-      .insert({
-        work_order_id: workOrderId,
-        note,
-        author_id: authorId,
-        visibility
-      })
-      .select();
-      
-    if (error) throw error;
-    
-    return data[0];
-    */
-
     // Mock return for now
     return {
       id: 'mock-note-id',
@@ -145,7 +118,7 @@ export async function fetchWorkOrderStatuses() {
 export async function fetchWorkOrderCategories() {
   try {
     // Mock categories for demonstration
-    return ['Cleaning', 'Maintenance', 'Inspection', 'Special Request', 'Service Call']
+    return ['Routine Clean', 'Ad-hoc Request', 'Audit'] as WorkOrder['category'][]
   } catch (error) {
     console.error('Error fetching work order categories:', error)
     throw error

@@ -42,6 +42,7 @@ import {
   updateWorkOrder 
 } from '@/services/workOrders'
 import { useToast } from '@/hooks/use-toast'
+import { WorkOrder } from '@/schema/operations/workOrder.schema'
 
 // Work order form schema
 const workOrderFormSchema = z.object({
@@ -49,19 +50,19 @@ const workOrderFormSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   site_id: z.string().min(1, 'Site is required'),
   client_id: z.string().optional(),
-  status: z.string().min(1, 'Status is required'),
-  priority: z.string().min(1, 'Priority is required'),
-  category: z.string().min(1, 'Category is required'),
+  status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']),
+  priority: z.enum(['Low', 'Medium', 'High']),
+  category: z.enum(['Routine Clean', 'Ad-hoc Request', 'Audit']),
   scheduled_start: z.date({ required_error: 'Scheduled start date is required' }),
   due_date: z.date({ required_error: 'Due date is required' }),
-  estimated_hours: z.number().nullable().optional(),
-  notes: z.string().nullable().optional(),
+  actual_duration: z.number().nullable().optional(),
+  outcome_notes: z.string().nullable().optional(),
 })
 
 type WorkOrderFormValues = z.infer<typeof workOrderFormSchema>
 
 interface WorkOrderFormProps {
-  initialData?: Partial<WorkOrderFormValues>
+  initialData?: Partial<WorkOrder>
   onSuccess: () => void
   onCancel: () => void
 }
@@ -69,7 +70,7 @@ interface WorkOrderFormProps {
 export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFormProps) {
   const { toast } = useToast()
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(
-    initialData?.client_id
+    initialData?.site?.client_id
   )
 
   // Fetch sites
@@ -112,29 +113,29 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
       title: initialData?.title || '',
       description: initialData?.description || '',
       site_id: initialData?.site_id || '',
-      client_id: initialData?.client_id || undefined,
+      client_id: initialData?.site?.client_id,
       status: initialData?.status || 'Scheduled',
       priority: initialData?.priority || 'Medium',
-      category: initialData?.category || '',
-      scheduled_start: initialData?.scheduled_start || new Date(),
-      due_date: initialData?.due_date || new Date(),
-      estimated_hours: initialData?.estimated_hours || null,
-      notes: initialData?.notes || '',
+      category: initialData?.category || 'Routine Clean',
+      scheduled_start: initialData?.scheduled_start ? new Date(initialData.scheduled_start) : new Date(),
+      due_date: initialData?.due_date ? new Date(initialData.due_date) : new Date(),
+      actual_duration: initialData?.actual_duration || null,
+      outcome_notes: initialData?.outcome_notes || '',
     },
   })
 
   async function onSubmit(values: WorkOrderFormValues) {
     try {
-      if (initialData?.title) {
+      if (initialData?.id) {
         // Update existing work order
-        await updateWorkOrder(initialData.id as string, values)
+        await updateWorkOrder(initialData.id, values as Partial<WorkOrder>)
         toast({
           title: 'Success',
           description: 'Work order updated successfully',
         })
       } else {
         // Create new work order
-        await createWorkOrder(values)
+        await createWorkOrder(values as Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>)
         toast({
           title: 'Success',
           description: 'Work order created successfully',
@@ -295,7 +296,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
 
           <FormField
             control={form.control}
-            name="estimated_hours"
+            name="actual_duration"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Estimated Hours</FormLabel>
@@ -415,7 +416,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
 
         <FormField
           control={form.control}
-          name="notes"
+          name="outcome_notes"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Notes</FormLabel>
@@ -440,7 +441,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             Cancel
           </Button>
           <Button type="submit">
-            {initialData?.title ? 'Update Work Order' : 'Create Work Order'}
+            {initialData?.id ? 'Update Work Order' : 'Create Work Order'}
           </Button>
         </div>
       </form>

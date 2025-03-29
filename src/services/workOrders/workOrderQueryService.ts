@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import { isWorkOrderStatus, isWorkOrderPriority } from '@/schema/operations/workOrder.schema'
+import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
 
 export async function fetchWorkOrders(
   searchTerm?: string,
@@ -30,7 +30,7 @@ export async function fetchWorkOrders(
 
   // Apply search if provided
   if (searchTerm) {
-    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,work_order_number.ilike.%${searchTerm}%`)
+    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
   }
 
   // Apply filters if provided
@@ -44,7 +44,9 @@ export async function fetchWorkOrders(
       }
     }
     if (filters.category && filters.category !== '') {
-      query = query.eq('category', filters.category)
+      if (isWorkOrderCategory(filters.category)) {
+        query = query.eq('category', filters.category)
+      }
     }
     if (filters.priority && filters.priority !== '') {
       if (isWorkOrderPriority(filters.priority)) {

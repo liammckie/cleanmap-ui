@@ -103,7 +103,7 @@ export function WorkOrderDetails({
               <div>
                 <h3 className="text-xl font-semibold">{workOrder.title}</h3>
                 <p className="text-muted-foreground">
-                  {workOrder.work_order_number || `WO-${workOrder.id.slice(0, 8)}`}
+                  {workOrder.id ? `WO-${workOrder.id.slice(0, 8)}` : ''}
                 </p>
               </div>
               <div className="flex space-x-2">
@@ -141,7 +141,7 @@ export function WorkOrderDetails({
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium">Estimated Hours</p>
-                <p>{workOrder.estimated_hours || 'Not specified'}</p>
+                <p>{workOrder.actual_duration || 'Not specified'}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium">Scheduled Start</p>
@@ -168,10 +168,10 @@ export function WorkOrderDetails({
               <p className="text-sm whitespace-pre-wrap">{workOrder.description}</p>
             </div>
 
-            {workOrder.notes && (
+            {workOrder.outcome_notes && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Notes</h4>
-                <p className="text-sm whitespace-pre-wrap">{workOrder.notes}</p>
+                <p className="text-sm whitespace-pre-wrap">{workOrder.outcome_notes}</p>
               </div>
             )}
 
@@ -210,7 +210,7 @@ export function WorkOrderDetails({
               </CardContent>
             </Card>
 
-            {workOrder.completion_date && (
+            {workOrder.completion_timestamp && (
               <>
                 <Separator />
                 <div className="space-y-4">
@@ -219,12 +219,12 @@ export function WorkOrderDetails({
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Completed On</p>
                       <p>
-                        {format(new Date(workOrder.completion_date), 'PPp')}
+                        {format(new Date(workOrder.completion_timestamp), 'PPp')}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Actual Hours</p>
-                      <p>{workOrder.actual_hours || 'Not recorded'}</p>
+                      <p>{workOrder.actual_duration || 'Not recorded'}</p>
                     </div>
                   </div>
                   {workOrder.outcome_notes && (
