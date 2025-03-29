@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
+import { parseCoordinatesFromStorage } from '@/utils/googleMaps'
 
 /**
  * Get key dashboard statistics
@@ -208,13 +209,10 @@ export async function fetchMapLocations() {
       
       // Parse coordinates if they exist
       if (site.coordinates) {
-        const [latStr, lngStr] = site.coordinates.split(',');
-        const parsedLat = parseFloat(latStr);
-        const parsedLng = parseFloat(lngStr);
-        
-        if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-          lat = parsedLat;
-          lng = parsedLng;
+        const parsedCoords = parseCoordinatesFromStorage(site.coordinates);
+        if (parsedCoords) {
+          lat = parsedCoords.lat;
+          lng = parsedCoords.lng;
         }
       }
       

@@ -37,10 +37,11 @@ export const useLocations = (options?: { clientId?: string; onlyActive?: boolean
 
         // Process the data to match the expected MapLocation format
         const locations: LocationData[] = (sites || []).map((site) => {
-          // Parse coordinates if they exist, otherwise generate random coordinates around Sydney
+          // Default coordinates (around Sydney)
           let lat = -33.8688 + (Math.random() - 0.5) * 0.1
           let lng = 151.2093 + (Math.random() - 0.5) * 0.1
           
+          // Parse coordinates if they exist
           if (site.coordinates) {
             const parsedCoords = parseCoordinatesFromStorage(site.coordinates)
             if (parsedCoords) {

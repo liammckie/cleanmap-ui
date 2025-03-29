@@ -118,12 +118,13 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             service_type: siteData.service_type || 'Internal',
             
             // Pricing
-            price_per_service: siteData.price_per_service || 0,
+            price_per_week: siteData.price_per_week || 0,
             price_frequency: siteData.price_frequency || 'weekly',
             service_items: serviceItems,
             
             special_instructions: siteData.special_instructions || null,
             status: 'Active',
+            coordinates: siteData.coordinates || null,
           };
 
           console.log('Sending site data to API:', sitePayload);
