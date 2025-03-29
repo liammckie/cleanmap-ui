@@ -9,6 +9,7 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
+    // Prepare all data for DB including timestamps
     const preparedData = prepareObjectForDb({
       ...lead,
       created_at: new Date(),
@@ -45,7 +46,12 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
       updated_at: new Date()
     })
 
-    const data = await apiClient.update(supabase, 'leads', leadId, prepared)
+    const data = await apiClient.update(
+      supabase,
+      'leads',
+      leadId,
+      prepared
+    )
 
     return {
       ...data,
