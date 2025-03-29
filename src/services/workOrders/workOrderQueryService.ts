@@ -39,16 +39,19 @@ export async function fetchWorkOrders(
       query = query.eq('site_id', filters.siteId)
     }
     if (filters.status && filters.status !== '') {
+      // Make sure we're checking if it's a valid status before using it
       if (isWorkOrderStatus(filters.status)) {
         query = query.eq('status', filters.status)
       }
     }
     if (filters.category && filters.category !== '') {
+      // Make sure we're checking if it's a valid category before using it
       if (isWorkOrderCategory(filters.category)) {
         query = query.eq('category', filters.category)
       }
     }
     if (filters.priority && filters.priority !== '') {
+      // Make sure we're checking if it's a valid priority before using it
       if (isWorkOrderPriority(filters.priority)) {
         query = query.eq('priority', filters.priority)
       }
