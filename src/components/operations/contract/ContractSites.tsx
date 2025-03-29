@@ -46,24 +46,24 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
           </TableHeader>
           <TableBody>
             {contract.sites.map((contractSite) => {
-              const site = contractSite.site
+              const site = contractSite.site || { id: '', site_name: 'N/A' }
               return (
                 <TableRow key={contractSite.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      {site?.site_name}
+                      {site.site_name}
                     </div>
                   </TableCell>
-                  <TableCell>{site?.site_type || 'N/A'}</TableCell>
+                  <TableCell>{site.site_type || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      {site ? (
+                      {site.address_street ? (
                         <div>
                           <div>{site.address_street}</div>
                           <div className="text-xs text-muted-foreground">
-                            {site.address_city}, {site.address_state} {site.address_postcode}
+                            {site.address_city || 'N/A'}, {site.address_state || ''} {site.address_postcode || ''}
                           </div>
                         </div>
                       ) : (
@@ -73,10 +73,10 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                   </TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                      ${site?.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                      site?.status === 'Inactive' ? 'bg-gray-100 text-gray-800' : 
+                      ${site.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                      site.status === 'Inactive' ? 'bg-gray-100 text-gray-800' : 
                       'bg-yellow-100 text-yellow-800'}`}>
-                      {site?.status || 'N/A'}
+                      {site.status || 'N/A'}
                     </span>
                   </TableCell>
                 </TableRow>

@@ -1,9 +1,10 @@
+
 import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/toaster'
-import { MainLayout } from '@/layouts/MainLayout'
+import MainLayout from '@/components/Layout/MainLayout'
 import { Routes, Route } from 'react-router-dom'
 
 // Page imports
