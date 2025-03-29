@@ -197,3 +197,42 @@ export async function fetchWorkOrdersByClientId(clientId: string) {
     return []
   }
 }
+
+// Function to fetch work order statuses from database enum
+export async function fetchWorkOrderStatusesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_status_enum')
+  
+  if (error) {
+    console.error('Error fetching work order statuses:', error)
+    throw error
+  }
+  
+  return data || []
+}
+
+// Function to fetch work order categories from database enum
+export async function fetchWorkOrderCategoriesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_category_enum')
+  
+  if (error) {
+    console.error('Error fetching work order categories:', error)
+    throw error
+  }
+  
+  return data || []
+}
+
+// Function to fetch work order priorities from database enum
+export async function fetchWorkOrderPrioritiesFromDb() {
+  const { data, error } = await supabase
+    .rpc('get_work_order_priority_enum')
+  
+  if (error) {
+    console.error('Error fetching work order priorities:', error)
+    throw error
+  }
+  
+  return data || []
+}

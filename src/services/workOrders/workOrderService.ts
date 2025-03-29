@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client'
 import type { WorkOrder } from '@/schema/operations'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
+import { fetchWorkOrderStatusesFromDb, fetchWorkOrderCategoriesFromDb, fetchWorkOrderPrioritiesFromDb } from './workOrderQueryService'
 
 /**
  * Create a new work order
@@ -79,22 +80,42 @@ export async function logWorkOrderNote(
   visibility: 'Internal' | 'Client Visible' = 'Internal',
 ) {
   try {
-    // Since work_order_notes table doesn't exist, we'll need to
-    // update or modify the model, but for now let's implement
-    // placeholder functionality to avoid TypeScript errors
-    console.log('Logging work order note:', { workOrderId, note, authorId, visibility })
+    // Insert note into work_order_notes table
+    const { data, error } = await supabase
+      .from('work_order_notes')
+      .insert({
+        work_order_id: workOrderId,
+        note,
+        author_id: authorId,
+        visibility
+      })
+      .select()
 
-    // Mock return for now
-    return {
-      id: 'mock-note-id',
-      work_order_id: workOrderId,
-      note,
-      author_id: authorId,
-      visibility,
-      created_at: new Date().toISOString(),
-    }
+    if (error) throw error
+
+    return data[0]
   } catch (error) {
     console.error('Error logging work order note:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch work order notes for a specific work order
+ */
+export async function fetchWorkOrderNotes(workOrderId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('work_order_notes')
+      .select('*')
+      .eq('work_order_id', workOrderId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    return data
+  } catch (error) {
+    console.error('Error fetching work order notes:', error)
     throw error
   }
 }
@@ -104,11 +125,19 @@ export async function logWorkOrderNote(
  */
 export async function fetchWorkOrderStatuses() {
   try {
-    // Hardcoded statuses for now - in a real implementation, these might come from the database
+    // Try to get statuses from the database first
+    const dbStatuses = await fetchWorkOrderStatusesFromDb()
+    
+    if (dbStatuses && dbStatuses.length > 0) {
+      return dbStatuses
+    }
+    
+    // Fallback to hardcoded statuses if database function is unavailable
     return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'] as WorkOrder['status'][]
   } catch (error) {
     console.error('Error fetching work order statuses:', error)
-    throw error
+    // Fallback to hardcoded statuses on error
+    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'] as WorkOrder['status'][]
   }
 }
 
@@ -117,11 +146,19 @@ export async function fetchWorkOrderStatuses() {
  */
 export async function fetchWorkOrderCategories() {
   try {
-    // Mock categories for demonstration
+    // Try to get categories from the database first
+    const dbCategories = await fetchWorkOrderCategoriesFromDb()
+    
+    if (dbCategories && dbCategories.length > 0) {
+      return dbCategories
+    }
+    
+    // Fallback to hardcoded categories if database function is unavailable
     return ['Routine Clean', 'Ad-hoc Request', 'Audit'] as WorkOrder['category'][]
   } catch (error) {
     console.error('Error fetching work order categories:', error)
-    throw error
+    // Fallback to hardcoded categories on error
+    return ['Routine Clean', 'Ad-hoc Request', 'Audit'] as WorkOrder['category'][]
   }
 }
 
@@ -130,10 +167,18 @@ export async function fetchWorkOrderCategories() {
  */
 export async function fetchWorkOrderPriorities() {
   try {
-    // Hardcoded priorities for now
+    // Try to get priorities from the database first
+    const dbPriorities = await fetchWorkOrderPrioritiesFromDb()
+    
+    if (dbPriorities && dbPriorities.length > 0) {
+      return dbPriorities
+    }
+    
+    // Fallback to hardcoded priorities if database function is unavailable
     return ['Low', 'Medium', 'High'] as WorkOrder['priority'][]
   } catch (error) {
     console.error('Error fetching work order priorities:', error)
-    throw error
+    // Fallback to hardcoded priorities on error
+    return ['Low', 'Medium', 'High'] as WorkOrder['priority'][]
   }
 }

@@ -1132,6 +1132,44 @@ export type Database = {
           },
         ]
       }
+      work_order_notes: {
+        Row: {
+          author_id: string | null
+          created_at: string
+          id: string
+          note: string
+          updated_at: string
+          visibility: string
+          work_order_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string
+          id?: string
+          note: string
+          updated_at?: string
+          visibility?: string
+          work_order_id: string
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          visibility?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_notes_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_orders: {
         Row: {
           actual_duration: number | null
@@ -1297,6 +1335,7 @@ export type Database = {
         | "Completed"
         | "Overdue"
         | "Cancelled"
+        | "On Hold"
     }
     CompositeTypes: {
       [_ in never]: never

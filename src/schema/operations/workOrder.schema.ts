@@ -45,6 +45,19 @@ export interface WorkOrder {
   }>
 }
 
+/**
+ * WorkOrderNote - Notes associated with a work order
+ */
+export interface WorkOrderNote {
+  id: string
+  work_order_id: string
+  note: string
+  author_id: string | null
+  visibility: 'Internal' | 'Client Visible'
+  created_at: Date
+  updated_at: Date
+}
+
 // Type guard for WorkOrder status
 export function isWorkOrderStatus(value: string): value is WorkOrder['status'] {
   return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'].includes(
@@ -90,4 +103,15 @@ export const workOrderFormSchema = workOrderSchema.omit({
   created_by: true,
   scheduled_end: true,
   completion_timestamp: true,
+})
+
+// Zod schema for work order notes
+export const workOrderNoteSchema = z.object({
+  id: z.string().optional(),
+  work_order_id: z.string(),
+  note: z.string().min(1, 'Note is required'),
+  author_id: z.string().nullable(),
+  visibility: z.enum(['Internal', 'Client Visible']),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
 })
