@@ -69,12 +69,11 @@ export const checkForBrowserCompatibilityIssues = () => {
   return issues;
 };
 
-// Safely check if dynamic imports are supported without using new Function
+// Safely check if dynamic imports are supported without using eval
 const checkDynamicImportSupport = () => {
   try {
-    // Just check if the 'import' keyword is supported as an identifier
-    // This doesn't execute any actual dynamic import
-    return typeof import !== 'undefined';
+    // Check if the import syntax is potentially available without executing it
+    return typeof window !== 'undefined' && 'import' in window;
   } catch (e) {
     return false;
   }
