@@ -101,7 +101,7 @@ export function WorkOrderFilters({
                   <SelectValue placeholder="All Sites" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sites</SelectItem>
+                  <SelectItem value="all-sites">All Sites</SelectItem>
                   {sites.map((site) => (
                     <SelectItem key={site.id} value={site.id}>
                       {site.site_name}
@@ -120,7 +120,7 @@ export function WorkOrderFilters({
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all-statuses">All Statuses</SelectItem>
                   {statuses.map((status) => (
                     <SelectItem key={status} value={status}>
                       {status}
@@ -139,7 +139,7 @@ export function WorkOrderFilters({
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all-categories">All Categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -158,7 +158,7 @@ export function WorkOrderFilters({
                   <SelectValue placeholder="All Priorities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Priorities</SelectItem>
+                  <SelectItem value="all-priorities">All Priorities</SelectItem>
                   {priorities.map((priority) => (
                     <SelectItem key={priority} value={priority}>
                       {priority}

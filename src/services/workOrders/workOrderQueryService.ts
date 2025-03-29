@@ -35,22 +35,22 @@ export async function fetchWorkOrders(
 
   // Apply filters if provided
   if (filters) {
-    if (filters.siteId && filters.siteId !== '') {
+    if (filters.siteId && filters.siteId !== '' && filters.siteId !== 'all-sites') {
       query = query.eq('site_id', filters.siteId)
     }
-    if (filters.status && filters.status !== '') {
+    if (filters.status && filters.status !== '' && filters.status !== 'all-statuses') {
       // Make sure we're checking if it's a valid status before using it
       if (isWorkOrderStatus(filters.status)) {
         query = query.eq('status', filters.status)
       }
     }
-    if (filters.category && filters.category !== '') {
+    if (filters.category && filters.category !== '' && filters.category !== 'all-categories') {
       // Make sure we're checking if it's a valid category before using it
       if (isWorkOrderCategory(filters.category)) {
         query = query.eq('category', filters.category)
       }
     }
-    if (filters.priority && filters.priority !== '') {
+    if (filters.priority && filters.priority !== '' && filters.priority !== 'all-priorities') {
       // Make sure we're checking if it's a valid priority before using it
       if (isWorkOrderPriority(filters.priority)) {
         query = query.eq('priority', filters.priority)
@@ -63,7 +63,7 @@ export async function fetchWorkOrders(
       query = query.lte('due_date', filters.toDate)
     }
     // If clientId is provided, we need to filter through the site's client_id
-    if (filters.clientId && filters.clientId !== '') {
+    if (filters.clientId && filters.clientId !== '' && filters.clientId !== 'all-clients') {
       // This requires a more complex query - first get all sites for this client
       const { data: sitesData } = await supabase
         .from('sites')

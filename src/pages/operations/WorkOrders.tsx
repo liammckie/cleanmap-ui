@@ -59,10 +59,10 @@ const WorkOrdersPage = () => {
 
   const clearFilters = () => {
     setFilters({
-      siteId: '',
-      status: '',
-      category: '',
-      priority: '',
+      siteId: 'all-sites',
+      status: 'all-statuses',
+      category: 'all-categories',
+      priority: 'all-priorities',
       fromDate: '',
       toDate: '',
     })
