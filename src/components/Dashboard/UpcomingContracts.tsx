@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDistanceToNow, differenceInDays } from 'date-fns'
 import { Link } from 'react-router-dom'
 
-interface Contract {
+export interface Contract {
   id: string
   contract_number: string
   client_id: string

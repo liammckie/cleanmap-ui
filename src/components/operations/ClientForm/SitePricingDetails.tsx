@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -286,7 +285,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, pr
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Annual</p>
-              <p className="font-medium">{formatCurrency(priceBreakdown.annual)}</p>
+              <p className="font-medium">{formatCurrency(priceBreakdown.annually)}</p>
             </div>
           </div>
         </div>

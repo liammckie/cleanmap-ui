@@ -55,9 +55,8 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
                 </TableCell>
                 <TableCell className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-                  {/* Display address if available, otherwise fall back to site name */}
-                  {contractSite.site?.address_city ? 
-                    `${contractSite.site?.address_city}, ${contractSite.site?.address_state}` : 
+                  {contractSite.site && 'address_city' in contractSite.site ? 
+                    `${contractSite.site.address_city}, ${contractSite.site.address_state}` : 
                     'Unknown Location'}
                 </TableCell>
               </TableRow>

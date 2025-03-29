@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { Activity, Building2, DollarSign, Users, Clock, AlertCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/Dashboard/StatCard'
@@ -14,6 +14,7 @@ import { formatDate } from '@/utils/dateFormatters'
 
 const Dashboard: React.FC = () => {
   const { data, isLoading, error } = useDashboardData()
+  const navigate = useNavigate()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-AU', {
@@ -66,7 +67,7 @@ const Dashboard: React.FC = () => {
           icon={<Users className="h-5 w-5" />}
           changeLabel="of total clients"
           change={data.totalClients > 0 ? (data.activeClients / data.totalClients) * 100 : 0}
-          onClick={() => window.location.href = '/operations/clients'}
+          onClick={() => navigate('/operations/clients')}
         />
 
         <StatCard
@@ -75,7 +76,7 @@ const Dashboard: React.FC = () => {
           icon={<Building2 className="h-5 w-5" />}
           change={data.sitesAwaitingContracts > 0 ? 5.2 : 0}
           changeLabel={`${data.sitesAwaitingContracts} awaiting contracts`}
-          onClick={() => window.location.href = '/operations/sites'}
+          onClick={() => navigate('/operations/sites')}
         />
 
         <StatCard
@@ -84,7 +85,7 @@ const Dashboard: React.FC = () => {
           icon={<DollarSign className="h-5 w-5" />}
           change={data.revenueChange}
           isCurrency={true}
-          onClick={() => window.location.href = '/operations/contracts'}
+          onClick={() => navigate('/operations/contracts')}
         />
 
         <StatCard
@@ -93,7 +94,7 @@ const Dashboard: React.FC = () => {
           icon={<Activity className="h-5 w-5" />}
           change={0}
           changeLabel="scheduled"
-          onClick={() => window.location.href = '/operations/work-orders'}
+          onClick={() => navigate('/operations/work-orders')}
         />
       </div>
 
@@ -108,24 +109,20 @@ const Dashboard: React.FC = () => {
 
       <div className="grid gap-6 md:grid-cols-2 mb-6">
         <TasksList 
-          title="Pending Tasks" 
           tasks={data.pendingTasks.map(task => ({
             id: task.id,
             title: task.title,
-            dueDate: formatDate(task.due_date),
-            priority: task.priority,
+            description: task.description,
             status: task.status,
-            location: task.sites?.site_name || 'Unknown location'
+            priority: task.priority,
+            due_date: task.due_date,
+            scheduled_start: task.scheduled_start,
+            sites: task.sites
           }))} 
         />
         
         <UpcomingContracts 
-          contracts={data.upcomingContracts.map(contract => ({
-            id: contract.id,
-            number: contract.contract_number,
-            client: contract.clients?.company_name || 'Unknown client',
-            endDate: contract.end_date
-          }))} 
+          contracts={data.upcomingContracts}
         />
       </div>
 
@@ -137,7 +134,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="h-[400px]">
-              <DashboardMap />
+              <DashboardMap locations={data.mapLocations} />
             </div>
           </CardContent>
         </Card>

@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for billing calculations between different frequencies
  */
@@ -64,7 +65,7 @@ export function calculateAllBillingFrequencies(
   return {
     weekly: weeklyAmount,
     monthly: monthlyAmount,
-    annually: annualAmount,
+    annually: annualAmount, // Changed from 'annual' to 'annually' for consistency
   }
 }
 

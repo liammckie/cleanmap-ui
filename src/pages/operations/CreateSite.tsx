@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -21,7 +20,6 @@ import SiteSpecialInstructions from '@/components/operations/ClientForm/SiteSpec
 import { useClientSiteForm } from '@/hooks/operations/useClientSiteForm'
 import { getCoordinatesFromAddress, formatCoordinatesForStorage } from '@/utils/googleMaps'
 
-// Define the service item schema
 const serviceItemSchema = z.object({
   id: z.number(),
   description: z.string().min(1, 'Description is required'),
@@ -30,39 +28,33 @@ const serviceItemSchema = z.object({
   provider: z.enum(['Internal', 'Contractor']).default('Internal')
 });
 
-// Form schema for a site
 const siteSchema = z.object({
   site_name: z.string().min(1, 'Site name is required'),
   site_type: z.string().min(1, 'Site type is required'),
   client_id: z.string().min(1, 'Client is required'),
   
-  // Contact information
   primary_contact: z.string().nullable().optional(),
   contact_phone: z.string().nullable().optional(),
   contact_email: z.string().email('Valid email is required').nullable().optional(),
   
-  // Address fields
   address_street: z.string().min(1, 'Street address is required'),
   address_city: z.string().min(1, 'City is required'),
   address_state: z.string().min(1, 'State is required'),
   address_postcode: z.string().min(1, 'Postcode is required'),
   region: z.string().nullable().optional(),
   
-  // Service details
   service_start_date: z.date().nullable(),
   service_end_date: z.date().nullable().optional(),
   service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
   service_frequency: z.string().nullable().optional(),
   custom_frequency: z.string().nullable().optional(),
   
-  // Pricing details
   price_per_week: z.number().min(0, 'Price must be 0 or greater'),
   price_frequency: z.string().min(1, 'Billing frequency is required'),
   service_items: z.array(serviceItemSchema).optional(),
   
   special_instructions: z.string().nullable().optional(),
   
-  // Location information (will be populated programmatically)
   coordinates: z.string().nullable().optional(),
 })
 
@@ -74,7 +66,6 @@ const CreateSitePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedClient, setSelectedClient] = useState<string | null>(null)
 
-  // Fetch existing clients for the dropdown
   const { data: clients, isLoading: clientsLoading } = useQuery({
     queryKey: ['clients-minimal'],
     queryFn: () => fetchClients({ search: '', filters: {} }),
@@ -107,18 +98,14 @@ const CreateSitePage: React.FC = () => {
     },
   })
 
-  // Use the custom hook to calculate price breakdown
   const { priceBreakdown } = useClientSiteForm(form, -1)
 
-  // When client changes, fetch its data to potentially use for contact info
   const handleClientChange = (clientId: string) => {
     setSelectedClient(clientId)
     form.setValue('client_id', clientId)
     
-    // Find the selected client
     const client = clients?.find(c => c.id === clientId)
     if (client) {
-      // Pre-fill region from client region if available
       if (client.region) {
         form.setValue('region', client.region)
       }
@@ -129,7 +116,6 @@ const CreateSitePage: React.FC = () => {
     try {
       setIsSubmitting(true)
       
-      // Get coordinates from the address
       let coordinates = null
       try {
         const fullAddress = `${data.address_street}, ${data.address_city}, ${data.address_state} ${data.address_postcode}, Australia`
@@ -137,10 +123,8 @@ const CreateSitePage: React.FC = () => {
         coordinates = formatCoordinatesForStorage(coords)
       } catch (error) {
         console.error('Error geocoding address:', error)
-        // Continue without coordinates if geocoding fails
       }
       
-      // Ensure service_items matches the expected type structure
       const serviceItems = data.service_items?.map(item => ({
         id: item.id,
         description: item.description,
@@ -164,7 +148,6 @@ const CreateSitePage: React.FC = () => {
         description: 'Site created successfully',
       })
       
-      // Redirect to sites list page
       navigate('/operations/site-list')
     } catch (error) {
       console.error('Error creating site:', error)

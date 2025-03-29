@@ -6,14 +6,14 @@ import { calculateAllBillingFrequencies, BillingFrequency } from '@/utils/billin
 interface PriceBreakdown {
   weekly: number
   monthly: number
-  annually: number
+  annually: number // Renamed from 'annual' to match the expected prop name
 }
 
 export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown>({
     weekly: 0,
     monthly: 0,
-    annually: 0,
+    annually: 0, // Renamed from 'annual' to match the expected prop name
   })
 
   // Recalculate price breakdown whenever price or frequency changes
@@ -24,7 +24,11 @@ export const useClientSiteForm = (form: UseFormReturn<any>, index: number) => {
     const frequency = (form.watch(`${fieldPrefix}price_frequency`) as BillingFrequency) || 'weekly';
 
     const breakdown = calculateAllBillingFrequencies(price, frequency);
-    setPriceBreakdown(breakdown);
+    setPriceBreakdown({
+      weekly: breakdown.weekly,
+      monthly: breakdown.monthly,
+      annually: breakdown.annually // Map the annual value from the calculation to annually
+    });
   }, [
     form,
     index,
