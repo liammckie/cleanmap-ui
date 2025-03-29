@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client'
 import type { Site } from '@/schema/operations/site.schema'
 import { mapSitesFromDb, mapSiteFromDb } from '@/mappers/siteMappers'
+import { isSiteStatus } from '@/schema/operations/site.schema'
 
 /**
  * Fetch all sites with optional filtering and pagination
@@ -27,9 +28,11 @@ export async function fetchSites(options?: {
       query = query.or(`site_name.ilike.%${options.search}%,address_street.ilike.%${options.search}%,address_city.ilike.%${options.search}%`)
     }
     
-    if (options?.status) {
-      // No need for type casting here since we're using a string
-      query = query.eq('status', options.status)
+    if (options?.status && options.status !== 'all') {
+      // Verify status is a valid site status
+      if (isSiteStatus(options.status)) {
+        query = query.eq('status', options.status)
+      }
     }
     
     if (options?.clientId) {
@@ -131,12 +134,9 @@ export async function querySitesByClientId(clientId: string): Promise<Site[]> {
  */
 export async function getSiteCounts(groupBy: 'region' | 'status'): Promise<{ label: string; count: number }[]> {
   try {
-    // Use a direct SQL query instead of RPC since the function doesn't exist
+    // Execute raw SQL query instead of using the group method
     const { data, error } = await supabase
-      .from('sites')
-      .select(`${groupBy}, count`)
-      .select(`${groupBy}, count(*)`)
-      .group(groupBy)
+      .rpc('get_site_counts', { group_field: groupBy })
       
     if (error) {
       console.error(`Error getting site counts by ${groupBy}:`, error)
@@ -144,10 +144,14 @@ export async function getSiteCounts(groupBy: 'region' | 'status'): Promise<{ lab
     }
 
     // Transform the data to match the expected return type
-    return (data || []).map(item => ({
-      label: item[groupBy] || 'Unknown',
-      count: parseInt(item.count, 10)
-    }))
+    if (data && Array.isArray(data)) {
+      return data.map(item => ({
+        label: item.group_value || 'Unknown',
+        count: parseInt(item.count, 10)
+      }))
+    }
+    
+    return []
   } catch (error) {
     console.error(`Error in getSiteCounts by ${groupBy}:`, error)
     return []
@@ -173,9 +177,11 @@ export async function fetchSitesCount(options?: {
       query = query.or(`site_name.ilike.%${options.search}%,address_street.ilike.%${options.search}%,address_city.ilike.%${options.search}%`)
     }
     
-    if (options?.status) {
-      // No need for type casting here
-      query = query.eq('status', options.status)
+    if (options?.status && options.status !== 'all') {
+      // Verify status is a valid site status
+      if (isSiteStatus(options.status)) {
+        query = query.eq('status', options.status)
+      }
     }
     
     if (options?.clientId) {

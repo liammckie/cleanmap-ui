@@ -21,3 +21,8 @@ export {
   deleteSite,
   bulkUpdateSitesStatus
 } from './siteCrudService'
+
+// Export from sitesByClientService
+export { 
+  fetchSitesByClientId 
+} from './sitesByClientService'

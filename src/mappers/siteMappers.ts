@@ -1,3 +1,4 @@
+
 /**
  * Site Data Mappers
  * 
@@ -65,7 +66,17 @@ export function mapSiteToDb(site: Partial<Site>): Record<string, any> {
   // First handle any UI-specific field transformations
   const preparedSite = {
     ...site,
-    // Any additional field transformations can be done here
+    // Convert any Date objects to strings for database
+    service_start_date: site.service_start_date ? 
+      (site.service_start_date instanceof Date ? 
+        site.service_start_date.toISOString() : 
+        site.service_start_date) : 
+      null,
+    service_end_date: site.service_end_date ? 
+      (site.service_end_date instanceof Date ? 
+        site.service_end_date.toISOString() : 
+        site.service_end_date) : 
+      null
   }
   
   // Then convert to snake_case
