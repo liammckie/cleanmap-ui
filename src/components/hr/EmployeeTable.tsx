@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { format, parseISO } from 'date-fns'
 import { ClipboardList, Edit, AlertCircle } from 'lucide-react'
@@ -62,6 +63,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   }
 
   if (error) {
+    console.error('Error in EmployeeTable:', error);
     const supabaseError = (error as any).error || error;
     
     if (supabaseError?.code === '42P17' || 

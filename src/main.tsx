@@ -45,6 +45,7 @@ const renderApp = () => {
     console.log('App successfully mounted')
   } catch (error) {
     console.error('Failed to render application:', error)
+    
     // Display improved fallback UI with more error information
     const rootElement = document.getElementById('root')
     if (rootElement) {

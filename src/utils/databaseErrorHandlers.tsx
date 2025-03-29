@@ -94,4 +94,3 @@ export function handleInfiniteRecursionError(error: any, context: string) {
     description: `A security policy error occurred while accessing ${context}. Please contact an administrator.`,
   });
 }
-
