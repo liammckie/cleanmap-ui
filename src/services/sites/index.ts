@@ -5,7 +5,7 @@
  * Re-export all site service functions for easy import
  */
 
-// Export from siteQueryService
+// Export from siteQueryService and its specialized services
 export { 
   fetchSites, 
   fetchSiteById, 
@@ -26,3 +26,10 @@ export {
 export { 
   fetchSitesByClientId 
 } from './sitesByClientService'
+
+// Export from siteFilterService
+export {
+  fetchSiteTypes,
+  fetchSiteRegions,
+  fetchSiteStatuses
+} from './siteFilterService'
