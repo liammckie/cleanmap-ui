@@ -1,6 +1,7 @@
 
 import React from 'react'
 import { AlertCircle } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 
 /**
  * Creates an error handler function for React Query
@@ -12,6 +13,11 @@ export function createQueryErrorHandler(resourceName: string) {
     
     // You can add additional error handling here like notifications
     // For example, using a toast notification system
+    toast({
+      variant: "destructive",
+      title: `Error loading ${resourceName}`,
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 }
 
@@ -36,3 +42,56 @@ export function createErrorFallbackUI(error: unknown, resourceName: string) {
     </div>
   )
 }
+
+/**
+ * Safely executes a database query with error handling
+ * @param queryFn Function that performs the database query
+ * @param resourceName Name of the resource being queried (for error reporting)
+ * @returns The result of the query function
+ */
+export async function safelyExecuteQuery<T>(
+  queryFn: () => Promise<T>,
+  resourceName: string
+): Promise<T> {
+  try {
+    return await queryFn();
+  } catch (error) {
+    console.error(`Error executing query for ${resourceName}:`, error);
+    
+    // Check for specific database error types
+    if (error instanceof Error) {
+      // Handle common database errors
+      if (error.message.includes('timeout')) {
+        throw new Error(`Database timeout while querying ${resourceName}. Please try again later.`);
+      }
+      
+      if (error.message.includes('permission denied') || error.message.includes('access denied')) {
+        throw new Error(`Permission denied while accessing ${resourceName}. Please check your credentials.`);
+      }
+    }
+    
+    // Re-throw the original error
+    throw error;
+  }
+}
+
+/**
+ * Handles infinite recursion errors that can occur in RLS policies
+ * @param error The error object
+ * @param context Context information for error reporting
+ */
+export function handleInfiniteRecursionError(error: any, context: string) {
+  console.error(`Infinite recursion detected in ${context}:`, error);
+  
+  // Log additional details for debugging
+  console.error('Error code:', error.code);
+  console.error('Error hint:', error.hint);
+  
+  // Show a user-friendly toast notification
+  toast({
+    variant: "destructive",
+    title: "Database Policy Error",
+    description: `A security policy error occurred while accessing ${context}. Please contact an administrator.`,
+  });
+}
+
