@@ -23,11 +23,11 @@ const ClientsPage = () => {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{
-    status: 'Active' | 'On Hold' | '';
+    status: 'Active' | 'On Hold' | 'all';
     industry: string;
     region: string;
   }>({
-    status: '',
+    status: 'all',
     industry: '',
     region: '',
   })
@@ -42,7 +42,7 @@ const ClientsPage = () => {
     queryFn: () => fetchClients({ 
       search: searchTerm, 
       filters: {
-        status: filters.status as 'Active' | 'On Hold' || undefined,
+        status: filters.status !== 'all' ? filters.status as 'Active' | 'On Hold' : undefined,
         industry: filters.industry || undefined,
         region: filters.region || undefined
       }
@@ -51,7 +51,7 @@ const ClientsPage = () => {
 
   const clearFilters = () => {
     setFilters({
-      status: '',
+      status: 'all',
       industry: '',
       region: '',
     })
@@ -122,7 +122,7 @@ const ClientsPage = () => {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="On Hold">On Hold</SelectItem>
                 </SelectContent>
