@@ -2,15 +2,15 @@
 import { supabase } from '@/integrations/supabase/client'
 import { Lead, leadDbSchema } from '@/schema/sales/lead.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
+import { mapToDb } from '@/utils/mappers'
 
 /**
  * Create a new lead
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare all data for DB including timestamps
-    const preparedData = prepareObjectForDb({
+    // Use our mapper utility with date preparation
+    const preparedData = mapToDb({
       ...lead,
       created_at: new Date(),
       updated_at: new Date()
@@ -40,8 +40,8 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare all data for DB including the updated_at timestamp
-    const prepared = prepareObjectForDb({
+    // Use our mapper utility with date preparation
+    const prepared = mapToDb({
       ...lead,
       updated_at: new Date()
     })

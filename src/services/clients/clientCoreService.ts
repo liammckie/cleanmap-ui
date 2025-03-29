@@ -1,8 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
 import type { Client, ClientInsert, ClientUpdate } from '@/schema/operations/client.schema'
 import { isClientStatus } from '@/schema/operations/client.schema'
+import { mapToDb } from '@/utils/mappers'
 
 /**
  * Fetch all clients with optional filtering
@@ -46,9 +45,8 @@ export async function fetchClients(
  * Create a new client
  */
 export async function createClient(client: ClientInsert): Promise<Client> {
-  // Convert Date objects to ISO strings for Supabase
-  // We need to type the result properly to match what Supabase expects
-  const preparedClient = prepareObjectForDb(client) as ClientInsert
+  // Use our mapper utility to convert to snake_case and handle Date objects
+  const preparedClient = mapToDb(client)
 
   // Log what we're inserting to help with debugging
   console.log('Inserting client with prepared data:', preparedClient)
@@ -71,9 +69,8 @@ export async function createClient(client: ClientInsert): Promise<Client> {
  * Update an existing client
  */
 export async function updateClient(id: string, updates: ClientUpdate): Promise<Client> {
-  // Convert Date objects to ISO strings for Supabase
-  // Properly type the result to match what Supabase expects
-  const preparedUpdates = prepareObjectForDb(updates) as ClientUpdate
+  // Use our mapper utility to convert to snake_case and handle Date objects
+  const preparedUpdates = mapToDb(updates)
 
   const { data, error } = await supabase
     .from('clients')

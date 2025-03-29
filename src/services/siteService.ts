@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client'
-import type { Site } from '@/schema/operations/site.schema'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
+import type { Site, SiteInsert, SiteUpdate } from '@/schema/operations/site.schema'
 import { isSiteStatus } from '@/schema/operations/site.schema'
+import { mapToDb } from '@/utils/mappers'
 
 export async function fetchSites(
   searchTerm?: string,
@@ -19,20 +19,17 @@ export async function fetchSites(
       )
     `)
 
-  // Apply search if provided
   if (searchTerm) {
     query = query.or(
       `site_name.ilike.%${searchTerm}%,address_street.ilike.%${searchTerm}%,address_city.ilike.%${searchTerm}%,address_state.ilike.%${searchTerm}%`,
     )
   }
 
-  // Apply filters if provided
   if (filters) {
     if (filters.clientId) {
       query = query.eq('client_id', filters.clientId)
     }
     if (filters.status && typeof filters.status === 'string') {
-      // Validate the status if it's a string
       if (isSiteStatus(filters.status)) {
         query = query.eq('status', filters.status)
       }
@@ -76,35 +73,31 @@ export async function fetchSiteById(id: string) {
   return data
 }
 
-export async function createSite(site: Partial<Site>) {
-  // Map the site fields to match the database schema
-  const mappedSite = {
+export async function createSite(site: Partial<Site>): Promise<Site> {
+  const mappedSite = mapToDb({
     client_id: site.client_id,
     site_name: site.site_name,
     site_type: site.site_type,
     status: site.status || 'Active',
-    // Map address fields correctly
     address_street: site.address_street || site.street_address,
     address_city: site.address_city || site.city,
     address_state: site.address_state || site.state,
     address_postcode: site.address_postcode || site.zip_code,
-    // Other fields
     region: site.region,
     service_start_date: site.service_start_date,
+    service_end_date: site.service_end_date,
     site_manager_id: site.site_manager_id,
     special_instructions: site.special_instructions,
     service_type: site.service_type,
     price_per_service: site.price_per_service,
     price_frequency: site.price_frequency,
-  };
+  })
 
-  // Convert Date objects to ISO strings for Supabase
-  const dbSite = prepareObjectForDb(mappedSite)
-  console.log('Inserting site with prepared data:', dbSite);
+  console.log('Inserting site with prepared data:', mappedSite);
 
   const { data, error } = await supabase
     .from('sites')
-    .insert(dbSite as any)
+    .insert(mappedSite)
     .select()
 
   if (error) {
@@ -115,13 +108,12 @@ export async function createSite(site: Partial<Site>) {
   return data[0] as unknown as Site
 }
 
-export async function updateSite(id: string, updates: Partial<Site>) {
-  // Convert Date objects to ISO strings for Supabase
-  const dbUpdates = prepareObjectForDb(updates)
+export async function updateSite(id: string, updates: Partial<Site>): Promise<Site> {
+  const mappedUpdates = mapToDb(updates)
 
   const { data, error } = await supabase
     .from('sites')
-    .update(dbUpdates as any)
+    .update(mappedUpdates)
     .eq('id', id)
     .select()
 
@@ -144,7 +136,6 @@ export async function deleteSite(id: string) {
   return true
 }
 
-// Fetch site types for filters
 export async function fetchSiteTypes() {
   try {
     const { data, error } = await supabase.from('sites').select('site_type').order('site_type')
@@ -154,7 +145,6 @@ export async function fetchSiteTypes() {
       throw error
     }
 
-    // Extract unique site types
     const types = [...new Set(data.map((site) => site.site_type))].filter(Boolean)
     return types
   } catch (error) {
@@ -163,7 +153,6 @@ export async function fetchSiteTypes() {
   }
 }
 
-// Fetch site regions for filters
 export async function fetchSiteRegions() {
   try {
     const { data, error } = await supabase.from('sites').select('region').order('region')
@@ -173,7 +162,6 @@ export async function fetchSiteRegions() {
       throw error
     }
 
-    // Extract unique regions
     const regions = [...new Set(data.map((site) => site.region))].filter(Boolean)
     return regions
   } catch (error) {
@@ -182,7 +170,6 @@ export async function fetchSiteRegions() {
   }
 }
 
-// Fetch site statuses for filters
 export async function fetchSiteStatuses() {
   try {
     const { data, error } = await supabase.from('sites').select('status')
@@ -192,7 +179,6 @@ export async function fetchSiteStatuses() {
       throw error
     }
 
-    // Extract unique statuses
     const statuses = [...new Set(data.map((site) => site.status))].filter(Boolean)
     return statuses as Site['status'][]
   } catch (error) {

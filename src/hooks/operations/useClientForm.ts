@@ -7,7 +7,9 @@ import { createClient } from '@/services/clients'
 import { createSite } from '@/services/siteService'
 import { calculateAllBillingFrequencies } from '@/utils/billingCalculations'
 import type { BillingFrequency } from '@/utils/billingCalculations'
-import type { Site } from '@/schema/operations/site.schema'
+import type { Site, SiteInsert } from '@/schema/operations/site.schema'
+import { mapToDb } from '@/utils/mappers'
+import type { ClientInsert } from '@/schema/operations/client.schema'
 
 export const STEPS = {
   CLIENT_DETAILS: 0,
@@ -60,8 +62,8 @@ export const useClientForm = (form: UseFormReturn<any>) => {
 
       const { sites, ...clientData } = data
 
-      // Create the client with proper field mapping
-      const clientPayload = {
+      // Create the client using our mapper
+      const clientPayload: ClientInsert = {
         company_name: clientData.company_name,
         contact_name: clientData.contact_name,
         contact_email: clientData.contact_email || null,
@@ -90,8 +92,8 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             siteData.price_frequency as BillingFrequency,
           )
 
-          // Create site with properly mapped fields
-          const sitePayload: Partial<Site> = {
+          // Create site using our mapper
+          const sitePayload: SiteInsert = {
             client_id: newClient.id,
             site_name: siteData.site_name,
             site_type: siteData.site_type,
@@ -106,7 +108,7 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             price_per_service: siteData.price_per_service,
             price_frequency: siteData.price_frequency,
             special_instructions: siteData.special_instructions || null,
-            status: 'Active' as const,
+            status: 'Active',
           };
 
           console.log('Sending site data to API:', sitePayload);

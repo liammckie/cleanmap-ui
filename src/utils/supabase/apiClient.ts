@@ -16,6 +16,7 @@ import {
   queryTypedRows
 } from './core'
 import { validateForDb } from './validation'
+import { mapToDb } from '@/utils/mappers'
 
 /**
  * 🧠 Client abstraction that uses helpers with validation
@@ -51,7 +52,9 @@ export const apiClient = {
     updates: Partial<Database['public']['Tables'][T]['Update']>,
     selectFields?: string,
   ): Promise<R> {
-    return updateTypedRow<T, R>(supabase, table, id, updates, selectFields)
+    // Transform updates using our mapper
+    const mappedUpdates = mapToDb(updates)
+    return updateTypedRow<T, R>(supabase, table, id, mappedUpdates, selectFields)
   },
 
   async delete<T extends keyof Database['public']['Tables']>(
@@ -87,6 +90,8 @@ export const apiClient = {
       in?: { [key: string]: any[] }
     },
   ): Promise<R[]> {
-    return queryTypedRows<T, R>(supabase, table, filters, selectFields, options)
+    // Transform filters to snake_case
+    const mappedFilters = mapToDb(filters)
+    return queryTypedRows<T, R>(supabase, table, mappedFilters, selectFields, options)
   },
 }

@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/services/clients'
+import { mapToDb, mapTypedToDb } from '@/utils/mappers'
+import { ClientInsert } from '@/schema/operations/client.schema'
 
 interface UseClientDialogProps {
   onClientAdded?: () => void
@@ -88,8 +90,8 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     try {
       setLoading(true)
 
-      // Prepare client data - properly map the form fields to the database fields
-      const clientData = {
+      // Transform camelCase form data to snake_case DB format using our mapper
+      const clientData = mapTypedToDb<ClientFormData, ClientInsert>({
         company_name: formData.companyName,
         contact_name: formData.contactName,
         contact_email: formData.contactEmail || null,
@@ -98,7 +100,6 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         billing_address_city: formData.city,
         billing_address_state: formData.state,
         billing_address_postcode: formData.postcode,
-        // Remove billing_address_zip field which doesn't match the schema
         payment_terms: formData.paymentTerms,
         industry: formData.industry || null,
         status: formData.status as 'Active' | 'On Hold',
@@ -106,7 +107,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         region: formData.region || null,
         notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
-      }
+      })
 
       console.log('Sending client data to API:', clientData);
 

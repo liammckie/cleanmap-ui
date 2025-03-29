@@ -5,8 +5,8 @@
  * - Type transformation utilities
  */
 
-import { prepareObjectForDb } from '@/utils/dateFormatters'
 import { ZodSchema } from 'zod'
+import { mapToDb } from '@/utils/mappers'
 
 /**
  * 🛡️ Zod schema validation helper
@@ -19,11 +19,11 @@ export function validateInsert<T>(data: unknown, schema: ZodSchema<T>): T {
 
 /**
  * 🛡️ Validate data and prepare it for DB operations
- * This handles Date to ISO string conversion before validation
+ * This handles Date to ISO string conversion and snake_case transformation before validation
  */
 export function validateForDb<T>(data: unknown, schema: ZodSchema<T>): T {
-  // First prepare the data (convert Date objects to ISO strings)
-  const prepared = prepareObjectForDb(data)
+  // First prepare the data (convert to snake_case and handle Date objects)
+  const prepared = mapToDb(data)
 
   // Then validate using the DB schema (which expects strings for dates)
   const result = schema.safeParse(prepared)

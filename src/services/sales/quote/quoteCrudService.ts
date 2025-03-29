@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client'
 import { Quote, quoteDbSchema } from '@/schema/sales/quote.schema'
 import { apiClient } from '@/utils/supabase/apiClient'
-import { prepareObjectForDb } from '@/utils/dateFormatters'
+import { mapToDb } from '@/utils/mappers'
 
 /**
  * Create a new quote
@@ -11,8 +11,8 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
-    const prepared = prepareObjectForDb({
+    // Use our mapper utility with date preparation
+    const prepared = mapToDb({
       ...quote,
       created_at: new Date(),
       updated_at: new Date()
@@ -49,8 +49,8 @@ export const updateQuote = async (
   updates: Partial<Quote>
 ): Promise<Quote | null> => {
   try {
-    // Make sure we fully prepare all the data including dates for DB
-    const prepared = prepareObjectForDb({
+    // Use our mapper utility with date preparation
+    const prepared = mapToDb({
       ...updates,
       updated_at: new Date()
     })
