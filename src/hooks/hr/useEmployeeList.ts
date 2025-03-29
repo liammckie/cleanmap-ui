@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Employee } from '@/types/employee.types'
@@ -6,7 +7,7 @@ import {
   fetchDepartments, 
   fetchEmploymentTypes, 
   fetchEmployeeStatuses 
-} from '@/services/employeeService'
+} from '@/services/employees'
 import { createQueryErrorHandler } from '@/utils/databaseErrorHandlers'
 import { useEmployeeFilters } from './useEmployeeFilters'
 import { useEmployeeSorting } from './useEmployeeSorting'
