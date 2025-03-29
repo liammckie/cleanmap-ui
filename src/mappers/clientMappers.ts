@@ -1,5 +1,4 @@
 
-import { mapToDb, mapFromDb } from '@/utils/mappers'
 import type { ClientFormData } from '@/components/operations/client/types'
 import type { ClientInsert, Client } from '@/schema/operations/client.schema'
 
@@ -9,7 +8,7 @@ import type { ClientInsert, Client } from '@/schema/operations/client.schema'
 export function mapClientFormToDb(formData: ClientFormData): ClientInsert {
   return {
     company_name: formData.companyName,
-    contact_name: formData.contactName,
+    contact_name: formData.contactName || null,
     contact_email: formData.contactEmail || null,
     contact_phone: formData.contactPhone || null,
     billing_address_street: formData.street,
@@ -32,7 +31,7 @@ export function mapClientFormToDb(formData: ClientFormData): ClientInsert {
 export function mapDbToClientForm(dbClient: Client): ClientFormData {
   return {
     companyName: dbClient.company_name,
-    contactName: dbClient.contact_name,
+    contactName: dbClient.contact_name || '',
     contactEmail: dbClient.contact_email || '',
     contactPhone: dbClient.contact_phone || '',
     street: dbClient.billing_address_street,

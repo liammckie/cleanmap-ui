@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client'
-import type { AuditChecklistItem } from '@/schema/operations/audit.schema'
+import type { AuditChecklistItem, AuditChecklistItemInsert } from '@/schema/operations/audit.schema'
 
 /**
  * Fetch checklist items for a specific work order
@@ -15,7 +16,7 @@ export async function fetchWorkOrderChecklistItems(workOrderId: string) {
     throw error
   }
 
-  return data
+  return data as AuditChecklistItem[]
 }
 
 /**
@@ -23,7 +24,7 @@ export async function fetchWorkOrderChecklistItems(workOrderId: string) {
  */
 export async function createWorkOrderChecklistItems(
   workOrderId: string,
-  checklistItems: Omit<AuditChecklistItem, 'id' | 'work_order_id' | 'created_at' | 'updated_at'>[],
+  checklistItems: Omit<AuditChecklistItemInsert, 'work_order_id'>[],
 ) {
   const checklistWithWorkOrderId = checklistItems.map((item) => ({
     ...item,
@@ -40,7 +41,7 @@ export async function createWorkOrderChecklistItems(
     throw error
   }
 
-  return data
+  return data as AuditChecklistItem[]
 }
 
 /**

@@ -13,7 +13,7 @@ import { z } from 'zod'
 export interface Client {
   id: string
   company_name: string
-  contact_name: string
+  contact_name?: string | null
   contact_email: string | null
   contact_phone: string | null
   billing_address_street: string
@@ -23,15 +23,12 @@ export interface Client {
   payment_terms: string
   status: 'Active' | 'On Hold'
   industry: string | null
-  region: string | null
+  region?: string | null
   notes: string | null
   business_number: string | null
   on_hold_reason: string | null
   created_at: string
   updated_at: string
-  // Adding coordinates which may exist in the DB schema
-  latitude?: number | null
-  longitude?: number | null
 }
 
 // Type guard for client status
@@ -43,7 +40,7 @@ export function isClientStatus(value: string): value is Client['status'] {
 export const clientSchema = z.object({
   id: z.string().optional(),
   company_name: z.string().min(1, 'Company name is required'),
-  contact_name: z.string().min(1, 'Contact name is required'),
+  contact_name: z.string().optional().nullable(),
   contact_email: z.string().email('Invalid email address').nullable().optional(),
   contact_phone: z.string().nullable().optional(),
   billing_address_street: z.string().min(1, 'Street address is required'),
@@ -57,8 +54,6 @@ export const clientSchema = z.object({
   notes: z.string().nullable().optional(),
   business_number: z.string().nullable().optional(),
   on_hold_reason: z.string().nullable().optional(),
-  latitude: z.number().nullable().optional(),
-  longitude: z.number().nullable().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 })
@@ -72,7 +67,7 @@ export const clientSchema = z.object({
 // Define the shape expected by Supabase when inserting a new client
 export type ClientInsert = {
   company_name: string
-  contact_name: string
+  contact_name?: string | null
   contact_email?: string | null
   contact_phone?: string | null
   billing_address_street: string
@@ -86,8 +81,6 @@ export type ClientInsert = {
   notes?: string | null
   business_number?: string | null
   on_hold_reason?: string | null
-  latitude?: number | null
-  longitude?: number | null
 }
 
 // Define the shape expected by Supabase when updating an existing client
