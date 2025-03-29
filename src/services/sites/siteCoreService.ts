@@ -16,8 +16,17 @@ export async function createSite(siteData: Partial<Site>) {
       throw new Error('Missing required site fields')
     }
     
+    // Convert Date objects to ISO strings for database compatibility
+    const formattedStartDate = siteData.service_start_date instanceof Date 
+      ? siteData.service_start_date.toISOString()
+      : siteData.service_start_date;
+      
+    const formattedEndDate = siteData.service_end_date instanceof Date
+      ? siteData.service_end_date.toISOString()
+      : siteData.service_end_date;
+    
     // Ensure service_items are properly formatted
-    const siteInsertData: SiteInsert = {
+    const siteInsertData = {
       client_id: siteData.client_id,
       site_name: siteData.site_name,
       site_type: siteData.site_type,
@@ -26,8 +35,8 @@ export async function createSite(siteData: Partial<Site>) {
       address_state: siteData.address_state,
       address_postcode: siteData.address_postcode,
       region: siteData.region,
-      service_start_date: siteData.service_start_date,
-      service_end_date: siteData.service_end_date,
+      service_start_date: formattedStartDate,
+      service_end_date: formattedEndDate,
       special_instructions: siteData.special_instructions,
       status: siteData.status || 'Active',
       site_manager_id: siteData.site_manager_id,
@@ -67,7 +76,7 @@ export async function createSite(siteData: Partial<Site>) {
  * @param filters Filter parameters
  * @returns List of sites matching filters
  */
-export async function fetchSites(search = '', filters = {}) {
+export async function fetchSites(search = '', filters: any = {}) {
   try {
     let query = supabase
       .from('sites')

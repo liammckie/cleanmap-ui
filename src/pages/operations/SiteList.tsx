@@ -203,7 +203,7 @@ const SiteListPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sites?.map((site) => (
+                {sites?.map((site: any) => (
                   <TableRow key={site.id} className="hover:bg-muted">
                     <TableCell>
                       <div className="flex flex-col">
@@ -227,7 +227,7 @@ const SiteListPage: React.FC = () => {
                     </TableCell>
                     
                     <TableCell>
-                      <span>{site.client?.company_name}</span>
+                      <span>{site.clients?.company_name}</span>
                     </TableCell>
                     
                     <TableCell>

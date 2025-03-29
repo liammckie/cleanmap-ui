@@ -101,12 +101,12 @@ const Dashboard = () => {
 
       {/* Tasks and Contracts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <TasksList tasks={pendingTasks} />
-        <UpcomingContracts contracts={upcomingContracts} />
+        <TasksList tasks={pendingTasks || []} />
+        <UpcomingContracts contracts={upcomingContracts || []} />
       </div>
 
       {/* Map */}
-      <DashboardMap locations={mapLocations} />
+      <DashboardMap locations={mapLocations || []} />
     </div>
   )
 }

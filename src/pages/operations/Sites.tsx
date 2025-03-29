@@ -150,7 +150,7 @@ const SitesPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sites?.map((site) => (
+                {sites?.map((site: any) => (
                   <TableRow key={site.id} className="cursor-pointer hover:bg-muted">
                     <TableCell className="font-medium">
                       {site.site_name}
@@ -158,7 +158,7 @@ const SitesPage = () => {
                         <div className="text-xs text-muted-foreground">Region: {site.region}</div>
                       )}
                     </TableCell>
-                    <TableCell>{site.client?.company_name}</TableCell>
+                    <TableCell>{site.clients?.company_name}</TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div>{site.address_street}</div>

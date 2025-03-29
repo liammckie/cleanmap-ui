@@ -26,7 +26,7 @@ interface TasksListProps {
   tasks: Task[]
 }
 
-const TasksList: React.FC<TasksListProps> = ({ tasks }) => {
+const TasksList: React.FC<TasksListProps> = ({ tasks = [] }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
       case 'high':
@@ -70,7 +70,7 @@ const TasksList: React.FC<TasksListProps> = ({ tasks }) => {
         <CardTitle>Upcoming Tasks</CardTitle>
       </CardHeader>
       <CardContent>
-        {tasks.length === 0 ? (
+        {!tasks || tasks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <p>No pending tasks found</p>
           </div>
