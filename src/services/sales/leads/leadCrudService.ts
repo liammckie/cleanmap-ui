@@ -48,7 +48,7 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Use prepareObjectForDb to convert Date objects to strings
+    // Prepare data for DB - convert all Dates to strings
     const preparedData = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
