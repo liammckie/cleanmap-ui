@@ -1,22 +1,72 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import type { Site } from '@/schema/operations/site.schema'
+import { mapSitesFromDb, mapSiteFromDb } from '@/mappers/siteMappers'
 
 /**
- * Fetch all sites
+ * Fetch all sites with optional filtering and pagination
+ * @param options Filter and pagination options
  */
-export async function fetchSites(): Promise<Site[]> {
-  const { data, error } = await supabase
-    .from('sites')
-    .select('*, client:clients(company_name)')
-    .order('site_name')
-
-  if (error) {
-    console.error('Error fetching sites:', error)
+export async function fetchSites(options?: {
+  search?: string;
+  status?: string;
+  clientId?: string;
+  region?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}): Promise<Site[]> {
+  try {
+    let query = supabase
+      .from('sites')
+      .select('*, client:clients(company_name)')
+    
+    // Apply filters if provided
+    if (options?.search) {
+      query = query.or(`site_name.ilike.%${options.search}%,address_street.ilike.%${options.search}%,address_city.ilike.%${options.search}%`)
+    }
+    
+    if (options?.status) {
+      query = query.eq('status', options.status)
+    }
+    
+    if (options?.clientId) {
+      query = query.eq('client_id', options.clientId)
+    }
+    
+    if (options?.region) {
+      query = query.eq('region', options.region)
+    }
+    
+    // Apply sorting
+    if (options?.sortBy) {
+      query = query.order(options.sortBy, { ascending: options.sortOrder === 'asc' })
+    } else {
+      query = query.order('site_name')
+    }
+    
+    // Apply pagination
+    if (options?.limit) {
+      query = query.limit(options.limit)
+    }
+    
+    if (options?.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 20) - 1)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('Error fetching sites:', error)
+      throw error
+    }
+    
+    return mapSitesFromDb(data)
+  } catch (error) {
+    console.error('Error in fetchSites:', error)
     throw error
   }
-
-  return data as Site[]
 }
 
 /**
@@ -25,43 +75,117 @@ export async function fetchSites(): Promise<Site[]> {
 export async function fetchSiteById(siteId: string): Promise<Site | null> {
   if (!siteId) return null
 
-  const { data, error } = await supabase
-    .from('sites')
-    .select('*, client:clients(company_name)')
-    .eq('id', siteId)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('*, client:clients(company_name)')
+      .eq('id', siteId)
+      .single()
 
-  if (error) {
-    // If the error is "No rows found", return null instead of throwing
-    if (error.code === 'PGRST116') {
-      return null
+    if (error) {
+      // If the error is "No rows found", return null instead of throwing
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      console.error('Error fetching site by ID:', error)
+      throw error
     }
-    console.error('Error fetching site by ID:', error)
+
+    return mapSiteFromDb(data)
+  } catch (error) {
+    console.error('Error in fetchSiteById:', error)
     throw error
   }
-
-  return data as Site
 }
 
 /**
- * Fetch sites by client ID from the query service
- * This is renamed to avoid conflict with sitesByClientService
+ * Fetch sites by client ID
  */
 export async function querySitesByClientId(clientId: string): Promise<Site[]> {
   if (!clientId) {
     return []
   }
 
-  const { data, error } = await supabase
-    .from('sites')
-    .select('*, client:clients(company_name)')
-    .eq('client_id', clientId)
-    .order('site_name')
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('*, client:clients(company_name)')
+      .eq('client_id', clientId)
+      .order('site_name')
 
-  if (error) {
-    console.error('Error fetching sites by client ID:', error)
+    if (error) {
+      console.error('Error fetching sites by client ID:', error)
+      throw error
+    }
+
+    return mapSitesFromDb(data)
+  } catch (error) {
+    console.error('Error in querySitesByClientId:', error)
     throw error
   }
+}
 
-  return data as Site[]
+/**
+ * Get site counts by region or status for reporting
+ */
+export async function getSiteCounts(groupBy: 'region' | 'status'): Promise<{ label: string; count: number }[]> {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_site_counts', { group_by_column: groupBy })
+
+    if (error) {
+      console.error(`Error getting site counts by ${groupBy}:`, error)
+      throw error
+    }
+
+    return data || []
+  } catch (error) {
+    console.error(`Error in getSiteCounts by ${groupBy}:`, error)
+    return []
+  }
+}
+
+/**
+ * Fetch total site count (for pagination)
+ */
+export async function fetchSitesCount(options?: {
+  search?: string;
+  status?: string;
+  clientId?: string;
+  region?: string;
+}): Promise<number> {
+  try {
+    let query = supabase
+      .from('sites')
+      .select('id', { count: 'exact', head: true })
+    
+    // Apply filters if provided
+    if (options?.search) {
+      query = query.or(`site_name.ilike.%${options.search}%,address_street.ilike.%${options.search}%,address_city.ilike.%${options.search}%`)
+    }
+    
+    if (options?.status) {
+      query = query.eq('status', options.status)
+    }
+    
+    if (options?.clientId) {
+      query = query.eq('client_id', options.clientId)
+    }
+    
+    if (options?.region) {
+      query = query.eq('region', options.region)
+    }
+    
+    const { count, error } = await query
+    
+    if (error) {
+      console.error('Error fetching sites count:', error)
+      throw error
+    }
+    
+    return count || 0
+  } catch (error) {
+    console.error('Error in fetchSitesCount:', error)
+    return 0
+  }
 }

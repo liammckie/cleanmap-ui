@@ -1,8 +1,13 @@
 
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
+import { BuildingIcon, Wrench } from 'lucide-react'
 
-export const StatusBadge = ({ status }: { status: string }) => {
+interface StatusBadgeProps {
+  status: string
+}
+
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -18,20 +23,46 @@ export const StatusBadge = ({ status }: { status: string }) => {
     }
   }
 
-  return <Badge className={`${getStatusColor(status)}`}>{status}</Badge>
+  return (
+    <Badge className={`mr-2 ${getStatusColor(status)}`}>
+      {status}
+    </Badge>
+  )
 }
 
-export const ServiceTypeBadge = ({ type }: { type: string }) => {
-  const getTypeColor = (type: string) => {
+interface ServiceTypeBadgeProps {
+  type: string
+}
+
+export const ServiceTypeBadge: React.FC<ServiceTypeBadgeProps> = ({ type }) => {
+  const getIconAndColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'internal':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
+        return {
+          icon: <BuildingIcon className="h-3 w-3 mr-1" />,
+          className: 'bg-blue-100 text-blue-800 border-blue-200'
+        }
       case 'contractor':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
+        return {
+          icon: <Wrench className="h-3 w-3 mr-1" />,
+          className: 'bg-purple-100 text-purple-800 border-purple-200'
+        }
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return {
+          icon: null,
+          className: 'bg-gray-100 text-gray-800 border-gray-200'
+        }
     }
   }
 
-  return <Badge className={`${getTypeColor(type)}`}>{type}</Badge>
+  const { icon, className } = getIconAndColor(type)
+
+  return (
+    <Badge className={className} variant="outline">
+      <span className="flex items-center">
+        {icon}
+        {type}
+      </span>
+    </Badge>
+  )
 }

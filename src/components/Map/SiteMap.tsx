@@ -5,7 +5,15 @@ import { useGoogleMaps } from '@/components/Map/useGoogleMaps'
 import { useToast } from '@/hooks/use-toast'
 import { MapLocation, MapProps } from './types'
 
-const SiteMap: React.FC<MapProps> = ({ locations = [], isFullscreen = false }) => {
+interface SiteMapProps extends MapProps {
+  onError?: () => void
+}
+
+const SiteMap: React.FC<SiteMapProps> = ({ 
+  locations = [], 
+  isFullscreen = false,
+  onError
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapInstance = useRef<google.maps.Map | null>(null)
   const { isLoading, isError, googleMapsLoaded } = useGoogleMaps()
@@ -65,6 +73,7 @@ const SiteMap: React.FC<MapProps> = ({ locations = [], isFullscreen = false }) =
         }
       } catch (error) {
         console.error('Error initializing map:', error)
+        if (onError) onError()
         toast({
           title: 'Map Error',
           description: 'Failed to initialize the map. Please try again.',
@@ -74,7 +83,7 @@ const SiteMap: React.FC<MapProps> = ({ locations = [], isFullscreen = false }) =
     }
     
     initMap()
-  }, [googleMapsLoaded, locations, toast])
+  }, [googleMapsLoaded, locations, toast, onError])
   
   if (isLoading) {
     return (
@@ -85,6 +94,7 @@ const SiteMap: React.FC<MapProps> = ({ locations = [], isFullscreen = false }) =
   }
   
   if (isError) {
+    if (onError) onError()
     return (
       <div className="flex items-center justify-center h-full bg-muted/20">
         <div className="text-center">
