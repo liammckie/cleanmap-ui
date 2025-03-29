@@ -111,6 +111,13 @@ export default {
         soft: "0 4px 20px 0 rgba(0, 0, 0, 0.05)",
         glossy: "0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.06)",
       },
+      transitionProperty: {
+        'height': 'height',
+        'spacing': 'margin, padding',
+      },
+      transitionDuration: {
+        '400': '400ms',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
