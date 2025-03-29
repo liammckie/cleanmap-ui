@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client'
-import { Quote, quoteSchema, quoteDbSchema } from '@/schema/sales/quote.schema'
+import { Quote } from '@/types/supabase'
+import { quoteDbSchema } from '@/schema/db/quoteDbSchema'
 import { apiClient } from '@/utils/supabaseInsertHelper'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
 
@@ -11,28 +11,25 @@ import { prepareObjectForDb } from '@/utils/dateFormatters'
  */
 export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> => {
   try {
-    // First prepare the data with dates converted to ISO strings
-    const preparedData = prepareObjectForDb({
+    const prepared = prepareObjectForDb({
       ...quote,
       created_at: new Date(),
       updated_at: new Date()
     })
 
-    // Create quote using the improved apiClient with DB schema
     const data = await apiClient.create(
       supabase,
       'quotes',
-      preparedData, // preparedData has dates as strings now
+      prepared,
       quoteDbSchema
-    );
+    )
 
-    // Convert string dates back to Date objects
     return {
       ...data,
       issue_date: new Date(data.issue_date),
       valid_until: new Date(data.valid_until),
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
+      updated_at: new Date(data.updated_at)
     }
   } catch (error) {
     console.error('Unexpected error in createQuote:', error)
@@ -43,30 +40,34 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
 /**
  * Update a quote
  * @param quoteId ID of the quote to update
- * @param quote Updated quote data
+ * @param updates Updated quote data
  * @returns The updated quote or null if an error occurred
  */
 export const updateQuote = async (
   quoteId: string,
-  quote: Partial<Quote>,
+  updates: Partial<Quote>
 ): Promise<Quote | null> => {
   try {
-    // Prepare data for DB - convert all Dates to strings
-    const preparedData = prepareObjectForDb({
-      ...quote,
-      updated_at: new Date(),
+    const prepared = prepareObjectForDb({
+      ...updates,
+      updated_at: new Date()
     })
 
-    // Update the quote using our improved helper with properly converted dates
-    const data = await apiClient.update(supabase, 'quotes', quoteId, preparedData)
+    const result = await apiClient.update(
+      supabase,
+      'quotes',
+      quoteId,
+      prepared
+    )
 
-    // Convert string dates back to Date objects
+    const data = Array.isArray(result) ? result[0] : result
+
     return {
       ...data,
       issue_date: new Date(data.issue_date),
       valid_until: new Date(data.valid_until),
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
+      updated_at: new Date(data.updated_at)
     }
   } catch (error) {
     console.error('Unexpected error in updateQuote:', error)
