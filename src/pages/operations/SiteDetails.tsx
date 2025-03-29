@@ -2,7 +2,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { fetchSiteById } from '@/services/sites/siteCoreService'
+import { fetchSiteById } from '@/services/sites'
 import { useToast } from '@/hooks/use-toast'
 
 // Import refactored components
