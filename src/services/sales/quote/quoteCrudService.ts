@@ -15,11 +15,11 @@ export const createQuote = async (quote: Partial<Quote>): Promise<Quote | null> 
     const data = await apiClient.create(
       supabase,
       'quotes',
-      {
+      prepareObjectForDb({
         ...quote,
         created_at: new Date(),
         updated_at: new Date()
-      },
+      }),
       quoteDbSchema
     );
 

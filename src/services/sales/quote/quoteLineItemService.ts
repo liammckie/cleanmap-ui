@@ -54,11 +54,11 @@ export const addQuoteLineItem = async (lineItem: Partial<QuoteLineItem>): Promis
     const data = await apiClient.create(
       supabase,
       'quote_line_items',
-      {
+      prepareObjectForDb({
         ...lineItem,
         created_at: new Date(),
         updated_at: new Date()
-      },
+      }),
       quoteLineItemDbSchema
     );
 

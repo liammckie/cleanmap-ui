@@ -16,11 +16,11 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
     const data = await apiClient.create(
       supabase,
       'leads',
-      {
+      prepareObjectForDb({
         ...lead,
         created_at: new Date(),
         updated_at: new Date()
-      },
+      }),
       leadDbSchema
     );
 
