@@ -1,4 +1,3 @@
+import AddClientDialog from './client/AddClientDialog'
 
-import AddClientDialog from './client/AddClientDialog';
-
-export default AddClientDialog;
+export default AddClientDialog

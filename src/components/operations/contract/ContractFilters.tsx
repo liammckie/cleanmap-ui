@@ -1,26 +1,19 @@
-
-import React from 'react';
-import { Search, FilterX } from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from 'react'
+import { Search, FilterX } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface ContractFiltersProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  clearFilters: () => void;
+  searchTerm: string
+  setSearchTerm: (term: string) => void
+  clearFilters: () => void
 }
 
 const ContractFilters: React.FC<ContractFiltersProps> = ({
   searchTerm,
   setSearchTerm,
-  clearFilters
+  clearFilters,
 }) => {
   return (
     <Card className="mb-6">
@@ -39,18 +32,14 @@ const ContractFilters: React.FC<ContractFiltersProps> = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={clearFilters}
-          >
+          <Button variant="outline" className="flex items-center gap-2" onClick={clearFilters}>
             <FilterX className="h-4 w-4" />
             Clear
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default ContractFilters;
+export default ContractFilters

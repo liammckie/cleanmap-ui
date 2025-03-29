@@ -1,44 +1,49 @@
-
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  calculateAllBillingFrequencies, 
-  formatCurrency, 
-  type BillingFrequency 
-} from '@/utils/billingCalculations';
+import React, { useState, useEffect } from 'react'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  calculateAllBillingFrequencies,
+  formatCurrency,
+  type BillingFrequency,
+} from '@/utils/billingCalculations'
 
 interface BillingCalculatorProps {
-  initialAmount?: number;
-  initialFrequency?: BillingFrequency;
-  onCalculated?: (values: { weekly: number; monthly: number; annually: number; }) => void;
-  readOnly?: boolean;
+  initialAmount?: number
+  initialFrequency?: BillingFrequency
+  onCalculated?: (values: { weekly: number; monthly: number; annually: number }) => void
+  readOnly?: boolean
 }
 
 const BillingCalculator: React.FC<BillingCalculatorProps> = ({
   initialAmount = 0,
   initialFrequency = 'monthly',
   onCalculated,
-  readOnly = false
+  readOnly = false,
 }) => {
-  const [amount, setAmount] = useState<number>(initialAmount);
-  const [frequency, setFrequency] = useState<BillingFrequency>(initialFrequency);
+  const [amount, setAmount] = useState<number>(initialAmount)
+  const [frequency, setFrequency] = useState<BillingFrequency>(initialFrequency)
   const [breakdown, setBreakdown] = useState({
     weekly: 0,
     monthly: 0,
-    annually: 0
-  });
+    annually: 0,
+  })
 
   useEffect(() => {
-    const calculatedBreakdown = calculateAllBillingFrequencies(amount, frequency);
-    setBreakdown(calculatedBreakdown);
-    
+    const calculatedBreakdown = calculateAllBillingFrequencies(amount, frequency)
+    setBreakdown(calculatedBreakdown)
+
     if (onCalculated) {
-      onCalculated(calculatedBreakdown);
+      onCalculated(calculatedBreakdown)
     }
-  }, [amount, frequency, onCalculated]);
+  }, [amount, frequency, onCalculated])
 
   return (
     <Card>
@@ -81,7 +86,7 @@ const BillingCalculator: React.FC<BillingCalculatorProps> = ({
             </>
           )}
         </div>
-        
+
         <div className="grid grid-cols-3 gap-4 bg-muted p-3 rounded-md">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Weekly</p>
@@ -98,7 +103,7 @@ const BillingCalculator: React.FC<BillingCalculatorProps> = ({
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default BillingCalculator;
+export default BillingCalculator

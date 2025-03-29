@@ -1,19 +1,18 @@
-
-import React from 'react';
-import { 
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
+import React from 'react'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { UseFormReturn } from 'react-hook-form'
 
 interface SiteBasicDetailsProps {
-  form: UseFormReturn<any>;
-  index: number;
+  form: UseFormReturn<any>
+  index: number
 }
 
 const SiteBasicDetails: React.FC<SiteBasicDetailsProps> = ({ form, index }) => {
@@ -39,10 +38,7 @@ const SiteBasicDetails: React.FC<SiteBasicDetailsProps> = ({ form, index }) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Site Type*</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-            >
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select site type" />
@@ -63,7 +59,7 @@ const SiteBasicDetails: React.FC<SiteBasicDetailsProps> = ({ form, index }) => {
         )}
       />
     </div>
-  );
-};
+  )
+}
 
-export default SiteBasicDetails;
+export default SiteBasicDetails

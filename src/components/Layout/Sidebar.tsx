@@ -1,21 +1,30 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  Activity, Map, Users, Calendar, Files, 
-  Clipboard, BarChart3, Settings, Menu, X,
-  UserCog, Briefcase // Added HR icon and Briefcase icon
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react'
+import { NavLink } from 'react-router-dom'
+import {
+  Activity,
+  Map,
+  Users,
+  Calendar,
+  Files,
+  Clipboard,
+  BarChart3,
+  Settings,
+  Menu,
+  X,
+  UserCog,
+  Briefcase, // Added HR icon and Briefcase icon
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface SidebarProps {
-  isMobile: boolean;
-  isOpen: boolean;
-  toggleSidebar: () => void;
+  isMobile: boolean
+  isOpen: boolean
+  toggleSidebar: () => void
 }
 
 const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
-  const [activeItem, setActiveItem] = useState('dashboard');
+  const [activeItem, setActiveItem] = useState('dashboard')
 
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
@@ -28,38 +37,38 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
     { id: 'documents', name: 'Documents', icon: Files, path: '/documents' },
     { id: 'settings', name: 'Settings', icon: Settings, path: '/settings' },
     {
-      title: "Operations",
+      title: 'Operations',
       icon: Briefcase,
       items: [
-        { title: "Clients", path: "/operations/clients" },
-        { title: "Sites", path: "/operations/site-list" },
-      ]
-    }
-  ];
+        { title: 'Clients', path: '/operations/clients' },
+        { title: 'Sites', path: '/operations/site-list' },
+      ],
+    },
+  ]
 
   if (isMobile && !isOpen) {
     return (
       <div className="fixed top-4 left-4 z-50">
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <Button
+          variant="outline"
+          size="icon"
           onClick={toggleSidebar}
           className="bg-white dark:bg-gray-800 shadow-md"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </div>
-    );
+    )
   }
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-gray-900 shadow-md",
-        "transition-transform duration-300 ease-in-out",
-        "border-r border-gray-200 dark:border-gray-800",
-        isMobile && !isOpen && "-translate-x-full",
-        isMobile && isOpen && "translate-x-0"
+        'fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-gray-900 shadow-md',
+        'transition-transform duration-300 ease-in-out',
+        'border-r border-gray-200 dark:border-gray-800',
+        isMobile && !isOpen && '-translate-x-full',
+        isMobile && isOpen && 'translate-x-0',
       )}
     >
       <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
@@ -91,12 +100,14 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
                       <li key={subItem.path}>
                         <NavLink
                           to={subItem.path}
-                          className={({ isActive }) => cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                            isActive 
-                              ? "bg-brand-blue text-white" 
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          )}
+                          className={({ isActive }) =>
+                            cn(
+                              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                              isActive
+                                ? 'bg-brand-blue text-white'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
+                            )
+                          }
                           onClick={() => setActiveItem(subItem.path)}
                         >
                           <item.icon className="h-5 w-5" />
@@ -106,25 +117,27 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
                     ))}
                   </ul>
                 </li>
-              );
+              )
             } else {
               return (
                 <li key={item.id}>
                   <NavLink
                     to={item.path}
-                    className={({ isActive }) => cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                      isActive 
-                        ? "bg-brand-blue text-white" 
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    )}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-brand-blue text-white'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
+                      )
+                    }
                     onClick={() => setActiveItem(item.id)}
                   >
                     <item.icon className="h-5 w-5" />
                     <span>{item.name}</span>
                   </NavLink>
                 </li>
-              );
+              )
             }
           })}
         </ul>
@@ -140,7 +153,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </div>
       </div>
     </aside>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

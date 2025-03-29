@@ -1,18 +1,37 @@
-
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 // Define the form schema
 const employeeFormSchema = z.object({
@@ -38,17 +57,21 @@ const employeeFormSchema = z.object({
   bank_account_number: z.string().min(6, 'Valid account number is required'),
   super_fund_name: z.string().min(1, 'Super fund name is required'),
   super_member_number: z.string().min(1, 'Super member number is required'),
-});
+})
 
-type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
+type EmployeeFormValues = z.infer<typeof employeeFormSchema>
 
 interface EmployeeFormProps {
-  initialData?: Partial<EmployeeFormValues>;
-  onSubmit: (data: EmployeeFormValues) => void;
-  isLoading?: boolean;
+  initialData?: Partial<EmployeeFormValues>
+  onSubmit: (data: EmployeeFormValues) => void
+  isLoading?: boolean
 }
 
-export default function EmployeeForm({ initialData, onSubmit, isLoading = false }: EmployeeFormProps) {
+export default function EmployeeForm({
+  initialData,
+  onSubmit,
+  isLoading = false,
+}: EmployeeFormProps) {
   // Set default values from initial data or use empty defaults
   const defaultValues: Partial<EmployeeFormValues> = {
     first_name: '',
@@ -73,22 +96,16 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
     bank_account_number: '',
     super_fund_name: '',
     super_member_number: '',
-    ...initialData
-  };
+    ...initialData,
+  }
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues,
-  });
+  })
 
   // Define some example departments for dropdown
-  const departments = [
-    "Operations",
-    "Human Resources",
-    "Finance",
-    "Sales",
-    "Administration"
-  ];
+  const departments = ['Operations', 'Human Resources', 'Finance', 'Sales', 'Administration']
 
   return (
     <Form {...form}>
@@ -96,9 +113,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
-              Enter the employee's personal details
-            </CardDescription>
+            <CardDescription>Enter the employee's personal details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -140,17 +155,13 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground',
                             )}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -160,9 +171,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
+                          disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                           initialFocus
                         />
                       </PopoverContent>
@@ -266,9 +275,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
         <Card>
           <CardHeader>
             <CardTitle>Employment Details</CardTitle>
-            <CardDescription>
-              Enter the employee's work-related information
-            </CardDescription>
+            <CardDescription>Enter the employee's work-related information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -306,17 +313,14 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a department" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {departments.map(dept => (
+                        {departments.map((dept) => (
                           <SelectItem key={dept} value={dept}>
                             {dept}
                           </SelectItem>
@@ -338,17 +342,13 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground',
                             )}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -358,9 +358,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date()
-                          }
+                          disabled={(date) => date > new Date()}
                           initialFocus
                         />
                       </PopoverContent>
@@ -376,10 +374,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Employment Type</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select employment type" />
@@ -402,9 +397,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
         <Card>
           <CardHeader>
             <CardTitle>Pay & Benefits</CardTitle>
-            <CardDescription>
-              Enter the employee's compensation details
-            </CardDescription>
+            <CardDescription>Enter the employee's compensation details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -429,12 +422,12 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                   <FormItem>
                     <FormLabel>Pay Rate ($)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="25.50" 
-                        {...field} 
-                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="25.50"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -448,10 +441,7 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pay Cycle</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select pay cycle" />
@@ -540,7 +530,9 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" type="button">Cancel</Button>
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save Employee'}
             </Button>
@@ -548,5 +540,5 @@ export default function EmployeeForm({ initialData, onSubmit, isLoading = false 
         </Card>
       </form>
     </Form>
-  );
+  )
 }

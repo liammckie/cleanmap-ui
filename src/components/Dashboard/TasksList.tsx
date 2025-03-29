@@ -1,25 +1,24 @@
-
-import { useState } from 'react';
-import { Check, Clock, MoreHorizontal } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { 
+import { useState } from 'react'
+import { Check, Clock, MoreHorizontal } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
+} from '@/components/ui/dropdown-menu'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
 
 interface Task {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority: 'low' | 'medium' | 'high';
+  id: string
+  title: string
+  description: string
+  location: string
+  dueDate: string
+  isCompleted: boolean
+  priority: 'low' | 'medium' | 'high'
 }
 
 const initialTasks: Task[] = [
@@ -59,25 +58,29 @@ const initialTasks: Task[] = [
     isCompleted: false,
     priority: 'medium',
   },
-];
+]
 
 const TasksList = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks)
 
   const toggleTaskCompletion = (id: string) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, isCompleted: !task.isCompleted } : task
-    ));
-  };
+    setTasks(
+      tasks.map((task) => (task.id === id ? { ...task, isCompleted: !task.isCompleted } : task)),
+    )
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+      case 'low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
     }
-  };
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-100 dark:border-gray-700">
@@ -87,65 +90,69 @@ const TasksList = () => {
           View All
         </Button>
       </div>
-      
+
       <div className="overflow-hidden">
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {tasks.map((task) => (
-            <li 
-              key={task.id} 
+            <li
+              key={task.id}
               className={cn(
-                "px-6 py-4 transition-colors duration-200",
-                task.isCompleted ? "bg-gray-50 dark:bg-gray-800/60" : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                'px-6 py-4 transition-colors duration-200',
+                task.isCompleted
+                  ? 'bg-gray-50 dark:bg-gray-800/60'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800/60',
               )}
             >
               <div className="flex items-start gap-3">
-                <Checkbox 
+                <Checkbox
                   id={`task-${task.id}`}
                   checked={task.isCompleted}
                   onCheckedChange={() => toggleTaskCompletion(task.id)}
                   className="mt-1"
                 />
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span 
+                    <span
                       className={cn(
-                        "text-sm font-medium",
-                        task.isCompleted 
-                          ? "text-gray-500 dark:text-gray-400 line-through" 
-                          : "text-gray-900 dark:text-white"
+                        'text-sm font-medium',
+                        task.isCompleted
+                          ? 'text-gray-500 dark:text-gray-400 line-through'
+                          : 'text-gray-900 dark:text-white',
                       )}
                     >
                       {task.title}
                     </span>
-                    <span className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-                      getPriorityColor(task.priority)
-                    )}>
+                    <span
+                      className={cn(
+                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                        getPriorityColor(task.priority),
+                      )}
+                    >
                       {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                     </span>
                   </div>
-                  
-                  <p className={cn(
-                    "text-sm",
-                    task.isCompleted 
-                      ? "text-gray-500 dark:text-gray-400 line-through" 
-                      : "text-gray-700 dark:text-gray-300"
-                  )}>
+
+                  <p
+                    className={cn(
+                      'text-sm',
+                      task.isCompleted
+                        ? 'text-gray-500 dark:text-gray-400 line-through'
+                        : 'text-gray-700 dark:text-gray-300',
+                    )}
+                  >
                     {task.description}
                   </p>
-                  
+
                   <div className="mt-1 flex items-center gap-4 text-xs">
-                    <div className="text-gray-500 dark:text-gray-400">
-                      📍 {task.location}
-                    </div>
+                    <div className="text-gray-500 dark:text-gray-400">📍 {task.location}</div>
                     <div className="flex items-center text-gray-500 dark:text-gray-400">
                       <Clock className="mr-1 h-3 w-3" />
                       {task.dueDate}
                     </div>
                   </div>
                 </div>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -168,7 +175,7 @@ const TasksList = () => {
         </ul>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TasksList;
+export default TasksList

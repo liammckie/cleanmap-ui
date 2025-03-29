@@ -1,8 +1,7 @@
-
-import { supabase } from '@/integrations/supabase/client';
-import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema';
-import { apiClient } from '@/utils/supabaseInsertHelper';
-import { prepareObjectForDb } from '@/utils/dateFormatters';
+import { supabase } from '@/integrations/supabase/client'
+import { Lead, leadSchema, leadDbSchema } from '@/schema/sales/lead.schema'
+import { apiClient } from '@/utils/supabaseInsertHelper'
+import { prepareObjectForDb } from '@/utils/dateFormatters'
 
 /**
  * Create a new lead
@@ -12,7 +11,6 @@ import { prepareObjectForDb } from '@/utils/dateFormatters';
  */
 export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Create lead using the improved apiClient with DB schema
     const data = await apiClient.create(
       supabase,
       'leads',
@@ -22,20 +20,19 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
         updated_at: new Date()
       }),
       leadDbSchema
-    );
+    )
 
-    // Convert string dates back to Date objects
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
       created_at: new Date(data.created_at),
       updated_at: new Date(data.updated_at)
-    };
+    }
   } catch (error) {
-    console.error('Unexpected error in createLead:', error);
-    return null;
+    console.error('Unexpected error in createLead:', error)
+    return null
   }
-};
+}
 
 /**
  * Update a lead
@@ -45,32 +42,24 @@ export const createLead = async (lead: Partial<Lead>): Promise<Lead | null> => {
  */
 export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<Lead | null> => {
   try {
-    // Prepare data for DB - convert Dates to strings
     const preparedData = prepareObjectForDb({
       ...lead,
       updated_at: new Date()
-    });
+    })
 
-    // Update the lead using our improved helper
-    const data = await apiClient.update(
-      supabase,
-      'leads',
-      leadId,
-      preparedData
-    );
+    const data = await apiClient.update(supabase, 'leads', leadId, preparedData)
 
-    // Convert string dates back to Date objects
     return {
       ...data,
       next_action_date: data.next_action_date ? new Date(data.next_action_date) : null,
       created_at: new Date(data.created_at),
       updated_at: new Date(data.updated_at)
-    };
+    }
   } catch (error) {
-    console.error('Unexpected error in updateLead:', error);
-    return null;
+    console.error('Unexpected error in updateLead:', error)
+    return null
   }
-};
+}
 
 /**
  * Delete a lead
@@ -79,10 +68,10 @@ export const updateLead = async (leadId: string, lead: Partial<Lead>): Promise<L
  */
 export const deleteLead = async (leadId: string): Promise<boolean> => {
   try {
-    await apiClient.delete(supabase, 'leads', leadId);
-    return true;
+    await apiClient.delete(supabase, 'leads', leadId)
+    return true
   } catch (error) {
-    console.error('Unexpected error in deleteLead:', error);
-    return false;
+    console.error('Unexpected error in deleteLead:', error)
+    return false
   }
-};
+}

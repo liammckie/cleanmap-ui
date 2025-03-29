@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Building2, MapPin, Plus, Search, Filter, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react'
+import { Building2, MapPin, Plus, Search, Filter, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -9,30 +9,30 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import LocationsMap from '@/components/Map/LocationsMap';
-import { MapLocation } from '@/components/Map/types';
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+import LocationsMap from '@/components/Map/LocationsMap'
+import { MapLocation } from '@/components/Map/types'
 
 interface Location {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  type: string;
-  clientName: string;
-  area: string;
-  cleaningFrequency: string;
-  status: 'active' | 'inactive' | 'upcoming';
-  lat?: number;
-  lng?: number;
-  count?: number;
+  id: string
+  name: string
+  address: string
+  city: string
+  type: string
+  clientName: string
+  area: string
+  cleaningFrequency: string
+  status: 'active' | 'inactive' | 'upcoming'
+  lat?: number
+  lng?: number
+  count?: number
 }
 
 const mockLocations: Location[] = [
@@ -47,7 +47,7 @@ const mockLocations: Location[] = [
     cleaningFrequency: 'Daily',
     status: 'active',
     lat: -33.865143,
-    lng: 151.209900,
+    lng: 151.2099,
     count: 5,
   },
   {
@@ -60,7 +60,7 @@ const mockLocations: Location[] = [
     area: '850 m²',
     cleaningFrequency: '3x Weekly',
     status: 'active',
-    lat: -37.813629, 
+    lat: -37.813629,
     lng: 144.963058,
     count: 3,
   },
@@ -117,32 +117,33 @@ const mockLocations: Location[] = [
     cleaningFrequency: 'Weekly',
     status: 'inactive',
     lat: -32.916668,
-    lng: 151.750000,
+    lng: 151.75,
     count: 2,
   },
-];
+]
 
 const Locations = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [locations, setLocations] = useState(mockLocations);
-  const [viewType, setViewType] = useState<'grid' | 'map'>('grid');
-  const [filter, setFilter] = useState('all');
-  const [mapLocations, setMapLocations] = useState<MapLocation[]>([]);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [locations, setLocations] = useState(mockLocations)
+  const [viewType, setViewType] = useState<'grid' | 'map'>('grid')
+  const [filter, setFilter] = useState('all')
+  const [mapLocations, setMapLocations] = useState<MapLocation[]>([])
 
   const filteredLocations = locations.filter((location) => {
-    const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         location.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         location.clientName.toLowerCase().includes(searchTerm.toLowerCase());
-                         
-    const matchesFilter = filter === 'all' || location.status === filter;
-    
-    return matchesSearch && matchesFilter;
-  });
+    const matchesSearch =
+      location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesFilter = filter === 'all' || location.status === filter
+
+    return matchesSearch && matchesFilter
+  })
 
   useEffect(() => {
     const mapData: MapLocation[] = filteredLocations
-      .filter(location => location.lat && location.lng)
-      .map(location => ({
+      .filter((location) => location.lat && location.lng)
+      .map((location) => ({
         id: location.id,
         name: location.name,
         lat: location.lat || 0,
@@ -150,20 +151,24 @@ const Locations = () => {
         count: location.count || 0,
         address: location.address,
         city: location.city,
-        clientName: location.clientName
-      }));
-    
-    setMapLocations(mapData);
-  }, [filteredLocations]);
+        clientName: location.clientName,
+      }))
+
+    setMapLocations(mapData)
+  }, [filteredLocations])
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'inactive': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
-      case 'upcoming': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+      case 'upcoming':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -178,7 +183,7 @@ const Locations = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex gap-2 items-center">
@@ -188,9 +193,7 @@ const Locations = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilter('all')}>
-                All Locations
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('all')}>All Locations</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilter('active')}>
                 Active Locations
               </DropdownMenuItem>
@@ -203,7 +206,7 @@ const Locations = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
+
         <div className="flex gap-2">
           <Button
             variant={viewType === 'grid' ? 'default' : 'outline'}
@@ -225,7 +228,7 @@ const Locations = () => {
           </Button>
         </div>
       </div>
-      
+
       {viewType === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredLocations.map((location) => (
@@ -236,10 +239,12 @@ const Locations = () => {
                     <CardTitle className="text-lg">{location.name}</CardTitle>
                     <CardDescription>{location.type}</CardDescription>
                   </div>
-                  <span className={cn(
-                    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                    getStatusColor(location.status)
-                  )}>
+                  <span
+                    className={cn(
+                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                      getStatusColor(location.status),
+                    )}
+                  >
                     {location.status.charAt(0).toUpperCase() + location.status.slice(1)}
                   </span>
                 </div>
@@ -253,7 +258,7 @@ const Locations = () => {
                       <p className="text-sm text-gray-700 dark:text-gray-300">{location.city}</p>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Client</p>
@@ -284,7 +289,7 @@ const Locations = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Locations;
+export default Locations

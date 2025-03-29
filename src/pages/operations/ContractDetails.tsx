@@ -1,59 +1,56 @@
-
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Edit, Save, FileClock } from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { fetchContractById } from '@/services/contracts/contractQueryService';
-import ContractStatusBadge from '@/components/operations/contract/ContractStatusBadge';
-import ContractDetailsSkeleton from '@/components/operations/contract/ContractDetailsSkeleton';
-import ContractInfo from '@/components/operations/contract/ContractInfo';
-import ContractSites from '@/components/operations/contract/ContractSites';
-import ContractEditForm from '@/components/operations/contract/ContractEditForm';
+import React, { useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeft, Edit, Save, FileClock } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/hooks/use-toast'
+import { fetchContractById } from '@/services/contracts/contractQueryService'
+import ContractStatusBadge from '@/components/operations/contract/ContractStatusBadge'
+import ContractDetailsSkeleton from '@/components/operations/contract/ContractDetailsSkeleton'
+import ContractInfo from '@/components/operations/contract/ContractInfo'
+import ContractSites from '@/components/operations/contract/ContractSites'
+import ContractEditForm from '@/components/operations/contract/ContractEditForm'
 
 const ContractDetails = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const [isEditing, setIsEditing] = useState(false)
 
-  const { data: contract, isLoading, error } = useQuery({
+  const {
+    data: contract,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['contract', id],
     queryFn: () => fetchContractById(id || ''),
     meta: {
       onSettled: (_data, error) => {
         if (error) {
-          console.error('Failed to fetch contract:', error);
+          console.error('Failed to fetch contract:', error)
           toast({
             variant: 'destructive',
             title: 'Error',
             description: 'Failed to load contract details. Please try again.',
-          });
+          })
         }
-      }
+      },
     },
-    enabled: !!id
-  });
+    enabled: !!id,
+  })
 
   const handleGoBack = () => {
-    navigate('/operations/contracts');
-  };
+    navigate('/operations/contracts')
+  }
 
   const toggleEdit = () => {
-    setIsEditing(!isEditing);
-  };
+    setIsEditing(!isEditing)
+  }
 
   if (isLoading) {
-    return <ContractDetailsSkeleton />;
+    return <ContractDetailsSkeleton />
   }
 
   if (error || !contract) {
@@ -69,7 +66,8 @@ const ContractDetails = () => {
           <CardHeader>
             <CardTitle>Error</CardTitle>
             <CardDescription>
-              Failed to load contract details. The contract may not exist or there was a problem connecting to the server.
+              Failed to load contract details. The contract may not exist or there was a problem
+              connecting to the server.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -77,7 +75,7 @@ const ContractDetails = () => {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -103,7 +101,7 @@ const ContractDetails = () => {
           )}
         </div>
       </div>
-      
+
       <div className="grid gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -111,21 +109,19 @@ const ContractDetails = () => {
               <CardTitle className="text-2xl font-bold">
                 Contract #{contract.contract_number}
               </CardTitle>
-              <CardDescription>
-                {contract.contract_name}
-              </CardDescription>
+              <CardDescription>{contract.contract_name}</CardDescription>
             </div>
-            <ContractStatusBadge 
-              status={contract.status} 
+            <ContractStatusBadge
+              status={contract.status}
               underNegotiation={contract.under_negotiation}
             />
           </CardHeader>
         </Card>
-        
+
         {isEditing ? (
-          <ContractEditForm 
-            contract={contract} 
-            onSaved={() => setIsEditing(false)} 
+          <ContractEditForm
+            contract={contract}
+            onSaved={() => setIsEditing(false)}
             onCancel={() => setIsEditing(false)}
           />
         ) : (
@@ -136,7 +132,7 @@ const ContractDetails = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ContractDetails;
+export default ContractDetails

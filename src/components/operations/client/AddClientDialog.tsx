@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,43 +9,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import ClientForm from './ClientForm';
-import { useClientDialog } from './useClientDialog';
+} from '@/components/ui/alert-dialog'
+import ClientForm from './ClientForm'
+import { useClientDialog } from './useClientDialog'
 
 interface AddClientDialogProps {
-  children: React.ReactNode;
-  onClientAdded?: () => void;
+  children: React.ReactNode
+  onClientAdded?: () => void
 }
 
 const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdded }) => {
-  const {
-    open,
-    setOpen,
-    loading,
-    formData,
-    handleChange,
-    handleSubmit,
-  } = useClientDialog({ onClientAdded });
+  const { open, setOpen, loading, formData, handleChange, handleSubmit } = useClientDialog({
+    onClientAdded,
+  })
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {children}
-      </AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Add New Client</AlertDialogTitle>
-          <AlertDialogDescription>
-            Enter the details for the new client.
-          </AlertDialogDescription>
+          <AlertDialogDescription>Enter the details for the new client.</AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit}>
-          <ClientForm 
-            formData={formData}
-            onChange={handleChange}
-            loading={loading}
-          />
+          <ClientForm formData={formData} onChange={handleChange} loading={loading} />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction disabled={loading} onClick={handleSubmit}>
@@ -56,7 +42,7 @@ const AddClientDialog: React.FC<AddClientDialogProps> = ({ children, onClientAdd
         </form>
       </AlertDialogContent>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export default AddClientDialog;
+export default AddClientDialog

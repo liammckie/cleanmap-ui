@@ -1,4 +1,3 @@
-
 /**
  * Google Maps type definitions index file
  */
@@ -14,5 +13,5 @@
  * Add the google property to the Window interface
  */
 interface Window {
-  google: typeof google;
+  google: typeof google
 }

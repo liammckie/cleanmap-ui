@@ -1,46 +1,37 @@
-
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { formatDate } from '@/utils/dateFormatters';
-import type { Contract } from '@/schema/operations/contract.schema';
+import React from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatDate } from '@/utils/dateFormatters'
+import type { Contract } from '@/schema/operations/contract.schema'
 
 interface ContractInfoProps {
-  contract: Contract;
+  contract: Contract
 }
 
 const ContractInfo: React.FC<ContractInfoProps> = ({ contract }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
-      currency: 'AUD'
-    }).format(amount);
-  };
+      currency: 'AUD',
+    }).format(amount)
+  }
 
   const getFrequencyText = (frequency: string) => {
     const frequencies: Record<string, string> = {
-      'weekly': 'Weekly',
-      'fortnightly': 'Fortnightly',
-      'monthly': 'Monthly',
-      'quarterly': 'Quarterly',
-      'annually': 'Annually'
-    };
-    return frequencies[frequency] || frequency;
-  };
+      weekly: 'Weekly',
+      fortnightly: 'Fortnightly',
+      monthly: 'Monthly',
+      quarterly: 'Quarterly',
+      annually: 'Annually',
+    }
+    return frequencies[frequency] || frequency
+  }
 
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>Contract Details</CardTitle>
-          <CardDescription>
-            Contract information and financial terms
-          </CardDescription>
+          <CardDescription>Contract information and financial terms</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -75,9 +66,7 @@ const ContractInfo: React.FC<ContractInfoProps> = ({ contract }) => {
       <Card>
         <CardHeader>
           <CardTitle>Billing Information</CardTitle>
-          <CardDescription>
-            Billing frequency and amounts
-          </CardDescription>
+          <CardDescription>Billing frequency and amounts</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -86,7 +75,9 @@ const ContractInfo: React.FC<ContractInfoProps> = ({ contract }) => {
               <p className="text-base">{getFrequencyText(contract.billing_frequency)}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Base Fee ({getFrequencyText(contract.billing_frequency)})</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Base Fee ({getFrequencyText(contract.billing_frequency)})
+              </p>
               <p className="text-base">{formatCurrency(contract.base_fee)}</p>
             </div>
             {contract.weekly_value !== undefined && (
@@ -107,7 +98,7 @@ const ContractInfo: React.FC<ContractInfoProps> = ({ contract }) => {
         </CardContent>
       </Card>
     </>
-  );
-};
+  )
+}
 
-export default ContractInfo;
+export default ContractInfo

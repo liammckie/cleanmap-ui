@@ -1,23 +1,20 @@
-
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { useQuery } from '@tanstack/react-query';
-import { fetchLeads } from '@/services/sales';
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
+import { fetchLeads } from '@/services/sales'
 
 const LeadsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const { data: leads, isLoading, error } = useQuery({
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const {
+    data: leads,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['leads', searchTerm],
     queryFn: () => fetchLeads(searchTerm),
-  });
+  })
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -25,7 +22,7 @@ const LeadsPage = () => {
         <h1 className="text-3xl font-bold tracking-tight">Sales Pipeline</h1>
         <Button>New Lead</Button>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Leads & Opportunities</CardTitle>
@@ -42,8 +39,8 @@ const LeadsPage = () => {
             <div className="text-sm">
               <p className="font-medium">Found {leads.length} leads in the system</p>
               <p className="text-muted-foreground">
-                This page will display a Kanban board or table view of leads by stage.
-                You will be able to drag and drop leads between stages (Discovery, Proposal, Negotiation, etc.)
+                This page will display a Kanban board or table view of leads by stage. You will be
+                able to drag and drop leads between stages (Discovery, Proposal, Negotiation, etc.)
                 and filter by various criteria.
               </p>
             </div>
@@ -55,7 +52,7 @@ const LeadsPage = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default LeadsPage;
+export default LeadsPage

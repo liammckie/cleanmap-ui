@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   public: {
@@ -42,11 +36,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_checklist_items_work_order_id_fkey"
-            columns: ["work_order_id"]
+            foreignKeyName: 'audit_checklist_items_work_order_id_fkey'
+            columns: ['work_order_id']
             isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["id"]
+            referencedRelation: 'work_orders'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -66,7 +60,7 @@ export type Database = {
           notes: string | null
           on_hold_reason: string | null
           payment_terms: string
-          status: Database["public"]["Enums"]["client_status"]
+          status: Database['public']['Enums']['client_status']
           updated_at: string
         }
         Insert: {
@@ -84,7 +78,7 @@ export type Database = {
           notes?: string | null
           on_hold_reason?: string | null
           payment_terms: string
-          status?: Database["public"]["Enums"]["client_status"]
+          status?: Database['public']['Enums']['client_status']
           updated_at?: string
         }
         Update: {
@@ -102,7 +96,7 @@ export type Database = {
           notes?: string | null
           on_hold_reason?: string | null
           payment_terms?: string
-          status?: Database["public"]["Enums"]["client_status"]
+          status?: Database['public']['Enums']['client_status']
           updated_at?: string
         }
         Relationships: []
@@ -149,11 +143,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "contacts_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: 'contacts_client_id_fkey'
+            columns: ['client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -199,11 +193,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "contract_change_logs_contract_id_fkey"
-            columns: ["contract_id"]
+            foreignKeyName: 'contract_change_logs_contract_id_fkey'
+            columns: ['contract_id']
             isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -231,18 +225,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "contract_sites_contract_id_fkey"
-            columns: ["contract_id"]
+            foreignKeyName: 'contract_sites_contract_id_fkey'
+            columns: ['contract_id']
             isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "contract_sites_site_id_fkey"
-            columns: ["site_id"]
+            foreignKeyName: 'contract_sites_site_id_fkey'
+            columns: ['site_id']
             isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
+            referencedRelation: 'sites'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -262,7 +256,7 @@ export type Database = {
           scope_of_work: string
           sla_kpi: string | null
           start_date: string
-          status: Database["public"]["Enums"]["contract_status"]
+          status: Database['public']['Enums']['contract_status']
           under_negotiation: boolean | null
           updated_at: string
         }
@@ -281,7 +275,7 @@ export type Database = {
           scope_of_work: string
           sla_kpi?: string | null
           start_date: string
-          status?: Database["public"]["Enums"]["contract_status"]
+          status?: Database['public']['Enums']['contract_status']
           under_negotiation?: boolean | null
           updated_at?: string
         }
@@ -300,17 +294,17 @@ export type Database = {
           scope_of_work?: string
           sla_kpi?: string | null
           start_date?: string
-          status?: Database["public"]["Enums"]["contract_status"]
+          status?: Database['public']['Enums']['contract_status']
           under_negotiation?: boolean | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contracts_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: 'contracts_client_id_fkey'
+            columns: ['client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -328,15 +322,15 @@ export type Database = {
           date_of_birth: string
           department: string
           employee_id: string
-          employment_type: Database["public"]["Enums"]["employment_type"]
+          employment_type: Database['public']['Enums']['employment_type']
           first_name: string
           id: string
           job_title: string
           last_name: string
-          pay_cycle: Database["public"]["Enums"]["pay_cycle"]
+          pay_cycle: Database['public']['Enums']['pay_cycle']
           pay_rate: number
           start_date: string
-          status: Database["public"]["Enums"]["employee_status"]
+          status: Database['public']['Enums']['employee_status']
           super_fund_name: string
           super_member_number: string
           tax_id: string
@@ -357,15 +351,15 @@ export type Database = {
           date_of_birth: string
           department: string
           employee_id: string
-          employment_type: Database["public"]["Enums"]["employment_type"]
+          employment_type: Database['public']['Enums']['employment_type']
           first_name: string
           id?: string
           job_title: string
           last_name: string
-          pay_cycle: Database["public"]["Enums"]["pay_cycle"]
+          pay_cycle: Database['public']['Enums']['pay_cycle']
           pay_rate: number
           start_date: string
-          status?: Database["public"]["Enums"]["employee_status"]
+          status?: Database['public']['Enums']['employee_status']
           super_fund_name: string
           super_member_number: string
           tax_id: string
@@ -386,15 +380,15 @@ export type Database = {
           date_of_birth?: string
           department?: string
           employee_id?: string
-          employment_type?: Database["public"]["Enums"]["employment_type"]
+          employment_type?: Database['public']['Enums']['employment_type']
           first_name?: string
           id?: string
           job_title?: string
           last_name?: string
-          pay_cycle?: Database["public"]["Enums"]["pay_cycle"]
+          pay_cycle?: Database['public']['Enums']['pay_cycle']
           pay_rate?: number
           start_date?: string
-          status?: Database["public"]["Enums"]["employee_status"]
+          status?: Database['public']['Enums']['employee_status']
           super_fund_name?: string
           super_member_number?: string
           tax_id?: string
@@ -420,9 +414,9 @@ export type Database = {
           next_action_date: string | null
           notes: string | null
           potential_value: number
-          source: Database["public"]["Enums"]["lead_source"] | null
-          stage: Database["public"]["Enums"]["lead_stage"]
-          status: Database["public"]["Enums"]["lead_status"]
+          source: Database['public']['Enums']['lead_source'] | null
+          stage: Database['public']['Enums']['lead_stage']
+          status: Database['public']['Enums']['lead_status']
           updated_at: string
         }
         Insert: {
@@ -440,9 +434,9 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           potential_value?: number
-          source?: Database["public"]["Enums"]["lead_source"] | null
-          stage?: Database["public"]["Enums"]["lead_stage"]
-          status?: Database["public"]["Enums"]["lead_status"]
+          source?: Database['public']['Enums']['lead_source'] | null
+          stage?: Database['public']['Enums']['lead_stage']
+          status?: Database['public']['Enums']['lead_status']
           updated_at?: string
         }
         Update: {
@@ -460,25 +454,25 @@ export type Database = {
           next_action_date?: string | null
           notes?: string | null
           potential_value?: number
-          source?: Database["public"]["Enums"]["lead_source"] | null
-          stage?: Database["public"]["Enums"]["lead_stage"]
-          status?: Database["public"]["Enums"]["lead_status"]
+          source?: Database['public']['Enums']['lead_source'] | null
+          stage?: Database['public']['Enums']['lead_stage']
+          status?: Database['public']['Enums']['lead_status']
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "leads_converted_client_id_fkey"
-            columns: ["converted_client_id"]
+            foreignKeyName: 'leads_converted_client_id_fkey'
+            columns: ['converted_client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "leads_converted_quote_id_fkey"
-            columns: ["converted_quote_id"]
+            foreignKeyName: 'leads_converted_quote_id_fkey'
+            columns: ['converted_quote_id']
             isOneToOne: false
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
+            referencedRelation: 'quotes'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -492,7 +486,7 @@ export type Database = {
           due_date: string
           employee_id: string
           id: string
-          status: Database["public"]["Enums"]["task_status"]
+          status: Database['public']['Enums']['task_status']
           task_description: string
           updated_at: string
         }
@@ -505,7 +499,7 @@ export type Database = {
           due_date: string
           employee_id: string
           id?: string
-          status?: Database["public"]["Enums"]["task_status"]
+          status?: Database['public']['Enums']['task_status']
           task_description: string
           updated_at?: string
         }
@@ -518,17 +512,17 @@ export type Database = {
           due_date?: string
           employee_id?: string
           id?: string
-          status?: Database["public"]["Enums"]["task_status"]
+          status?: Database['public']['Enums']['task_status']
           task_description?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "onboarding_tasks_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'onboarding_tasks_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -541,7 +535,7 @@ export type Database = {
           id: string
           rating: number
           review_date: string
-          review_type: Database["public"]["Enums"]["review_type"]
+          review_type: Database['public']['Enums']['review_type']
           reviewer_id: string
           updated_at: string
         }
@@ -553,7 +547,7 @@ export type Database = {
           id?: string
           rating: number
           review_date: string
-          review_type: Database["public"]["Enums"]["review_type"]
+          review_type: Database['public']['Enums']['review_type']
           reviewer_id: string
           updated_at?: string
         }
@@ -565,24 +559,24 @@ export type Database = {
           id?: string
           rating?: number
           review_date?: string
-          review_type?: Database["public"]["Enums"]["review_type"]
+          review_type?: Database['public']['Enums']['review_type']
           reviewer_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "performance_reviews_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'performance_reviews_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "performance_reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
+            foreignKeyName: 'performance_reviews_reviewer_id_fkey'
+            columns: ['reviewer_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -619,11 +613,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "quote_line_items_quote_id_fkey"
-            columns: ["quote_id"]
+            foreignKeyName: 'quote_line_items_quote_id_fkey'
+            columns: ['quote_id']
             isOneToOne: false
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
+            referencedRelation: 'quotes'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -651,18 +645,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "quote_sites_quote_id_fkey"
-            columns: ["quote_id"]
+            foreignKeyName: 'quote_sites_quote_id_fkey'
+            columns: ['quote_id']
             isOneToOne: false
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
+            referencedRelation: 'quotes'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "quote_sites_site_id_fkey"
-            columns: ["site_id"]
+            foreignKeyName: 'quote_sites_site_id_fkey'
+            columns: ['site_id']
             isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
+            referencedRelation: 'sites'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -681,7 +675,7 @@ export type Database = {
           quote_number: string
           service_description: string
           service_request_id: string | null
-          status: Database["public"]["Enums"]["quote_status"]
+          status: Database['public']['Enums']['quote_status']
           total_amount: number
           updated_at: string
           valid_until: string
@@ -700,7 +694,7 @@ export type Database = {
           quote_number: string
           service_description: string
           service_request_id?: string | null
-          status?: Database["public"]["Enums"]["quote_status"]
+          status?: Database['public']['Enums']['quote_status']
           total_amount?: number
           updated_at?: string
           valid_until: string
@@ -719,46 +713,46 @@ export type Database = {
           quote_number?: string
           service_description?: string
           service_request_id?: string | null
-          status?: Database["public"]["Enums"]["quote_status"]
+          status?: Database['public']['Enums']['quote_status']
           total_amount?: number
           updated_at?: string
           valid_until?: string
         }
         Relationships: [
           {
-            foreignKeyName: "quotes_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: 'quotes_client_id_fkey'
+            columns: ['client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "quotes_converted_contract_id_fkey"
-            columns: ["converted_contract_id"]
+            foreignKeyName: 'quotes_converted_contract_id_fkey'
+            columns: ['converted_contract_id']
             isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "quotes_converted_work_order_id_fkey"
-            columns: ["converted_work_order_id"]
+            foreignKeyName: 'quotes_converted_work_order_id_fkey'
+            columns: ['converted_work_order_id']
             isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["id"]
+            referencedRelation: 'work_orders'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "quotes_lead_id_fkey"
-            columns: ["lead_id"]
+            foreignKeyName: 'quotes_lead_id_fkey'
+            columns: ['lead_id']
             isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "quotes_service_request_id_fkey"
-            columns: ["service_request_id"]
+            foreignKeyName: 'quotes_service_request_id_fkey'
+            columns: ['service_request_id']
             isOneToOne: false
-            referencedRelation: "service_requests"
-            referencedColumns: ["id"]
+            referencedRelation: 'service_requests'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -798,18 +792,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "recurring_templates_default_assignee_fkey"
-            columns: ["default_assignee"]
+            foreignKeyName: 'recurring_templates_default_assignee_fkey'
+            columns: ['default_assignee']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "recurring_templates_site_id_fkey"
-            columns: ["site_id"]
+            foreignKeyName: 'recurring_templates_site_id_fkey'
+            columns: ['site_id']
             isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
+            referencedRelation: 'sites'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -827,7 +821,7 @@ export type Database = {
           reviewed_by: string | null
           service_details: string
           site_id: string
-          status: Database["public"]["Enums"]["service_request_status"]
+          status: Database['public']['Enums']['service_request_status']
           updated_at: string
           work_order_id: string | null
         }
@@ -844,7 +838,7 @@ export type Database = {
           reviewed_by?: string | null
           service_details: string
           site_id: string
-          status?: Database["public"]["Enums"]["service_request_status"]
+          status?: Database['public']['Enums']['service_request_status']
           updated_at?: string
           work_order_id?: string | null
         }
@@ -861,38 +855,38 @@ export type Database = {
           reviewed_by?: string | null
           service_details?: string
           site_id?: string
-          status?: Database["public"]["Enums"]["service_request_status"]
+          status?: Database['public']['Enums']['service_request_status']
           updated_at?: string
           work_order_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "service_requests_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: 'service_requests_client_id_fkey'
+            columns: ['client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "service_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
+            foreignKeyName: 'service_requests_reviewed_by_fkey'
+            columns: ['reviewed_by']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "service_requests_site_id_fkey"
-            columns: ["site_id"]
+            foreignKeyName: 'service_requests_site_id_fkey'
+            columns: ['site_id']
             isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
+            referencedRelation: 'sites'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "service_requests_work_order_id_fkey"
-            columns: ["work_order_id"]
+            foreignKeyName: 'service_requests_work_order_id_fkey'
+            columns: ['work_order_id']
             isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["id"]
+            referencedRelation: 'work_orders'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -911,7 +905,7 @@ export type Database = {
           site_name: string
           site_type: string
           special_instructions: string | null
-          status: Database["public"]["Enums"]["site_status"]
+          status: Database['public']['Enums']['site_status']
           updated_at: string
         }
         Insert: {
@@ -928,7 +922,7 @@ export type Database = {
           site_name: string
           site_type: string
           special_instructions?: string | null
-          status?: Database["public"]["Enums"]["site_status"]
+          status?: Database['public']['Enums']['site_status']
           updated_at?: string
         }
         Update: {
@@ -945,23 +939,23 @@ export type Database = {
           site_name?: string
           site_type?: string
           special_instructions?: string | null
-          status?: Database["public"]["Enums"]["site_status"]
+          status?: Database['public']['Enums']['site_status']
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "sites_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: 'sites_client_id_fkey'
+            columns: ['client_id']
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sites_site_manager_id_fkey"
-            columns: ["site_manager_id"]
+            foreignKeyName: 'sites_site_manager_id_fkey'
+            columns: ['site_manager_id']
             isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
+            referencedRelation: 'contacts'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -978,7 +972,7 @@ export type Database = {
           payroll_processed: boolean
           site_id: string | null
           start_time: string
-          status: Database["public"]["Enums"]["timesheet_status"]
+          status: Database['public']['Enums']['timesheet_status']
           updated_at: string
           work_order_id: string | null
         }
@@ -994,7 +988,7 @@ export type Database = {
           payroll_processed?: boolean
           site_id?: string | null
           start_time: string
-          status?: Database["public"]["Enums"]["timesheet_status"]
+          status?: Database['public']['Enums']['timesheet_status']
           updated_at?: string
           work_order_id?: string | null
         }
@@ -1010,24 +1004,24 @@ export type Database = {
           payroll_processed?: boolean
           site_id?: string | null
           start_time?: string
-          status?: Database["public"]["Enums"]["timesheet_status"]
+          status?: Database['public']['Enums']['timesheet_status']
           updated_at?: string
           work_order_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "timesheets_approved_by_fkey"
-            columns: ["approved_by"]
+            foreignKeyName: 'timesheets_approved_by_fkey'
+            columns: ['approved_by']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "timesheets_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'timesheets_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1073,11 +1067,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "training_records_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'training_records_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1108,18 +1102,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "work_order_assignments_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'work_order_assignments_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "work_order_assignments_work_order_id_fkey"
-            columns: ["work_order_id"]
+            foreignKeyName: 'work_order_assignments_work_order_id_fkey'
+            columns: ['work_order_id']
             isOneToOne: false
-            referencedRelation: "work_orders"
-            referencedColumns: ["id"]
+            referencedRelation: 'work_orders'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1128,7 +1122,7 @@ export type Database = {
           actual_duration: number | null
           audit_followup_required: boolean | null
           audit_score: number | null
-          category: Database["public"]["Enums"]["work_order_category"]
+          category: Database['public']['Enums']['work_order_category']
           client_signoff: boolean | null
           completed_by: string | null
           completion_status: string | null
@@ -1139,11 +1133,11 @@ export type Database = {
           due_date: string
           id: string
           outcome_notes: string | null
-          priority: Database["public"]["Enums"]["work_order_priority"]
+          priority: Database['public']['Enums']['work_order_priority']
           recurring_template_id: string | null
           scheduled_start: string
           site_id: string
-          status: Database["public"]["Enums"]["work_order_status"]
+          status: Database['public']['Enums']['work_order_status']
           title: string
           updated_at: string
         }
@@ -1151,7 +1145,7 @@ export type Database = {
           actual_duration?: number | null
           audit_followup_required?: boolean | null
           audit_score?: number | null
-          category: Database["public"]["Enums"]["work_order_category"]
+          category: Database['public']['Enums']['work_order_category']
           client_signoff?: boolean | null
           completed_by?: string | null
           completion_status?: string | null
@@ -1162,11 +1156,11 @@ export type Database = {
           due_date: string
           id?: string
           outcome_notes?: string | null
-          priority?: Database["public"]["Enums"]["work_order_priority"]
+          priority?: Database['public']['Enums']['work_order_priority']
           recurring_template_id?: string | null
           scheduled_start: string
           site_id: string
-          status?: Database["public"]["Enums"]["work_order_status"]
+          status?: Database['public']['Enums']['work_order_status']
           title: string
           updated_at?: string
         }
@@ -1174,7 +1168,7 @@ export type Database = {
           actual_duration?: number | null
           audit_followup_required?: boolean | null
           audit_score?: number | null
-          category?: Database["public"]["Enums"]["work_order_category"]
+          category?: Database['public']['Enums']['work_order_category']
           client_signoff?: boolean | null
           completed_by?: string | null
           completion_status?: string | null
@@ -1185,42 +1179,42 @@ export type Database = {
           due_date?: string
           id?: string
           outcome_notes?: string | null
-          priority?: Database["public"]["Enums"]["work_order_priority"]
+          priority?: Database['public']['Enums']['work_order_priority']
           recurring_template_id?: string | null
           scheduled_start?: string
           site_id?: string
-          status?: Database["public"]["Enums"]["work_order_status"]
+          status?: Database['public']['Enums']['work_order_status']
           title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "work_orders_completed_by_fkey"
-            columns: ["completed_by"]
+            foreignKeyName: 'work_orders_completed_by_fkey'
+            columns: ['completed_by']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "work_orders_contract_id_fkey"
-            columns: ["contract_id"]
+            foreignKeyName: 'work_orders_contract_id_fkey'
+            columns: ['contract_id']
             isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "work_orders_recurring_template_id_fkey"
-            columns: ["recurring_template_id"]
+            foreignKeyName: 'work_orders_recurring_template_id_fkey'
+            columns: ['recurring_template_id']
             isOneToOne: false
-            referencedRelation: "recurring_templates"
-            referencedColumns: ["id"]
+            referencedRelation: 'recurring_templates'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "work_orders_site_id_fkey"
-            columns: ["site_id"]
+            foreignKeyName: 'work_orders_site_id_fkey'
+            columns: ['site_id']
             isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
+            referencedRelation: 'sites'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1255,39 +1249,23 @@ export type Database = {
       }
     }
     Enums: {
-      client_status: "Active" | "On Hold"
-      contract_status: "Active" | "Expiring" | "Expired" | "Terminated"
-      employee_status: "Onboarding" | "Active" | "Terminated"
-      employment_type: "Full-time" | "Part-time" | "Contractor"
-      lead_source:
-        | "Referral"
-        | "Website"
-        | "Cold Call"
-        | "Event"
-        | "Partner"
-        | "Other"
-      lead_stage: "Discovery" | "Proposal" | "Negotiation" | "Won" | "Lost"
-      lead_status: "Open" | "Closed-Won" | "Closed-Lost"
-      pay_cycle: "Weekly" | "Fortnightly" | "Monthly"
-      quote_status: "Draft" | "Sent" | "Accepted" | "Rejected"
-      review_type: "Probation" | "Quarterly" | "Annual" | "Special"
-      service_request_status:
-        | "Pending Review"
-        | "Quoted"
-        | "Approved"
-        | "Scheduled"
-        | "Rejected"
-      site_status: "Active" | "Inactive" | "Pending Launch" | "Suspended"
-      task_status: "Pending" | "In Progress" | "Completed"
-      timesheet_status: "Pending Approval" | "Approved" | "Rejected"
-      work_order_category: "Routine Clean" | "Ad-hoc Request" | "Audit"
-      work_order_priority: "Low" | "Medium" | "High"
-      work_order_status:
-        | "Scheduled"
-        | "In Progress"
-        | "Completed"
-        | "Overdue"
-        | "Cancelled"
+      client_status: 'Active' | 'On Hold'
+      contract_status: 'Active' | 'Expiring' | 'Expired' | 'Terminated'
+      employee_status: 'Onboarding' | 'Active' | 'Terminated'
+      employment_type: 'Full-time' | 'Part-time' | 'Contractor'
+      lead_source: 'Referral' | 'Website' | 'Cold Call' | 'Event' | 'Partner' | 'Other'
+      lead_stage: 'Discovery' | 'Proposal' | 'Negotiation' | 'Won' | 'Lost'
+      lead_status: 'Open' | 'Closed-Won' | 'Closed-Lost'
+      pay_cycle: 'Weekly' | 'Fortnightly' | 'Monthly'
+      quote_status: 'Draft' | 'Sent' | 'Accepted' | 'Rejected'
+      review_type: 'Probation' | 'Quarterly' | 'Annual' | 'Special'
+      service_request_status: 'Pending Review' | 'Quoted' | 'Approved' | 'Scheduled' | 'Rejected'
+      site_status: 'Active' | 'Inactive' | 'Pending Launch' | 'Suspended'
+      task_status: 'Pending' | 'In Progress' | 'Completed'
+      timesheet_status: 'Pending Approval' | 'Approved' | 'Rejected'
+      work_order_category: 'Routine Clean' | 'Ad-hoc Request' | 'Audit'
+      work_order_priority: 'Low' | 'Medium' | 'High'
+      work_order_status: 'Scheduled' | 'In Progress' | 'Completed' | 'Overdue' | 'Cancelled'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1295,27 +1273,25 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database[Extract<keyof Database, 'public'>]
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
+        Database[PublicTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
+      Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+    ? (PublicSchema['Tables'] & PublicSchema['Views'])[PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1323,20 +1299,18 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1344,20 +1318,18 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1365,29 +1337,27 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
+  PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
+    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof PublicSchema['CompositeTypes']
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
+    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never

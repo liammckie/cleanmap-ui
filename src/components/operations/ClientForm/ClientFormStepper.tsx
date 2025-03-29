@@ -1,55 +1,57 @@
-
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import ClientDetailsForm from './ClientDetailsForm';
-import ClientSitesList from './ClientSitesList';
-import StepperHeader from './StepperHeader';
-import ReviewStep from './ReviewStep';
-import { useClientForm, STEPS } from '@/hooks/operations/useClientForm';
+import React from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import ClientDetailsForm from './ClientDetailsForm'
+import ClientSitesList from './ClientSitesList'
+import StepperHeader from './StepperHeader'
+import ReviewStep from './ReviewStep'
+import { useClientForm, STEPS } from '@/hooks/operations/useClientForm'
 
 const clientFormSchema = z.object({
-  company_name: z.string().min(1, "Company name is required"),
-  contact_name: z.string().min(1, "Contact name is required"),
-  contact_email: z.string().email("Valid email is required").nullable().optional(),
+  company_name: z.string().min(1, 'Company name is required'),
+  contact_name: z.string().min(1, 'Contact name is required'),
+  contact_email: z.string().email('Valid email is required').nullable().optional(),
   contact_phone: z.string().nullable().optional(),
-  billing_address_street: z.string().min(1, "Street address is required"),
-  billing_address_city: z.string().min(1, "City is required"),
-  billing_address_state: z.string().min(1, "State is required"),
-  billing_address_postcode: z.string().min(1, "Postcode is required"),
-  billing_address_zip: z.string().min(1, "ZIP code is required"),
-  billing_address_country: z.string().min(1, "Country is required").default("Australia"),
-  payment_terms: z.string().min(1, "Payment terms are required"),
+  billing_address_street: z.string().min(1, 'Street address is required'),
+  billing_address_city: z.string().min(1, 'City is required'),
+  billing_address_state: z.string().min(1, 'State is required'),
+  billing_address_postcode: z.string().min(1, 'Postcode is required'),
+  billing_address_zip: z.string().min(1, 'ZIP code is required'),
+  billing_address_country: z.string().min(1, 'Country is required').default('Australia'),
+  payment_terms: z.string().min(1, 'Payment terms are required'),
   status: z.enum(['Active', 'On Hold']).default('Active'),
   industry: z.string().nullable().optional(),
   region: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   business_number: z.string().nullable().optional(),
   on_hold_reason: z.string().nullable().optional(),
-  sites: z.array(
-    z.object({
-      site_name: z.string().min(1, "Site name is required"),
-      site_type: z.string().min(1, "Site type is required"),
-      address_street: z.string().min(1, "Street address is required"),
-      address_city: z.string().min(1, "City is required"),
-      address_state: z.string().min(1, "State is required"),
-      address_postcode: z.string().min(1, "Postcode is required"),
-      region: z.string().nullable().optional(),
-      service_start_date: z.date().nullable(),
-      service_end_date: z.date().nullable().optional(),
-      service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
-      price_per_service: z.number().min(0, "Price must be 0 or greater"),
-      price_frequency: z.string().min(1, "Billing frequency is required"),
-      special_instructions: z.string().nullable().optional()
-    })
-  ).optional().default([])
-});
+  sites: z
+    .array(
+      z.object({
+        site_name: z.string().min(1, 'Site name is required'),
+        site_type: z.string().min(1, 'Site type is required'),
+        address_street: z.string().min(1, 'Street address is required'),
+        address_city: z.string().min(1, 'City is required'),
+        address_state: z.string().min(1, 'State is required'),
+        address_postcode: z.string().min(1, 'Postcode is required'),
+        region: z.string().nullable().optional(),
+        service_start_date: z.date().nullable(),
+        service_end_date: z.date().nullable().optional(),
+        service_type: z.enum(['Internal', 'Contractor']).default('Internal'),
+        price_per_service: z.number().min(0, 'Price must be 0 or greater'),
+        price_frequency: z.string().min(1, 'Billing frequency is required'),
+        special_instructions: z.string().nullable().optional(),
+      }),
+    )
+    .optional()
+    .default([]),
+})
 
-type ClientFormValues = z.infer<typeof clientFormSchema>;
+type ClientFormValues = z.infer<typeof clientFormSchema>
 
 const ClientFormStepper: React.FC = () => {
   const form = useForm<ClientFormValues>({
@@ -86,50 +88,44 @@ const ClientFormStepper: React.FC = () => {
           service_type: 'Internal',
           price_per_service: 0,
           price_frequency: 'weekly',
-          special_instructions: ''
-        }
-      ]
-    }
-  });
+          special_instructions: '',
+        },
+      ],
+    },
+  })
 
-  const { 
-    currentStep, 
-    isSubmitting, 
-    nextStep, 
-    previousStep, 
-    onSubmit 
-  } = useClientForm(form);
+  const { currentStep, isSubmitting, nextStep, previousStep, onSubmit } = useClientForm(form)
 
   const renderStepContent = () => {
     switch (currentStep) {
       case STEPS.CLIENT_DETAILS:
-        return <ClientDetailsForm form={form} />;
+        return <ClientDetailsForm form={form} />
       case STEPS.SITES:
-        return <ClientSitesList form={form} />;
+        return <ClientSitesList form={form} />
       case STEPS.REVIEW:
-        return <ReviewStep form={form} />;
+        return <ReviewStep form={form} />
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>
-          {currentStep === STEPS.CLIENT_DETAILS && "Step 1: Client Details"}
-          {currentStep === STEPS.SITES && "Step 2: Add Sites"}
-          {currentStep === STEPS.REVIEW && "Step 3: Review & Submit"}
+          {currentStep === STEPS.CLIENT_DETAILS && 'Step 1: Client Details'}
+          {currentStep === STEPS.SITES && 'Step 2: Add Sites'}
+          {currentStep === STEPS.REVIEW && 'Step 3: Review & Submit'}
         </CardTitle>
       </CardHeader>
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
             <StepperHeader currentStep={currentStep} steps={STEPS} />
             {renderStepContent()}
           </CardContent>
-          
+
           <CardFooter className="flex justify-between">
             {currentStep > STEPS.CLIENT_DETAILS ? (
               <Button type="button" variant="outline" onClick={previousStep}>
@@ -138,21 +134,21 @@ const ClientFormStepper: React.FC = () => {
             ) : (
               <div></div>
             )}
-            
+
             {currentStep < STEPS.REVIEW ? (
               <Button type="button" onClick={nextStep}>
                 Next
               </Button>
             ) : (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Client & Sites"}
+                {isSubmitting ? 'Creating...' : 'Create Client & Sites'}
               </Button>
             )}
           </CardFooter>
         </form>
       </Form>
     </Card>
-  );
-};
+  )
+}
 
-export default ClientFormStepper;
+export default ClientFormStepper

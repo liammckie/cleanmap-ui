@@ -1,19 +1,18 @@
-
-import React from 'react';
-import { 
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { UseFormReturn } from 'react-hook-form';
+import React from 'react'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { UseFormReturn } from 'react-hook-form'
 
 interface ClientDetailsFormProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<any>
 }
 
 const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
@@ -55,7 +54,12 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Contact Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter email" type="email" {...field} value={field.value || ''} />
+                <Input
+                  placeholder="Enter email"
+                  type="email"
+                  {...field}
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,7 +83,7 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
 
       <div className="space-y-4">
         <h3 className="text-md font-medium">Billing Address</h3>
-        
+
         <FormField
           control={form.control}
           name="billing_address_street"
@@ -202,10 +206,7 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status*</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -230,7 +231,11 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
             <FormItem>
               <FormLabel>On Hold Reason*</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter reason for hold status" {...field} value={field.value || ''} />
+                <Textarea
+                  placeholder="Enter reason for hold status"
+                  {...field}
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -245,14 +250,18 @@ const ClientDetailsForm: React.FC<ClientDetailsFormProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Notes</FormLabel>
             <FormControl>
-              <Textarea placeholder="Enter any notes about this client" {...field} value={field.value || ''} />
+              <Textarea
+                placeholder="Enter any notes about this client"
+                {...field}
+                value={field.value || ''}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
     </div>
-  );
-};
+  )
+}
 
-export default ClientDetailsForm;
+export default ClientDetailsForm

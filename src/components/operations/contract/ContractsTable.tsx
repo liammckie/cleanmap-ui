@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react'
+import { Link } from 'react-router-dom'
 import {
   Table,
   TableBody,
@@ -8,24 +7,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Eye, AlertCircle } from 'lucide-react';
-import { formatDate } from '@/utils/dateFormatters';
-import ContractStatusBadge from './ContractStatusBadge';
-import type { Contract } from '@/schema/operations/contract.schema';
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Eye, AlertCircle } from 'lucide-react'
+import { formatDate } from '@/utils/dateFormatters'
+import ContractStatusBadge from './ContractStatusBadge'
+import type { Contract } from '@/schema/operations/contract.schema'
 
 interface ContractsTableProps {
-  contracts?: Contract[];
-  isLoading: boolean;
-  error?: Error;
+  contracts?: Contract[]
+  isLoading: boolean
+  error?: Error
 }
 
-const ContractsTable: React.FC<ContractsTableProps> = ({ 
-  contracts, 
-  isLoading,
-  error
-}) => {
+const ContractsTable: React.FC<ContractsTableProps> = ({ contracts, isLoading, error }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -33,7 +28,7 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
           <p className="text-muted-foreground">Loading contracts...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -47,7 +42,7 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!contracts || contracts.length === 0) {
@@ -55,15 +50,15 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
       <div className="text-center p-8">
         <p className="text-muted-foreground">No contracts found.</p>
       </div>
-    );
+    )
   }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-AU', {
       style: 'currency',
-      currency: 'AUD'
-    }).format(amount);
-  };
+      currency: 'AUD',
+    }).format(amount)
+  }
 
   return (
     <div className="rounded-md border overflow-hidden">
@@ -85,22 +80,16 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
               <TableCell className="font-medium">{contract.contract_number}</TableCell>
               <TableCell>{contract.client?.company_name}</TableCell>
               <TableCell>
-                <ContractStatusBadge 
-                  status={contract.status} 
+                <ContractStatusBadge
+                  status={contract.status}
                   underNegotiation={contract.under_negotiation}
                 />
               </TableCell>
               <TableCell>{formatDate(contract.start_date)}</TableCell>
               <TableCell>{formatDate(contract.end_date)}</TableCell>
-              <TableCell className="text-right">
-                {formatCurrency(contract.monthly_value)}
-              </TableCell>
+              <TableCell className="text-right">{formatCurrency(contract.monthly_value)}</TableCell>
               <TableCell className="text-center">
-                <Button
-                  variant="ghost" 
-                  size="sm"
-                  asChild
-                >
+                <Button variant="ghost" size="sm" asChild>
                   <Link to={`/operations/contracts/${contract.id}`}>
                     <Eye className="h-4 w-4 mr-1" />
                     View
@@ -112,7 +101,7 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
         </TableBody>
       </Table>
     </div>
-  );
-};
+  )
+}
 
-export default ContractsTable;
+export default ContractsTable

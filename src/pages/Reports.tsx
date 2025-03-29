@@ -1,18 +1,11 @@
-
-import { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapIcon, BarChart3, PieChart } from 'lucide-react';
-import ReportsMap from '@/components/reports/ReportsMap';
+import { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MapIcon, BarChart3, PieChart } from 'lucide-react'
+import ReportsMap from '@/components/reports/ReportsMap'
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState<string>("locations");
+  const [activeTab, setActiveTab] = useState<string>('locations')
 
   return (
     <div className="space-y-6">
@@ -38,7 +31,7 @@ const Reports = () => {
             <span>Financial</span>
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="locations" className="space-y-4">
           <Card>
             <CardHeader>
@@ -52,7 +45,7 @@ const Reports = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
@@ -68,14 +61,12 @@ const Reports = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="financial" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Financial Reports</CardTitle>
-              <CardDescription>
-                Revenue, costs and profitability reports
-              </CardDescription>
+              <CardDescription>Revenue, costs and profitability reports</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-[300px] text-muted-foreground">
@@ -86,7 +77,7 @@ const Reports = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default Reports;
+export default Reports

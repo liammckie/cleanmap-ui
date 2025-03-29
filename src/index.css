@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://rsms.me/inter/inter.css');
 
@@ -74,70 +73,75 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  
-  html, body {
+
+  html,
+  body {
     height: 100%;
     width: 100%;
   }
-  
+
   #root {
     height: 100%;
     width: 100%;
   }
-  
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
-  
+
   /* Animations and transitions for all interactive elements */
-  button, a, input, select, textarea {
+  button,
+  a,
+  input,
+  select,
+  textarea {
     @apply transition-all duration-200;
   }
-  
+
   /* Glass morphism styling */
   .glass {
     @apply bg-white/80 backdrop-blur-sm border border-white/20;
   }
-  
+
   .dark .glass {
     @apply bg-black/40 backdrop-blur-sm border border-white/10;
   }
-  
+
   /* Sidebar animation */
   .sidebar-enter {
     @apply transform -translate-x-full;
   }
-  
+
   .sidebar-enter-active {
     @apply transform translate-x-0 transition-transform duration-300 ease-out;
   }
-  
+
   .sidebar-exit {
     @apply transform translate-x-0;
   }
-  
+
   .sidebar-exit-active {
     @apply transform -translate-x-full transition-transform duration-300 ease-in;
   }
-  
+
   /* Page transitions */
   .page-transition-enter {
     @apply opacity-0;
   }
-  
+
   .page-transition-enter-active {
     @apply opacity-100 transition-opacity duration-300;
   }
-  
+
   .page-transition-exit {
     @apply opacity-100;
   }
-  
+
   .page-transition-exit-active {
     @apply opacity-0 transition-opacity duration-300;
   }
@@ -148,34 +152,34 @@
   .card-hover {
     @apply hover:shadow-glossy transition-shadow duration-300 ease-in-out;
   }
-  
+
   .btn-primary {
     @apply bg-brand-blue text-white font-medium rounded-md px-4 py-2 shadow-sm
            hover:bg-blue-600 transition-colors duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium 
            rounded-md px-4 py-2 shadow-sm transition-colors duration-200;
   }
-  
+
   .label-chip {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
            bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300;
   }
-  
+
   .map-container {
     @apply rounded-md overflow-hidden shadow-sm border border-border;
   }
-  
+
   .stat-card {
     @apply bg-white dark:bg-gray-800 rounded-lg p-4 shadow-soft flex flex-col items-center justify-center;
   }
-  
+
   .stat-value {
     @apply text-4xl font-bold text-gray-800 dark:text-white;
   }
-  
+
   .stat-label {
     @apply text-sm text-gray-500 dark:text-gray-400 mt-1;
   }

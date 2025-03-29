@@ -1,19 +1,12 @@
-
-import React from 'react';
-import { 
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { UseFormReturn } from 'react-hook-form';
+import React from 'react'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { UseFormReturn } from 'react-hook-form'
 
 interface SiteServiceDetailsProps {
-  form: UseFormReturn<any>;
-  index: number;
+  form: UseFormReturn<any>
+  index: number
 }
 
 const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({ form, index }) => {
@@ -74,9 +67,9 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({ form, index }) 
             <FormItem>
               <FormLabel>Service Start Date*</FormLabel>
               <FormControl>
-                <Input 
-                  type="date" 
-                  {...field} 
+                <Input
+                  type="date"
+                  {...field}
                   value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                   onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                 />
@@ -85,7 +78,7 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({ form, index }) 
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name={`sites.${index}.service_end_date`}
@@ -93,9 +86,9 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({ form, index }) 
             <FormItem>
               <FormLabel>Service End Date</FormLabel>
               <FormControl>
-                <Input 
-                  type="date" 
-                  {...field} 
+                <Input
+                  type="date"
+                  {...field}
                   value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                   onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                 />
@@ -106,7 +99,7 @@ const SiteServiceDetails: React.FC<SiteServiceDetailsProps> = ({ form, index }) 
         />
       </div>
     </>
-  );
-};
+  )
+}
 
-export default SiteServiceDetails;
+export default SiteServiceDetails

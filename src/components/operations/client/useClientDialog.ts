@@ -1,34 +1,33 @@
-
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/services/clients';
+import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
+import { createClient } from '@/services/clients'
 
 interface UseClientDialogProps {
-  onClientAdded?: () => void;
+  onClientAdded?: () => void
 }
 
 export interface ClientFormData {
-  companyName: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  street: string;
-  city: string;
-  state: string;
-  postcode: string;
-  paymentTerms: string;
-  industry: string;
-  status: string;
-  businessNumber: string;
-  region: string;
-  notes: string;
-  onHoldReason: string;
+  companyName: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  street: string
+  city: string
+  state: string
+  postcode: string
+  paymentTerms: string
+  industry: string
+  status: string
+  businessNumber: string
+  region: string
+  notes: string
+  onHoldReason: string
 }
 
 export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { toast } = useToast()
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<ClientFormData>({
     companyName: '',
     contactName: '',
@@ -45,7 +44,7 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     region: '',
     notes: '',
     onHoldReason: '',
-  });
+  })
 
   const resetForm = () => {
     setFormData({
@@ -64,19 +63,19 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
       region: '',
       notes: '',
       onHoldReason: '',
-    });
-  };
+    })
+  }
 
   const handleChange = (field: keyof ClientFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Validate form data
       const clientData = {
         company_name: formData.companyName,
@@ -96,37 +95,37 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
         notes: formData.notes || null,
         on_hold_reason: formData.status === 'On Hold' ? formData.onHoldReason : null,
         latitude: null,
-        longitude: null
-      };
-      
+        longitude: null,
+      }
+
       // Create client in database
-      await createClient(clientData);
-      
+      await createClient(clientData)
+
       // Show success toast
       toast({
-        title: "Success",
-        description: "Client has been created successfully.",
-      });
-      
+        title: 'Success',
+        description: 'Client has been created successfully.',
+      })
+
       // Close dialog and reset form
-      setOpen(false);
-      resetForm();
-      
+      setOpen(false)
+      resetForm()
+
       // Refresh client list if a callback was provided
       if (onClientAdded) {
-        onClientAdded();
+        onClientAdded()
       }
     } catch (error) {
-      console.error('Error creating client:', error);
+      console.error('Error creating client:', error)
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create client. Please try again.",
-      });
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create client. Please try again.',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return {
     open,
@@ -135,5 +134,5 @@ export function useClientDialog({ onClientAdded }: UseClientDialogProps = {}) {
     formData,
     handleChange,
     handleSubmit,
-  };
+  }
 }

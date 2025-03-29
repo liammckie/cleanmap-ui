@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from 'react'
 import {
   Pagination,
   PaginationContent,
@@ -8,37 +7,33 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from '@/components/ui/pagination'
 
 interface EmployeePaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
 }
 
-const EmployeePagination: React.FC<EmployeePaginationProps> = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange 
+const EmployeePagination: React.FC<EmployeePaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
 }) => {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) return null
 
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious 
+          <PaginationPrevious
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
           />
         </PaginationItem>
-        
+
         {[...Array(totalPages)].map((_, i) => {
-          if (
-            i === 0 || 
-            i === totalPages - 1 || 
-            (i >= currentPage - 2 && i <= currentPage + 1)
-          ) {
+          if (i === 0 || i === totalPages - 1 || (i >= currentPage - 2 && i <= currentPage + 1)) {
             return (
               <PaginationItem key={i}>
                 <PaginationLink
@@ -48,25 +43,22 @@ const EmployeePagination: React.FC<EmployeePaginationProps> = ({
                   {i + 1}
                 </PaginationLink>
               </PaginationItem>
-            );
-          } else if (
-            i === currentPage - 3 || 
-            i === currentPage + 2
-          ) {
-            return <PaginationEllipsis key={i} />;
+            )
+          } else if (i === currentPage - 3 || i === currentPage + 2) {
+            return <PaginationEllipsis key={i} />
           }
-          return null;
+          return null
         })}
-        
+
         <PaginationItem>
-          <PaginationNext 
+          <PaginationNext
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
           />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
-  );
-};
+  )
+}
 
-export default EmployeePagination;
+export default EmployeePagination

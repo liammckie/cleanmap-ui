@@ -1,26 +1,25 @@
+import { Toaster } from '@/components/ui/toaster'
+import { Toaster as Sonner } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import MainLayout from '@/components/Layout/MainLayout'
+import Dashboard from '@/pages/Dashboard'
+import Locations from '@/pages/Locations'
+import Reports from '@/pages/Reports'
+import EmployeesPage from '@/pages/hr/Employees'
+import ClientsPage from '@/pages/operations/Clients'
+import SitesPage from '@/pages/operations/Sites'
+import SiteListPage from '@/pages/operations/SiteList'
+import CreateClientPage from '@/pages/operations/CreateClient'
+import ContractsPage from '@/pages/operations/Contracts'
+import ContractDetailsPage from '@/pages/operations/ContractDetails'
+import WorkOrdersPage from '@/pages/operations/WorkOrders'
+import LeadsPage from '@/pages/sales/Leads'
+import QuotesPage from '@/pages/sales/Quotes'
+import NotFound from '@/pages/NotFound'
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import MainLayout from "@/components/Layout/MainLayout";
-import Dashboard from "@/pages/Dashboard";
-import Locations from "@/pages/Locations";
-import Reports from "@/pages/Reports";
-import EmployeesPage from "@/pages/hr/Employees";
-import ClientsPage from "@/pages/operations/Clients";
-import SitesPage from "@/pages/operations/Sites";
-import SiteListPage from "@/pages/operations/SiteList";
-import CreateClientPage from "@/pages/operations/CreateClient";
-import ContractsPage from "@/pages/operations/Contracts";
-import ContractDetailsPage from "@/pages/operations/ContractDetails";
-import WorkOrdersPage from "@/pages/operations/WorkOrders";
-import LeadsPage from "@/pages/sales/Leads";
-import QuotesPage from "@/pages/sales/Quotes";
-import NotFound from "@/pages/NotFound";
-
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -49,6 +48,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+)
 
-export default App;
+export default App

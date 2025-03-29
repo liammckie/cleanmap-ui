@@ -1,7 +1,6 @@
-
-import { supabase } from '@/integrations/supabase/client';
-import { Quote } from '@/schema/sales/quote.schema';
-import { apiClient } from '@/utils/supabaseInsertHelper';
+import { supabase } from '@/integrations/supabase/client'
+import { Quote } from '@/schema/sales/quote.schema'
+import { apiClient } from '@/utils/supabaseInsertHelper'
 
 /**
  * @function fetchQuotes
@@ -14,42 +13,36 @@ import { apiClient } from '@/utils/supabaseInsertHelper';
 export const fetchQuotes = async (searchTerm?: string): Promise<Quote[]> => {
   try {
     let options = {
-      limit: 100
-    };
-    
-    let filters = {};
-    let orClause;
-    
+      limit: 100,
+    }
+
+    let filters = {}
+    let orClause
+
     // Add search filter if provided
     if (searchTerm && searchTerm.trim()) {
-      const term = `%${searchTerm.trim()}%`;
-      orClause = `quote_number.ilike.${term},service_description.ilike.${term}`;
+      const term = `%${searchTerm.trim()}%`
+      orClause = `quote_number.ilike.${term},service_description.ilike.${term}`
     }
-    
-    const data = await apiClient.query(
-      supabase,
-      'quotes',
-      filters,
-      '*',
-      {
-        ...options,
-        or: orClause
-      }
-    );
+
+    const data = await apiClient.query(supabase, 'quotes', filters, '*', {
+      ...options,
+      or: orClause,
+    })
 
     // Convert date strings to Date objects
-    return data.map(quote => ({
+    return data.map((quote) => ({
       ...quote,
       issue_date: new Date(quote.issue_date),
       valid_until: new Date(quote.valid_until),
       created_at: new Date(quote.created_at),
-      updated_at: new Date(quote.updated_at)
-    }));
+      updated_at: new Date(quote.updated_at),
+    }))
   } catch (error) {
-    console.error('Unexpected error in fetchQuotes:', error);
-    return [];
+    console.error('Unexpected error in fetchQuotes:', error)
+    return []
   }
-};
+}
 
 /**
  * Get a quote by ID
@@ -57,17 +50,17 @@ export const fetchQuotes = async (searchTerm?: string): Promise<Quote[]> => {
  */
 export const getQuote = async (quoteId: string): Promise<Quote | null> => {
   try {
-    const data = await apiClient.getById(supabase, 'quotes', quoteId);
+    const data = await apiClient.getById(supabase, 'quotes', quoteId)
 
     return {
       ...data,
       issue_date: new Date(data.issue_date),
       valid_until: new Date(data.valid_until),
       created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at)
-    };
+      updated_at: new Date(data.updated_at),
+    }
   } catch (error) {
-    console.error('Unexpected error in getQuote:', error);
-    return null;
+    console.error('Unexpected error in getQuote:', error)
+    return null
   }
-};
+}

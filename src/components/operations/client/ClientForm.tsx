@@ -1,39 +1,40 @@
-
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import React from 'react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
 interface ClientFormData {
-  companyName: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  street: string;
-  city: string;
-  state: string;
-  postcode: string;
-  paymentTerms: string;
-  industry: string;
-  status: string;
-  businessNumber: string;
-  region: string;
-  notes: string;
-  onHoldReason: string;
+  companyName: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  street: string
+  city: string
+  state: string
+  postcode: string
+  paymentTerms: string
+  industry: string
+  status: string
+  businessNumber: string
+  region: string
+  notes: string
+  onHoldReason: string
 }
 
 interface ClientFormProps {
-  formData: ClientFormData;
-  onChange: (field: keyof ClientFormData, value: string) => void;
-  loading?: boolean;
+  formData: ClientFormData
+  onChange: (field: keyof ClientFormData, value: string) => void
+  loading?: boolean
 }
 
-const ClientForm: React.FC<ClientFormProps> = ({ 
-  formData, 
-  onChange,
-  loading = false
-}) => {
+const ClientForm: React.FC<ClientFormProps> = ({ formData, onChange, loading = false }) => {
   const {
     companyName,
     contactName,
@@ -49,13 +50,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
     businessNumber,
     region,
     notes,
-    onHoldReason
-  } = formData;
+    onHoldReason,
+  } = formData
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    onChange(id as keyof ClientFormData, value);
-  };
+    const { id, value } = e.target
+    onChange(id as keyof ClientFormData, value)
+  }
 
   return (
     <div className="grid gap-4 py-4">
@@ -193,8 +194,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
         <Label htmlFor="status" className="text-right">
           Status
         </Label>
-        <Select 
-          value={status} 
+        <Select
+          value={status}
           onValueChange={(value) => onChange('status', value)}
           disabled={loading}
         >
@@ -261,7 +262,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ClientForm;
+export default ClientForm

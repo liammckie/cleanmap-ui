@@ -1,8 +1,7 @@
-
-import { useEffect, useState } from 'react';
-import { Bell, Search, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useEffect, useState } from 'react'
+import { Bell, Search, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +9,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 
 interface HeaderProps {
-  title: string;
+  title: string
 }
 
 const Header = ({ title }: HeaderProps) => {
@@ -21,30 +20,28 @@ const Header = ({ title }: HeaderProps) => {
     { id: 1, text: 'New contract assigned', isRead: false, time: '10 min ago' },
     { id: 2, text: 'Schedule update for tomorrow', isRead: false, time: '1 hour ago' },
     { id: 3, text: 'Client feedback received', isRead: true, time: '3 hours ago' },
-  ]);
+  ])
 
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false)
 
   // Add scroll event listener to add shadow when scrolled
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+      setIsScrolled(window.scrollY > 10)
+    }
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ));
-  };
+    setNotifications(notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)))
+  }
 
   return (
-    <header 
+    <header
       className={`sticky top-0 z-30 w-full px-4 py-3 bg-white dark:bg-gray-900 border-b transition-shadow duration-200 ${
         isScrolled ? 'shadow-md' : ''
       }`}
@@ -57,9 +54,9 @@ const Header = ({ title }: HeaderProps) => {
         <div className="flex items-center gap-4">
           <div className="relative w-64 hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-              type="text" 
-              placeholder="Search..." 
+            <Input
+              type="text"
+              placeholder="Search..."
               className="pl-10 pr-4 py-2 h-9 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md"
             />
           </div>
@@ -78,13 +75,15 @@ const Header = ({ title }: HeaderProps) => {
               <DropdownMenuSeparator />
               {notifications.length > 0 ? (
                 notifications.map((notification) => (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={notification.id}
                     className={`flex flex-col items-start p-3 cursor-default ${notification.isRead ? '' : 'bg-blue-50 dark:bg-blue-900/20'}`}
                     onClick={() => markAsRead(notification.id)}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className={`text-sm ${notification.isRead ? 'text-gray-600 dark:text-gray-400' : 'font-semibold'}`}>
+                      <span
+                        className={`text-sm ${notification.isRead ? 'text-gray-600 dark:text-gray-400' : 'font-semibold'}`}
+                      >
                         {notification.text}
                       </span>
                       {!notification.isRead && (
@@ -95,9 +94,7 @@ const Header = ({ title }: HeaderProps) => {
                   </DropdownMenuItem>
                 ))
               ) : (
-                <div className="py-4 text-center text-sm text-gray-500">
-                  No notifications
-                </div>
+                <div className="py-4 text-center text-sm text-gray-500">No notifications</div>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="justify-center">
@@ -118,7 +115,7 @@ const Header = ({ title }: HeaderProps) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

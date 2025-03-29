@@ -1,16 +1,15 @@
-
 /**
  * Utility functions for billing calculations between different frequencies
  */
 
-export type BillingFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'annually';
+export type BillingFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'annually'
 
 interface BillingConversionFactors {
-  weekly: number;
-  fortnightly: number;
-  monthly: number;
-  quarterly: number;
-  annually: number;
+  weekly: number
+  fortnightly: number
+  monthly: number
+  quarterly: number
+  annually: number
 }
 
 // Conversion factors relative to a weekly amount
@@ -19,8 +18,8 @@ const CONVERSION_FACTORS: BillingConversionFactors = {
   fortnightly: 2,
   monthly: 4.33, // Average weeks in a month (52/12)
   quarterly: 13, // 3 months worth of weeks
-  annually: 52
-};
+  annually: 52,
+}
 
 /**
  * Converts an amount from one billing frequency to another
@@ -32,16 +31,16 @@ const CONVERSION_FACTORS: BillingConversionFactors = {
 export function convertBillingAmount(
   amount: number,
   fromFrequency: BillingFrequency,
-  toFrequency: BillingFrequency
+  toFrequency: BillingFrequency,
 ): number {
   // Convert to weekly rate first
-  const weeklyRate = amount / CONVERSION_FACTORS[fromFrequency];
-  
+  const weeklyRate = amount / CONVERSION_FACTORS[fromFrequency]
+
   // Convert from weekly to target frequency
-  const convertedAmount = weeklyRate * CONVERSION_FACTORS[toFrequency];
-  
+  const convertedAmount = weeklyRate * CONVERSION_FACTORS[toFrequency]
+
   // Return rounded to 2 decimal places
-  return Math.round(convertedAmount * 100) / 100;
+  return Math.round(convertedAmount * 100) / 100
 }
 
 /**
@@ -52,21 +51,21 @@ export function convertBillingAmount(
  */
 export function calculateAllBillingFrequencies(
   amount: number,
-  frequency: BillingFrequency
+  frequency: BillingFrequency,
 ): { weekly: number; monthly: number; annually: number } {
   if (amount === 0 || !amount) {
-    return { weekly: 0, monthly: 0, annually: 0 };
+    return { weekly: 0, monthly: 0, annually: 0 }
   }
 
-  const weeklyAmount = convertBillingAmount(amount, frequency, 'weekly');
-  const monthlyAmount = convertBillingAmount(amount, frequency, 'monthly');
-  const annualAmount = convertBillingAmount(amount, frequency, 'annually');
+  const weeklyAmount = convertBillingAmount(amount, frequency, 'weekly')
+  const monthlyAmount = convertBillingAmount(amount, frequency, 'monthly')
+  const annualAmount = convertBillingAmount(amount, frequency, 'annually')
 
   return {
     weekly: weeklyAmount,
     monthly: monthlyAmount,
-    annually: annualAmount
-  };
+    annually: annualAmount,
+  }
 }
 
 /**
@@ -79,5 +78,5 @@ export function formatCurrency(amount: number, currency: string = 'AUD'): string
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: currency,
-  }).format(amount);
+  }).format(amount)
 }

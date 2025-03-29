@@ -1,6 +1,5 @@
-
-import React from 'react';
-import AddressForm from './AddressForm';
+import React from 'react'
+import AddressForm from './AddressForm'
 
 const EmployeeFormAddressSection = ({ form }: { form: any }) => {
   return (
@@ -11,7 +10,7 @@ const EmployeeFormAddressSection = ({ form }: { form: any }) => {
       stateName="address_state"
       postcodeName="address_postcode"
     />
-  );
-};
+  )
+}
 
-export default EmployeeFormAddressSection;
+export default EmployeeFormAddressSection

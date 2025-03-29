@@ -1,4 +1,3 @@
-
 # Cleaning ERP Documentation
 
 This directory contains the comprehensive documentation for the Cleaning ERP system. It outlines the architecture, data models, naming conventions, and other important information for maintaining and extending the application.

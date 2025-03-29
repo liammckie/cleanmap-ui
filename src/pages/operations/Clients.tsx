@@ -1,54 +1,58 @@
-
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { fetchClients } from '@/services/clients';
-import { Search, FilterX, UserPlus } from 'lucide-react';
-import { ClientCard } from '@/components/operations/ClientCard';
-import AddClientDialog from '@/components/operations/client/AddClientDialog';
-import type { Client } from '@/schema/operations/client.schema';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
+import { fetchClients } from '@/services/clients'
+import { Search, FilterX, UserPlus } from 'lucide-react'
+import { ClientCard } from '@/components/operations/ClientCard'
+import AddClientDialog from '@/components/operations/client/AddClientDialog'
+import type { Client } from '@/schema/operations/client.schema'
+import { Link } from 'react-router-dom'
 
 const ClientsPage = () => {
-  const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{
-    status: string;
-    industry: string;
+    status: string
+    industry: string
   }>({
     status: '',
-    industry: ''
-  });
+    industry: '',
+  })
 
-  const { data: clients, isLoading, error, refetch } = useQuery({
+  const {
+    data: clients,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['clients', searchTerm, filters],
     queryFn: () => fetchClients(searchTerm, filters),
     meta: {
       onError: (err: Error) => {
-        console.error('Failed to fetch clients:', err);
+        console.error('Failed to fetch clients:', err)
         toast({
           variant: 'destructive',
           title: 'Error',
           description: 'Failed to load clients data. Please try again.',
-        });
-      }
-    }
-  });
+        })
+      },
+    },
+  })
 
   const clearFilters = () => {
     setFilters({
       status: '',
-      industry: ''
-    });
-    setSearchTerm('');
-  };
+      industry: '',
+    })
+    setSearchTerm('')
+  }
 
   const handleClientAdded = () => {
-    refetch();
-  };
+    refetch()
+  }
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
@@ -89,11 +93,7 @@ const ClientsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={clearFilters}
-            >
+            <Button variant="outline" className="flex items-center gap-2" onClick={clearFilters}>
               <FilterX className="h-4 w-4" />
               Clear
             </Button>
@@ -107,7 +107,9 @@ const ClientsPage = () => {
         ) : error ? (
           <p className="text-center text-red-500">Error loading clients. Please try again.</p>
         ) : clients?.length === 0 ? (
-          <p className="text-center text-muted-foreground">No clients found. Try adjusting your search or add a new client.</p>
+          <p className="text-center text-muted-foreground">
+            No clients found. Try adjusting your search or add a new client.
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">{clients?.length} clients found</p>
         )}
@@ -116,18 +118,18 @@ const ClientsPage = () => {
       {!isLoading && !error && clients && clients.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {clients?.map((client: Client) => (
-            <ClientCard 
-              key={client.id} 
+            <ClientCard
+              key={client.id}
               client={client}
               onClick={() => {
-                console.log('Clicked client:', client.id);
+                console.log('Clicked client:', client.id)
               }}
             />
           ))}
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ClientsPage;
+export default ClientsPage

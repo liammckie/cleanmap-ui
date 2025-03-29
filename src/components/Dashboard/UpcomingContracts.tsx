@@ -1,15 +1,14 @@
-
-import { ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface Contract {
-  id: string;
-  client: string;
-  location: string;
-  startDate: string;
-  contractValue: string;
-  status: 'pending' | 'active' | 'completed' | 'renewal';
+  id: string
+  client: string
+  location: string
+  startDate: string
+  contractValue: string
+  status: 'pending' | 'active' | 'completed' | 'renewal'
 }
 
 const contracts: Contract[] = [
@@ -45,37 +44,39 @@ const contracts: Contract[] = [
     contractValue: '$15,200',
     status: 'active',
   },
-];
+]
 
 const UpcomingContracts = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
       case 'completed':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
       case 'renewal':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
     }
-  };
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-100 dark:border-gray-700">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white">Upcoming Contracts</h3>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+          Upcoming Contracts
+        </h3>
         <Button variant="outline" size="sm" className="text-sm">
           View All
         </Button>
       </div>
-      
+
       <div className="overflow-hidden">
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {contracts.map((contract) => (
-            <li 
+            <li
               key={contract.id}
               className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors duration-200"
             >
@@ -85,10 +86,12 @@ const UpcomingContracts = () => {
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {contract.client}
                     </p>
-                    <span className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-                      getStatusBadge(contract.status)
-                    )}>
+                    <span
+                      className={cn(
+                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+                        getStatusBadge(contract.status),
+                      )}
+                    >
                       {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                     </span>
                   </div>
@@ -109,7 +112,7 @@ const UpcomingContracts = () => {
         </ul>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UpcomingContracts;
+export default UpcomingContracts

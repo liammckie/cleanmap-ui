@@ -1,59 +1,62 @@
-
-import { useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { createClient } from '@/services/clients';
-import { createSite } from '@/services/siteService';
-import { calculateAllBillingFrequencies } from '@/utils/billingCalculations';
-import type { BillingFrequency } from '@/utils/billingCalculations';
+import { useState } from 'react'
+import { UseFormReturn } from 'react-hook-form'
+import { useToast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom'
+import { createClient } from '@/services/clients'
+import { createSite } from '@/services/siteService'
+import { calculateAllBillingFrequencies } from '@/utils/billingCalculations'
+import type { BillingFrequency } from '@/utils/billingCalculations'
 
 export const STEPS = {
   CLIENT_DETAILS: 0,
   SITES: 1,
-  REVIEW: 2
-};
+  REVIEW: 2,
+}
 
 export const useClientForm = (form: UseFormReturn<any>) => {
-  const [currentStep, setCurrentStep] = useState(STEPS.CLIENT_DETAILS);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(STEPS.CLIENT_DETAILS)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
+  const navigate = useNavigate()
 
   const nextStep = async () => {
     if (currentStep === STEPS.CLIENT_DETAILS) {
       const clientFields = [
-        'company_name', 'contact_name', 'billing_address_street', 
-        'billing_address_city', 'billing_address_state', 
-        'billing_address_postcode', 'payment_terms'
-      ];
-      
-      const result = await form.trigger(clientFields as any);
+        'company_name',
+        'contact_name',
+        'billing_address_street',
+        'billing_address_city',
+        'billing_address_state',
+        'billing_address_postcode',
+        'payment_terms',
+      ]
+
+      const result = await form.trigger(clientFields as any)
       if (result) {
-        setCurrentStep(STEPS.SITES);
+        setCurrentStep(STEPS.SITES)
       }
     } else if (currentStep === STEPS.SITES) {
-      const result = await form.trigger('sites');
+      const result = await form.trigger('sites')
       if (result) {
-        setCurrentStep(STEPS.REVIEW);
+        setCurrentStep(STEPS.REVIEW)
       }
     }
-  };
+  }
 
   const previousStep = () => {
     if (currentStep === STEPS.SITES) {
-      setCurrentStep(STEPS.CLIENT_DETAILS);
+      setCurrentStep(STEPS.CLIENT_DETAILS)
     } else if (currentStep === STEPS.REVIEW) {
-      setCurrentStep(STEPS.SITES);
+      setCurrentStep(STEPS.SITES)
     }
-  };
+  }
 
   const onSubmit = async (data: any) => {
     try {
-      setIsSubmitting(true);
-      
-      const { sites, ...clientData } = data;
-      
+      setIsSubmitting(true)
+
+      const { sites, ...clientData } = data
+
       const newClient = await createClient({
         company_name: clientData.company_name,
         contact_name: clientData.contact_name,
@@ -72,15 +75,15 @@ export const useClientForm = (form: UseFormReturn<any>) => {
         business_number: clientData.business_number || null,
         on_hold_reason: clientData.on_hold_reason || null,
         latitude: null,
-        longitude: null
-      });
-      
+        longitude: null,
+      })
+
       if (sites && sites.length > 0) {
         for (const siteData of sites) {
           const { weekly, monthly, annually } = calculateAllBillingFrequencies(
             siteData.price_per_service,
-            siteData.price_frequency as BillingFrequency
-          );
+            siteData.price_frequency as BillingFrequency,
+          )
 
           await createSite({
             client_id: newClient.id,
@@ -106,28 +109,28 @@ export const useClientForm = (form: UseFormReturn<any>) => {
             service_end_date: siteData.service_end_date,
             service_type: siteData.service_type,
             price_per_service: siteData.price_per_service,
-            price_frequency: siteData.price_frequency
-          });
+            price_frequency: siteData.price_frequency,
+          })
         }
       }
-      
+
       toast({
-        title: "Success",
-        description: "Client and sites created successfully.",
-      });
-      
-      navigate('/operations/clients');
+        title: 'Success',
+        description: 'Client and sites created successfully.',
+      })
+
+      navigate('/operations/clients')
     } catch (error) {
-      console.error('Error creating client and sites:', error);
+      console.error('Error creating client and sites:', error)
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create client and sites. Please try again.",
-      });
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create client and sites. Please try again.',
+      })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return {
     currentStep,
@@ -135,6 +138,6 @@ export const useClientForm = (form: UseFormReturn<any>) => {
     STEPS,
     nextStep,
     previousStep,
-    onSubmit
-  };
-};
+    onSubmit,
+  }
+}

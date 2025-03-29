@@ -1,56 +1,53 @@
-
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FilePlus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { fetchContracts } from '@/services/contractService';
-import ContractFilters from '@/components/operations/contract/ContractFilters';
-import ContractsTable from '@/components/operations/contract/ContractsTable';
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { FilePlus } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { fetchContracts } from '@/services/contractService'
+import ContractFilters from '@/components/operations/contract/ContractFilters'
+import ContractsTable from '@/components/operations/contract/ContractsTable'
 
 const ContractsPage = () => {
-  const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<{
-    clientId: string;
-    status: string;
-    contractType: string;
+    clientId: string
+    status: string
+    contractType: string
   }>({
     clientId: '',
     status: '',
-    contractType: ''
-  });
+    contractType: '',
+  })
 
-  const { data: contracts, isLoading, error } = useQuery({
+  const {
+    data: contracts,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['contracts', searchTerm, filters],
     queryFn: () => fetchContracts(searchTerm, filters),
     meta: {
       onError: (err: Error) => {
-        console.error('Failed to fetch contracts:', err);
+        console.error('Failed to fetch contracts:', err)
         toast({
           variant: 'destructive',
           title: 'Error',
           description: 'Failed to load contracts data. Please try again.',
-        });
-      }
-    }
-  });
+        })
+      },
+    },
+  })
 
   const clearFilters = () => {
     setFilters({
       clientId: '',
       status: '',
-      contractType: ''
-    });
-    setSearchTerm('');
-  };
+      contractType: '',
+    })
+    setSearchTerm('')
+  }
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
@@ -65,7 +62,7 @@ const ContractsPage = () => {
         </Button>
       </div>
 
-      <ContractFilters 
+      <ContractFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         clearFilters={clearFilters}
@@ -79,15 +76,11 @@ const ContractsPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ContractsTable 
-            contracts={contracts} 
-            isLoading={isLoading} 
-            error={error as Error}
-          />
+          <ContractsTable contracts={contracts} isLoading={isLoading} error={error as Error} />
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default ContractsPage;
+export default ContractsPage

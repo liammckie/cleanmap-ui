@@ -1,12 +1,5 @@
-
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import React from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -14,12 +7,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { MapPin } from 'lucide-react';
-import type { Contract } from '@/schema/operations/contract.schema';
+} from '@/components/ui/table'
+import { MapPin } from 'lucide-react'
+import type { Contract } from '@/schema/operations/contract.schema'
 
 interface ContractSitesProps {
-  contract: Contract;
+  contract: Contract
 }
 
 const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
@@ -28,24 +21,22 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
       <Card>
         <CardHeader>
           <CardTitle>Service Locations</CardTitle>
-          <CardDescription>
-            No sites associated with this contract
-          </CardDescription>
+          <CardDescription>No sites associated with this contract</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">No service locations have been added to this contract.</p>
+          <p className="text-muted-foreground">
+            No service locations have been added to this contract.
+          </p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Service Locations</CardTitle>
-        <CardDescription>
-          Sites covered under this contract
-        </CardDescription>
+        <CardDescription>Sites covered under this contract</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -71,7 +62,7 @@ const ContractSites: React.FC<ContractSitesProps> = ({ contract }) => {
         </Table>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default ContractSites;
+export default ContractSites

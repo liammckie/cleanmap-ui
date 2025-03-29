@@ -1,6 +1,5 @@
-
-import { z } from 'zod';
-import { createFormSchema, ValidationPatterns, ErrorMessages } from '@/utils/formValidation';
+import { z } from 'zod'
+import { createFormSchema, ValidationPatterns, ErrorMessages } from '@/utils/formValidation'
 
 /**
  * Client form validation schema
@@ -11,93 +10,97 @@ export const clientFormSchema = createFormSchema({
     required: true,
     min: 2,
     max: 100,
-    errorMessage: 'Company name is required'
+    errorMessage: 'Company name is required',
   },
   billing_address_street: {
     type: 'string',
     required: true,
     min: 2,
     max: 100,
-    errorMessage: 'Street address is required'
+    errorMessage: 'Street address is required',
   },
   billing_address_city: {
     type: 'string',
     required: true,
     min: 2,
     max: 50,
-    errorMessage: 'City is required'
+    errorMessage: 'City is required',
   },
   billing_address_state: {
     type: 'string',
     required: true,
     min: 2,
     max: 50,
-    errorMessage: 'State is required'
+    errorMessage: 'State is required',
   },
   billing_address_postcode: {
     type: 'string',
     required: true,
     pattern: ValidationPatterns.POSTAL_CODE,
-    errorMessage: 'Valid postcode is required'
+    errorMessage: 'Valid postcode is required',
   },
   contact_phone: {
     type: 'phone',
     pattern: ValidationPatterns.PHONE,
     errorMessage: ErrorMessages.PHONE,
-    required: false
+    required: false,
   },
   contact_email: {
     type: 'email',
     required: false,
-    errorMessage: ErrorMessages.EMAIL
+    errorMessage: ErrorMessages.EMAIL,
   },
   payment_terms: {
     type: 'string',
     required: true,
     min: 2,
     max: 50,
-    errorMessage: 'Payment terms are required'
+    errorMessage: 'Payment terms are required',
   },
   status: {
     type: 'select',
     required: true,
     options: ['Active', 'On Hold'],
-    errorMessage: 'Valid status is required'
+    errorMessage: 'Valid status is required',
   },
   industry: {
     type: 'string',
     required: false,
-    max: 50
+    max: 50,
   },
   notes: {
     type: 'string',
     required: false,
-    max: 500
+    max: 500,
   },
   business_number: {
     type: 'string',
     required: false,
-    max: 20
+    max: 20,
   },
   on_hold_reason: {
     type: 'string',
     required: false,
-    max: 200
-  }
-});
+    max: 200,
+  },
+})
 
 /**
  * Type for client form values based on the schema
  */
-export type ClientFormValues = z.infer<typeof clientFormSchema>;
+export type ClientFormValues = z.infer<typeof clientFormSchema>
 
 /**
  * Function to test client form validation
  */
 export function testClientFormValidation() {
   // Import the testing utilities
-  const { testFormValidation, generateFieldBoundaryTests, logTestResults } = require('@/utils/formTesting');
-  
+  const {
+    testFormValidation,
+    generateFieldBoundaryTests,
+    logTestResults,
+  } = require('@/utils/formTesting')
+
   // Valid base values for testing
   const validClientData = {
     company_name: 'Acme Corporation',
@@ -112,67 +115,67 @@ export function testClientFormValidation() {
     industry: 'Manufacturing',
     notes: 'Test client',
     business_number: 'ABN12345678',
-    on_hold_reason: ''
-  };
-  
+    on_hold_reason: '',
+  }
+
   // Generate test cases for company_name field
   const companyNameTests = generateFieldBoundaryTests(
     'company_name',
     { type: 'string', required: true, min: 2, max: 100 },
-    validClientData
-  );
-  
+    validClientData,
+  )
+
   // Generate test cases for email field
   const emailTests = [
     {
       description: 'contact_email - invalid email format',
       values: { ...validClientData, contact_email: 'notanemail' },
-      shouldPass: false
+      shouldPass: false,
     },
     {
       description: 'contact_email - valid email',
       values: { ...validClientData, contact_email: 'valid@example.com' },
-      shouldPass: true
+      shouldPass: true,
     },
     {
       description: 'contact_email - empty (optional field)',
       values: { ...validClientData, contact_email: '' },
-      shouldPass: true
-    }
-  ];
-  
+      shouldPass: true,
+    },
+  ]
+
   // Generate test cases for status field
   const statusTests = [
     {
       description: 'status - valid option (Active)',
       values: { ...validClientData, status: 'Active' },
-      shouldPass: true
+      shouldPass: true,
     },
     {
       description: 'status - valid option (On Hold)',
       values: { ...validClientData, status: 'On Hold' },
-      shouldPass: true
+      shouldPass: true,
     },
     {
       description: 'status - invalid option',
       values: { ...validClientData, status: 'Invalid Status' },
-      shouldPass: false
-    }
-  ];
-  
+      shouldPass: false,
+    },
+  ]
+
   // Combine all test cases
   const allTests = [
     ...companyNameTests,
     ...emailTests,
     ...statusTests,
     // More test cases could be added here
-  ];
-  
+  ]
+
   // Run the tests
-  const results = testFormValidation(clientFormSchema, allTests);
-  
+  const results = testFormValidation(clientFormSchema, allTests)
+
   // Log the results
-  logTestResults(results);
-  
-  return results;
+  logTestResults(results)
+
+  return results
 }

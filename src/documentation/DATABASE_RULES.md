@@ -1,4 +1,3 @@
-
 # Database Rules and Best Practices
 
 This document outlines the rules and best practices for database schema and query management in the CleanMap application.
@@ -15,29 +14,22 @@ All database queries must include safety constraints to prevent large result set
   - `.single()` for retrieving only one record
 
 **Implementation**:
+
 - All service methods should implement this pattern
 - Code reviews must check for this pattern
 - Consider adding automated linting rules to enforce this
 
 Example:
+
 ```typescript
 // GOOD:
-const { data } = await supabase
-  .from('clients')
-  .select('*')
-  .limit(100);
+const { data } = await supabase.from('clients').select('*').limit(100)
 
-// GOOD: 
-const { data } = await supabase
-  .from('clients')
-  .select('*')
-  .eq('id', clientId)
-  .single();
+// GOOD:
+const { data } = await supabase.from('clients').select('*').eq('id', clientId).single()
 
 // BAD - no limit or filter:
-const { data } = await supabase
-  .from('clients')
-  .select('*');
+const { data } = await supabase.from('clients').select('*')
 ```
 
 ## 📜 Schema Change Changelog
@@ -53,6 +45,7 @@ Every database schema change must be documented in the `SCHEMA_CHANGELOG.md` fil
 - Note any migration requirements
 
 **Implementation**:
+
 - Update the changelog before or immediately after schema changes
 - Include the changelog update in the same pull request as the schema change
 - Use the established format (date, change type, description)
@@ -70,14 +63,16 @@ All data access methods should include metadata about field origins:
   - `imported` - from external systems or APIs
 
 **Implementation**:
+
 - Add `@origin` JSDoc annotations to all service methods
 - Include source, module, and authorship information
 - Document data transformations or derivations
 
 Example:
+
 ```typescript
 /**
- * @function getClientMetadata 
+ * @function getClientMetadata
  * @description Fetches metadata for a client from the database
  * @origin {source: "internal", module: "clientService", author: "system"}
  */
@@ -94,14 +89,16 @@ Critical fields must maintain their data types to prevent inconsistencies:
 - Run checks before schema migrations to prevent accidental type changes
 
 **Implementation**:
+
 - Add `@field-locked` JSDoc annotations to critical fields
 - Include the field name and expected type
 - Add clear validation steps before any schema change
 
 Example:
+
 ```typescript
 /**
- * @function getClient 
+ * @function getClient
  * @description Fetches a client by ID
  * @field-locked id:uuid, created_at:timestamp
  */

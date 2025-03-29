@@ -1,37 +1,36 @@
-
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import AddressAutocomplete from '@/components/common/AddressAutocomplete';
+import React from 'react'
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import AddressAutocomplete from '@/components/common/AddressAutocomplete'
 
 interface AddressFormProps {
-  form: any;
-  streetName: string;
-  cityName: string;
-  stateName: string;
-  postcodeName: string;
+  form: any
+  streetName: string
+  cityName: string
+  stateName: string
+  postcodeName: string
 }
 
 const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: AddressFormProps) => {
   const handleAddressSelected = (address: {
-    street: string;
-    city: string;
-    state: string;
-    postcode: string;
+    street: string
+    city: string
+    state: string
+    postcode: string
   }) => {
     // Update the form fields with the selected address
-    form.setValue(streetName, address.street);
-    form.setValue(cityName, address.city);
-    form.setValue(stateName, address.state);
-    form.setValue(postcodeName, address.postcode);
-  };
+    form.setValue(streetName, address.street)
+    form.setValue(cityName, address.city)
+    form.setValue(stateName, address.state)
+    form.setValue(postcodeName, address.postcode)
+  }
 
   return (
     <div className="space-y-4">
       <div>
         <FormItem>
           <FormLabel>Address Lookup</FormLabel>
-          <AddressAutocomplete 
+          <AddressAutocomplete
             onAddressSelected={handleAddressSelected}
             placeholder="Search for an address"
             className="w-full"
@@ -100,7 +99,7 @@ const AddressForm = ({ form, streetName, cityName, stateName, postcodeName }: Ad
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AddressForm;
+export default AddressForm

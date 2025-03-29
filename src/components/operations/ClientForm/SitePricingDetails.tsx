@@ -1,32 +1,27 @@
-
-import React from 'react';
-import { 
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { formatCurrency } from '@/utils/billingCalculations';
+import React from 'react'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { UseFormReturn } from 'react-hook-form'
+import { formatCurrency } from '@/utils/billingCalculations'
 
 interface SitePricingDetailsProps {
-  form: UseFormReturn<any>;
-  index: number;
+  form: UseFormReturn<any>
+  index: number
   priceBreakdown: {
-    weekly: number;
-    monthly: number;
-    annually: number;
-  };
+    weekly: number
+    monthly: number
+    annually: number
+  }
 }
 
-const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ 
-  form, 
-  index,
-  priceBreakdown
-}) => {
+const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({ form, index, priceBreakdown }) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -37,8 +32,8 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
             <FormItem>
               <FormLabel>Price per Service*</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   placeholder="0.00"
                   {...field}
                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -55,10 +50,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Billing Frequency*</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select frequency" />
@@ -77,7 +69,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
           )}
         />
       </div>
-      
+
       {/* Price breakdown display */}
       <div className="mt-2 p-3 bg-muted rounded-md">
         <h4 className="text-sm font-medium mb-2">Price Breakdown</h4>
@@ -97,7 +89,7 @@ const SitePricingDetails: React.FC<SitePricingDetailsProps> = ({
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default SitePricingDetails;
+export default SitePricingDetails

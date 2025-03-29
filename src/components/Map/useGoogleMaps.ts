@@ -1,43 +1,42 @@
-
-import { useState, useEffect } from 'react';
-import { loadGoogleMapsScript } from '@/utils/googleMaps';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react'
+import { loadGoogleMapsScript } from '@/utils/googleMaps'
+import { useToast } from '@/hooks/use-toast'
 
 /**
  * Custom hook to load and initialize Google Maps
  */
 export const useGoogleMaps = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     const initGoogleMaps = async () => {
       try {
-        setIsLoading(true);
-        await loadGoogleMapsScript();
-        
+        setIsLoading(true)
+        await loadGoogleMapsScript()
+
         if (window.google && window.google.maps) {
-          setGoogleMapsLoaded(true);
+          setGoogleMapsLoaded(true)
         } else {
-          throw new Error('Google Maps failed to load properly');
+          throw new Error('Google Maps failed to load properly')
         }
       } catch (error) {
-        console.error('Error loading Google Maps:', error);
+        console.error('Error loading Google Maps:', error)
         toast({
           title: 'Map Loading Error',
           description: 'Failed to load Google Maps. Please try again later.',
           variant: 'destructive',
-        });
-        setIsError(true);
+        })
+        setIsError(true)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    initGoogleMaps();
-  }, [toast]);
+    initGoogleMaps()
+  }, [toast])
 
-  return { isLoading, isError, googleMapsLoaded };
-};
+  return { isLoading, isError, googleMapsLoaded }
+}

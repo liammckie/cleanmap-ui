@@ -1,18 +1,11 @@
-
-import React from 'react';
-import { 
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { UseFormReturn } from 'react-hook-form';
+import React from 'react'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { UseFormReturn } from 'react-hook-form'
 
 interface SiteAddressFieldsProps {
-  form: UseFormReturn<any>;
-  index: number;
+  form: UseFormReturn<any>
+  index: number
 }
 
 const SiteAddressFields: React.FC<SiteAddressFieldsProps> = ({ form, index }) => {
@@ -76,7 +69,7 @@ const SiteAddressFields: React.FC<SiteAddressFieldsProps> = ({ form, index }) =>
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SiteAddressFields;
+export default SiteAddressFields
