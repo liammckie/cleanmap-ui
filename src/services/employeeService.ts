@@ -8,6 +8,7 @@ import { Employee } from '@/types/employee.types'
 // Define types for the filter parameters based on the database enum types
 type EmployeeStatus = Database['public']['Enums']['employee_status']
 type EmploymentType = Database['public']['Enums']['employment_type']
+type EmploymentTerminationReason = Database['public']['Enums']['employment_termination_reason']
 
 export async function fetchEmployees(
   searchTerm?: string,
@@ -68,20 +69,24 @@ export async function fetchEmployeeById(id: string) {
 
 // Update the parameter type to accept our modified Employee type that has string | Date
 export async function createEmployee(employee: Omit<Employee, 'id' | 'created_at' | 'updated_at'>) {
-  // Convert Date objects to ISO strings for Supabase
-  const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>
+  try {
+    // Convert Date objects to ISO strings for Supabase
+    const dbEmployee = prepareObjectForDb(employee) as TablesInsert<'employees'>
 
-  const { data, error } = await supabase.from('employees').insert(dbEmployee).select()
+    const { data, error } = await supabase.from('employees').insert(dbEmployee).select()
 
-  if (error) {
-    console.error('Error creating employee:', error)
-    throw error
+    if (error) {
+      console.error('Error creating employee:', error)
+      throw error
+    }
+
+    return data[0]
+  } catch (err) {
+    console.error('Failed to create employee:', err)
+    throw err
   }
-
-  return data[0]
 }
 
-// Update the parameter type here as well
 export async function updateEmployee(id: string, updates: Partial<Employee>) {
   // Convert Date objects to ISO strings for Supabase
   const dbUpdates = prepareObjectForDb(updates) as TablesInsert<'employees'>
@@ -139,6 +144,18 @@ export async function fetchEmployeeStatuses() {
 
   if (error) {
     console.error('Error fetching employee statuses:', error)
+    throw error
+  }
+
+  return data
+}
+
+// Fetch employment termination reasons from database enum
+export async function fetchEmploymentTerminationReasons() {
+  const { data, error } = await supabase.rpc('get_employment_termination_reason_enum')
+
+  if (error) {
+    console.error('Error fetching employment termination reasons:', error)
     throw error
   }
 

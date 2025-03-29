@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { format } from 'date-fns'
 import { Calendar } from 'lucide-react'
@@ -78,7 +79,7 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'pay_rate' ? parseFloat(value) : value,
     }))
   }
 
@@ -103,6 +104,8 @@ const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     setIsSubmitting(true)
 
     try {
+      console.log('Submitting employee data:', formData)
+      
       // Create the employee
       await createEmployee(formData as Employee)
 

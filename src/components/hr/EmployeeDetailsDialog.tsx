@@ -1,18 +1,31 @@
-import React, { useState } from 'react'
-import { format, parseISO } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import React, { useState, useEffect } from 'react'
+import { format } from 'date-fns'
+import { Edit, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
-import StatusBadge from './StatusBadge'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import EmployeeForm from './EmployeeForm'
 import { Employee } from '@/types/employee.types'
+import { updateEmployee, fetchEmploymentTerminationReasons } from '@/services/employeeService'
+import { useToast } from '@/hooks/use-toast'
+import EndOfEmploymentSection from './EndOfEmploymentSection'
 
 interface EmployeeDetailsDialogProps {
   employee: Employee | null
@@ -25,297 +38,438 @@ const EmployeeDetailsDialog: React.FC<EmployeeDetailsDialogProps> = ({
   isOpen,
   onOpenChange,
 }) => {
-  const [isEditMode, setIsEditMode] = useState(false)
+  const { toast } = useToast()
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null)
+  const [selectedTab, setSelectedTab] = useState('details')
+  const [terminationReasons, setTerminationReasons] = useState<string[]>([])
 
-  if (!employee) return null
+  useEffect(() => {
+    if (employee) {
+      setEditedEmployee({ ...employee })
+    }
 
-  // Helper function to safely format dates that could be strings or Date objects
-  const formatDate = (date: string | Date | null | undefined) => {
-    if (!date) return 'N/A'
+    // Fetch termination reasons when component mounts
+    const fetchTerminationReasons = async () => {
+      try {
+        const reasons = await fetchEmploymentTerminationReasons()
+        setTerminationReasons(reasons)
+      } catch (error) {
+        console.error('Error fetching termination reasons:', error)
+      }
+    }
 
-    try {
-      // If it's a string, parse it first
-      const dateObj = typeof date === 'string' ? parseISO(date) : date
-      return format(dateObj, 'dd MMM yyyy')
-    } catch (e) {
-      console.error('Invalid date:', date)
-      return 'N/A'
+    fetchTerminationReasons()
+  }, [employee])
+
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    if (employee) {
+      setEditedEmployee({ ...employee })
     }
   }
 
-  // For demonstration, we'll use fake data for onboarding tasks and site assignments
-  const onboardingTasks = [
-    {
-      id: 1,
-      task: 'Complete tax declaration form',
-      status: 'Completed',
-      dueDate: new Date(),
-      assignee: 'HR',
-    },
-    {
-      id: 2,
-      task: 'IT setup and account creation',
-      status: 'Completed',
-      dueDate: new Date(),
-      assignee: 'IT',
-    },
-    {
-      id: 3,
-      task: 'Site-specific training',
-      status: 'In Progress',
-      dueDate: new Date(),
-      assignee: 'Training',
-    },
-    {
-      id: 4,
-      task: 'Health & safety induction',
-      status: 'Pending',
-      dueDate: new Date(),
-      assignee: 'Operations',
-    },
-    {
-      id: 5,
-      task: 'Review company policies',
-      status: 'Pending',
-      dueDate: new Date(),
-      assignee: 'HR',
-    },
-  ]
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setEditedEmployee((prev) => (prev ? { ...prev, [name]: value } : null))
+  }
 
-  const siteAssignments = [
-    { id: 1, site: 'Metropolis Tower', role: 'Cleaner', startDate: new Date() },
-    { id: 2, site: 'Waterfront Office Park', role: 'Team Lead', startDate: new Date() },
-  ]
+  const handleSelectChange = (field: string, value: string) => {
+    setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null))
+  }
 
-  // If we're in edit mode, show the employee edit form in a side sheet
-  if (isEditMode) {
-    return (
-      <Sheet open={isEditMode} onOpenChange={setIsEditMode}>
-        <SheetContent side="right" className="w-[900px] max-w-full">
-          <SheetHeader>
-            <SheetTitle>
-              Edit Employee: {employee.first_name} {employee.last_name}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="py-6">
-            <p className="text-muted-foreground">
-              Employee editing form would be implemented here.
-            </p>
-          </div>
-          <SheetFooter>
-            <Button variant="outline" onClick={() => setIsEditMode(false)}>
-              Cancel
-            </Button>
-            <Button>Save Changes</Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (date) {
+      setEditedEmployee((prev) => (prev ? { ...prev, end_of_employment_date: date } : null))
+    }
+  }
+
+  const handleEndReasonChange = (reason: string) => {
+    setEditedEmployee((prev) => 
+      prev ? { ...prev, end_of_employment_reason: reason } : null
     )
   }
+
+  const handleSave = async () => {
+    if (!editedEmployee || !employee) return
+
+    setIsSubmitting(true)
+
+    try {
+      const updatedEmployee = await updateEmployee(employee.id, editedEmployee)
+
+      toast({
+        title: 'Success',
+        description: 'Employee details updated successfully.',
+      })
+
+      setIsEditing(false)
+      // Update the employee data with the changes
+      if (updatedEmployee) {
+        setEditedEmployee(updatedEmployee)
+      }
+    } catch (error) {
+      console.error('Error updating employee:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update employee details. Please try again.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Helper to format dates safely
+  const formatDate = (date: string | Date | undefined | null) => {
+    if (!date) return 'N/A'
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date
+      return format(dateObj, 'dd MMM yyyy')
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return 'Invalid date'
+    }
+  }
+
+  if (!employee || !editedEmployee) {
+    return null
+  }
+
+  const endDate = editedEmployee.end_of_employment_date
+    ? new Date(editedEmployee.end_of_employment_date)
+    : null
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <DialogTitle className="text-xl">
-                {employee.first_name} {employee.last_name}
-              </DialogTitle>
-              <DialogDescription>Employee ID: {employee.employee_id}</DialogDescription>
-            </div>
-            <StatusBadge status={employee.status} />
-          </div>
+          <DialogTitle>{employee.first_name} {employee.last_name} Details</DialogTitle>
+          <DialogDescription>
+            View and manage employee information.
+          </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="profile" className="mt-4">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="payroll">Payroll</TabsTrigger>
-            {employee.status === 'Onboarding' && (
-              <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-            )}
-            <TabsTrigger value="assignments">Assignments</TabsTrigger>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="employment">Employment</TabsTrigger>
+            {/* Add more tabs as needed */}
           </TabsList>
-
-          <TabsContent value="profile" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold mb-3 text-md border-b pb-2">Personal Details</h3>
-                <div className="text-sm grid gap-3">
+          <TabsContent value="details" className="space-y-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-muted-foreground">Date of Birth:</span>{' '}
-                    {formatDate(employee.date_of_birth)}
+                    <Label>First Name</Label>
+                    <Input
+                      name="first_name"
+                      value={editedEmployee.first_name || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Phone:</span> {employee.contact_phone}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Email:</span> {employee.contact_email}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Address:</span>{' '}
-                    {employee.address_street}, {employee.address_city}, {employee.address_state}{' '}
-                    {employee.address_postcode}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3 text-md border-b pb-2">Employment Details</h3>
-                <div className="text-sm grid gap-3">
-                  <div>
-                    <span className="text-muted-foreground">Position:</span> {employee.job_title}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Department:</span> {employee.department}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Start Date:</span>{' '}
-                    {formatDate(employee.start_date)}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Type:</span> {employee.employment_type}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Status:</span>{' '}
-                    <StatusBadge status={employee.status} />
+                    <Label>Last Name</Label>
+                    <Input
+                      name="last_name"
+                      value={editedEmployee.last_name || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
                   </div>
                 </div>
-              </div>
-            </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Date of Birth</Label>
+                    <Input
+                      value={formatDate(editedEmployee.date_of_birth)}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone Number</Label>
+                    <Input
+                      name="contact_phone"
+                      value={editedEmployee.contact_phone || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Email Address</Label>
+                  <Input
+                    name="contact_email"
+                    type="email"
+                    value={editedEmployee.contact_email || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div>
+                  <Label>Street Address</Label>
+                  <Input
+                    name="address_street"
+                    value={editedEmployee.address_street || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>City</Label>
+                    <Input
+                      name="address_city"
+                      value={editedEmployee.address_city || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>State</Label>
+                    <Input
+                      name="address_state"
+                      value={editedEmployee.address_state || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Postcode</Label>
+                    <Input
+                      name="address_postcode"
+                      value={editedEmployee.address_postcode || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="payroll">
-            <div className="space-y-6">
-              <h3 className="font-semibold mb-3 text-md border-b pb-2">Payroll Details</h3>
-              <div className="text-sm grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <span className="text-muted-foreground">Wage Classification:</span>{' '}
-                  {employee.wage_classification}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Pay Rate:</span> ${employee.pay_rate}/hr
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Pay Cycle:</span> {employee.pay_cycle}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Tax File Number:</span> {employee.tax_id}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Bank Account:</span> {employee.bank_bsb} /{' '}
-                  {employee.bank_account_number}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Super Fund:</span>{' '}
-                  {employee.super_fund_name} ({employee.super_member_number})
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          {employee.status === 'Onboarding' && (
-            <TabsContent value="onboarding">
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-md border-b pb-2">Onboarding Tasks</h3>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                    {Math.round(
-                      (onboardingTasks.filter((t) => t.status === 'Completed').length /
-                        onboardingTasks.length) *
-                        100,
-                    )}
-                    % Complete
-                  </Badge>
+          <TabsContent value="employment" className="space-y-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Employment Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Employee ID</Label>
+                    <Input
+                      name="employee_id"
+                      value={editedEmployee.employee_id || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Job Title</Label>
+                    <Input
+                      name="job_title"
+                      value={editedEmployee.job_title || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
                 </div>
 
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b text-left text-sm font-medium text-muted-foreground">
-                      <th className="p-2">Task</th>
-                      <th className="p-2">Assignee</th>
-                      <th className="p-2">Due Date</th>
-                      <th className="p-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {onboardingTasks.map((task) => (
-                      <tr key={task.id} className="border-b">
-                        <td className="p-2">{task.task}</td>
-                        <td className="p-2">{task.assignee}</td>
-                        <td className="p-2">{format(task.dueDate, 'dd MMM yyyy')}</td>
-                        <td className="p-2">
-                          <Badge
-                            variant="outline"
-                            className={
-                              task.status === 'Completed'
-                                ? 'bg-green-50 text-green-700'
-                                : task.status === 'In Progress'
-                                  ? 'bg-blue-50 text-blue-700'
-                                  : 'bg-yellow-50 text-yellow-700'
-                            }
-                          >
-                            {task.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-          )}
-
-          <TabsContent value="assignments">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-md border-b pb-2">Site Assignments</h3>
-                <Button variant="outline" size="sm">
-                  Assign to Site
-                </Button>
-              </div>
-
-              {siteAssignments.length > 0 ? (
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b text-left text-sm font-medium text-muted-foreground">
-                      <th className="p-2">Site</th>
-                      <th className="p-2">Role</th>
-                      <th className="p-2">Start Date</th>
-                      <th className="p-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {siteAssignments.map((assignment) => (
-                      <tr key={assignment.id} className="border-b">
-                        <td className="p-2">{assignment.site}</td>
-                        <td className="p-2">{assignment.role}</td>
-                        <td className="p-2">{format(assignment.startDate, 'dd MMM yyyy')}</td>
-                        <td className="p-2">
-                          <Button variant="outline" size="sm">
-                            Remove
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  No site assignments found for this employee.
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Department</Label>
+                    <Input
+                      name="department"
+                      value={editedEmployee.department || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Start Date</Label>
+                    <Input
+                      value={formatDate(editedEmployee.start_date)}
+                      disabled
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Employment Type</Label>
+                    <Select
+                      value={editedEmployee.employment_type || ''}
+                      onValueChange={(value) => handleSelectChange('employment_type', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Full-time">Full-time</SelectItem>
+                        <SelectItem value="Part-time">Part-time</SelectItem>
+                        <SelectItem value="Contractor">Contractor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select
+                      value={editedEmployee.status || ''}
+                      onValueChange={(value) => handleSelectChange('status', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Onboarding">Onboarding</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Terminated">Terminated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Wage Classification</Label>
+                    <Input
+                      name="wage_classification"
+                      value={editedEmployee.wage_classification || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Pay Rate ($/hr)</Label>
+                    <Input
+                      name="pay_rate"
+                      type="number"
+                      value={editedEmployee.pay_rate?.toString() || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Pay Cycle</Label>
+                    <Select
+                      value={editedEmployee.pay_cycle || ''}
+                      onValueChange={(value) => handleSelectChange('pay_cycle', value)}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Pay Cycle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Fortnightly">Fortnightly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Tax File Number</Label>
+                    <Input
+                      name="tax_id"
+                      value={editedEmployee.tax_id || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Bank BSB</Label>
+                    <Input
+                      name="bank_bsb"
+                      value={editedEmployee.bank_bsb || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Bank Account Number</Label>
+                    <Input
+                      name="bank_account_number"
+                      value={editedEmployee.bank_account_number || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Superannuation Fund</Label>
+                    <Input
+                      name="super_fund_name"
+                      value={editedEmployee.super_fund_name || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label>Super Member Number</Label>
+                    <Input
+                      name="super_member_number"
+                      value={editedEmployee.super_member_number || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <EndOfEmploymentSection
+              endDate={endDate}
+              endReason={editedEmployee.end_of_employment_reason || null}
+              terminationReasons={terminationReasons}
+              onEndDateChange={handleEndDateChange}
+              onEndReasonChange={handleEndReasonChange}
+              isEditable={isEditing}
+            />
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter>
+          {isEditing ? (
+            <div className="space-x-2">
+              <Button variant="ghost" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={handleEdit}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Details
+            </Button>
+          )}
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          <Button onClick={() => setIsEditMode(true)}>Edit Employee</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

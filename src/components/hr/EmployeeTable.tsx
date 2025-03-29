@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { format, parseISO } from 'date-fns'
 import { ClipboardList, Edit, AlertCircle } from 'lucide-react'
@@ -58,6 +59,11 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
     ) : null
   }
 
+  // Check if employee is terminated and has end date
+  const isTerminated = (employee: Employee) => {
+    return employee.status === 'Terminated' && employee.end_of_employment_date
+  }
+
   if (error) {
     return (
       <div className="text-center py-4 text-red-500">
@@ -107,7 +113,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
           >
             Start Date {sortColumn === 'start_date' && (sortDirection === 'asc' ? '▲' : '▼')}
           </TableHead>
-          <TableHead>Onboarding Progress</TableHead>
+          <TableHead>Onboarding/End Date</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
@@ -121,7 +127,15 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             <TableCell>{employee.job_title}</TableCell>
             <TableCell>{employee.department}</TableCell>
             <TableCell>{formatDate(employee.start_date)}</TableCell>
-            <TableCell>{getOnboardingTasksIndicator(employee)}</TableCell>
+            <TableCell>
+              {isTerminated(employee) ? (
+                <div className="text-sm text-red-600">
+                  End: {formatDate(employee.end_of_employment_date)}
+                </div>
+              ) : (
+                getOnboardingTasksIndicator(employee)
+              )}
+            </TableCell>
             <TableCell>
               <StatusBadge status={employee.status} />
             </TableCell>
