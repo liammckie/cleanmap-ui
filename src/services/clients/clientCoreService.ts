@@ -13,6 +13,7 @@ export async function fetchClients(options: {
   filters?: {
     status?: 'Active' | 'On Hold';
     industry?: string;
+    region?: string;
   };
 } = {}) {
   try {
@@ -35,6 +36,11 @@ export async function fetchClients(options: {
     // Apply industry filter if provided
     if (filters.industry) {
       query = query.eq('industry', filters.industry)
+    }
+
+    // Apply region filter if provided
+    if (filters.region) {
+      query = query.eq('region', filters.region)
     }
 
     // Order by company name

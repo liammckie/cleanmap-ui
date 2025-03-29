@@ -87,6 +87,13 @@ export const ClientCard = ({ client, onClick }: ClientCardProps) => {
 
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-3">
+            {client.contact_name && (
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <span className="text-sm">Contact: {client.contact_name}</span>
+              </div>
+            )}
+            
             <div className="flex items-start gap-2">
               <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
               <div className="text-sm">

@@ -59,6 +59,7 @@ export type Database = {
           business_number: string | null
           company_name: string
           contact_email: string | null
+          contact_name: string | null
           contact_phone: string | null
           created_at: string
           id: string
@@ -66,6 +67,7 @@ export type Database = {
           notes: string | null
           on_hold_reason: string | null
           payment_terms: string
+          region: string | null
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
         }
@@ -77,6 +79,7 @@ export type Database = {
           business_number?: string | null
           company_name: string
           contact_email?: string | null
+          contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           id?: string
@@ -84,6 +87,7 @@ export type Database = {
           notes?: string | null
           on_hold_reason?: string | null
           payment_terms: string
+          region?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
         }
@@ -95,6 +99,7 @@ export type Database = {
           business_number?: string | null
           company_name?: string
           contact_email?: string | null
+          contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           id?: string
@@ -102,6 +107,7 @@ export type Database = {
           notes?: string | null
           on_hold_reason?: string | null
           payment_terms?: string
+          region?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
         }
