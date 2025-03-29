@@ -27,7 +27,7 @@ export function useEmployeeList() {
     clearFilters
   } = useEmployeeFilters();
 
-  // Safely wrap the employee query to prevent syntax errors
+  // Fetch employees
   const employeeQuery = useQuery({
     queryKey: ['employees', searchTerm, filters],
     queryFn: () => fetchEmployees(searchTerm, filters),
@@ -43,17 +43,34 @@ export function useEmployeeList() {
     refetch,
   } = employeeQuery;
 
-  // Process employee data to ensure correct typing
+  // Process employee data with proper error handling
   const employees = useMemo(() => {
     console.log('Processing employee data', employeesRaw);
-    return processEmployeeData(employeesRaw) as Employee[];
+    if (!employeesRaw) return [];
+    try {
+      return processEmployeeData(employeesRaw) as Employee[];
+    } catch (error) {
+      console.error('Error processing employee data:', error);
+      return [];
+    }
   }, [employeesRaw]);
 
   // Extract sorting functionality
-  const { sortColumn, sortDirection, handleSort, sortedEmployees } = useEmployeeSorting(employees);
+  const { 
+    sortColumn, 
+    sortDirection, 
+    handleSort, 
+    sortedEmployees 
+  } = useEmployeeSorting(employees);
 
   // Extract pagination functionality
-  const { currentPage, setCurrentPage, currentItems, totalPages, resetPagination } = useEmployeePagination(sortedEmployees);
+  const { 
+    currentPage, 
+    setCurrentPage, 
+    currentItems, 
+    totalPages, 
+    resetPagination 
+  } = useEmployeePagination(sortedEmployees);
 
   // Extract dialog functionality
   const {
