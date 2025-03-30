@@ -3,6 +3,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
@@ -62,20 +63,7 @@ export default defineConfig(async ({ mode }) => {
     plugins: [
       react(),
       // Enable component tagger in development mode
-      mode === "development" && {
-        name: 'component-tagger',
-        apply: 'serve',
-        transform(code: string, id: string) {
-          if (id.endsWith('.tsx') && id.includes('/components/')) {
-            // Simple component tagging implementation
-            return code.replace(
-              /export\s+default\s+([A-Za-z0-9_]+);/g,
-              'export default $1; // Component: $1'
-            );
-          }
-          return null;
-        }
-      },
+      mode === 'development' && componentTagger(),
       // Use Sentry plugin in all environments if token is available
       sentryPluginEnabled && sentryVitePlugin({
         org: "liammckie",
