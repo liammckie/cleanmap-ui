@@ -54,23 +54,55 @@ export function captureBuildError(errorMessage: string): {
 }
 
 /**
- * Simulates capturing build errors for testing
- * @param errors Array of error messages to simulate
+ * Sets up console error capturing for build errors
  */
-export function simulateBuildErrorCapture(errors: string[]): void {
-  console.info('Simulating build error capture for', errors.length, 'errors');
+export function setupConsoleErrorCapture(): void {
+  const originalConsoleError = console.error;
+  
+  console.error = function(...args) {
+    // Call the original console.error
+    originalConsoleError.apply(console, args);
+    
+    // Check if this is a build error
+    const errorString = args.join(' ');
+    if (
+      errorString.includes('error TS') || 
+      errorString.includes('Module not found') ||
+      errorString.includes('SyntaxError')
+    ) {
+      // Document as a build error
+      documentBuildError(errorString);
+    }
+  };
+  
+  console.info('Console error capture set up for build errors');
+}
+
+/**
+ * Simulates capturing build errors for testing
+ */
+export function simulateBuildErrorCapture(): void {
+  console.info('Simulating build error capture');
+  
+  // Simulate some build errors
+  const mockErrors = [
+    'src/utils/formSchemaValidator.ts:42:5: error TS2345: Argument of type \'unknown\' is not assignable to parameter of type \'ZodTypeAny\'.',
+    'src/components/operations/workOrder/WorkOrderForm.tsx:128:23: Type \'Date | undefined\' is not assignable to type \'Date\'.',
+    'src/services/workOrders/workOrderService.ts:56:18: Property \'site_id\' is optional in type but required in type.',
+    'src/components/hr/EmployeeForm.tsx:89:12: Cannot find name \'EmployeeFormValues\'.'
+  ];
   
   // Process each error
   const errorsByFile: Record<string, string[]> = {};
   
-  errors.forEach(error => {
+  mockErrors.forEach(error => {
     // Document the error
+    documentBuildError(error);
+    
+    // Extract file and message for analytics
     const errorInfo = captureBuildError(error);
     
     if (errorInfo) {
-      documentBuildError(error);
-      
-      // Add to errorsByFile for analytics
       if (!errorsByFile[errorInfo.file]) {
         errorsByFile[errorInfo.file] = [];
       }

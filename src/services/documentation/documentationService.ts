@@ -1,4 +1,3 @@
-
 /**
  * Documentation Service
  * 
@@ -7,7 +6,7 @@
 
 import { writeToStorage, readFromStorage } from '@/utils/localStorageManager';
 import { generatePathValidationReport } from '@/utils/documentationPathValidator';
-import { DOCUMENTATION_PATHS } from '@/utils/documentationManager';
+import { DOCUMENTATION_PATHS, ErrorEntry } from '@/utils/documentationManager';
 
 import {
   generateServiceDocumentation,
@@ -23,6 +22,59 @@ import { format } from 'date-fns';
 // Initialize the documentation system
 if (typeof window !== 'undefined') {
   initializeDocumentationSystem();
+}
+
+/**
+ * Documents an error entry in the error log
+ * @param errorEntry Error entry to document
+ */
+export async function documentError(errorEntry: ErrorEntry): Promise<void> {
+  console.info('Documenting error:', errorEntry.title);
+  
+  // Read existing error log
+  const errorLog = readFromStorage(DOCUMENTATION_PATHS.ERROR_LOG) || '';
+  
+  // Format the error entry
+  const currentDate = format(new Date(), 'yyyy-MM-dd');
+  const errorTemplate = `
+### ${errorEntry.title}
+
+**Status:** ${errorEntry.status}  
+**First Identified:** ${errorEntry.firstIdentified || currentDate}  
+**Last Updated:** ${currentDate}  
+**Severity:** ${errorEntry.severity || 'High'}  
+
+**Description:**
+${errorEntry.description}
+
+**Error Messages:**
+${errorEntry.errorMessages.map(msg => `- \`${msg}\``).join('\n')}
+
+**Root Cause Analysis:**
+${errorEntry.rootCause || 'Under investigation'}
+
+**Resolution Steps:**
+${errorEntry.resolutionSteps.map(step => 
+  `${step.completed ? '✅' : '⬜'} ${step.description}`
+).join('\n')}
+
+**Related Files:**
+${errorEntry.affectedFiles.map(file => `- ${file}`).join('\n')}
+
+---
+`;
+
+  // Insert the new error after the "Active Issues" header
+  const updatedErrorLog = errorLog.replace(
+    '## Active Issues',
+    '## Active Issues\n\n' + errorTemplate
+  );
+
+  // Write the updated error log
+  updateDocumentationFile(DOCUMENTATION_PATHS.ERROR_LOG, updatedErrorLog);
+  
+  console.info('Error documented successfully');
+  return Promise.resolve();
 }
 
 /**

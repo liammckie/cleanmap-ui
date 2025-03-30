@@ -1,10 +1,9 @@
-
 /**
  * Utility for capturing and logging global errors
  */
 import { logBrowserInfo, checkForBrowserCompatibilityIssues } from './browserInfo';
 import { diagnoseSyntaxError } from './syntaxChecker';
-import { documentError } from '@/services/documentation/documentationService';
+import { documentError, documentBuildError } from '@/services/documentation/documentationService';
 import { ErrorEntry } from '@/utils/documentationManager';
 import { writeToStorage, readFromStorage } from './localStorageManager';
 
@@ -278,7 +277,7 @@ export const captureBuildError = (errorMessage: string, filePath: string): void 
   }
   
   // Document the error
-  documentError(errorEntry).catch(err => {
+  documentBuildError(errorEntry).catch(err => {
     console.error('Failed to document build error:', err);
   });
 };
