@@ -20,7 +20,7 @@ export const initSentry = async () => {
     
     // Initialize with basic configuration first - always enabled
     Sentry.init({
-      dsn: "https://f3363aeeeeede88b10e39595a79554d3@o4509064558477312.ingest.us.sentry.io/4509064570798080",
+      dsn: "https://ffa7539c938a11e1a39a3bf96b87fb99@o4509064558477312.ingest.us.sentry.io/4509064656519168",
       integrations: [],
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
       tracesSampleRate: 1.0,

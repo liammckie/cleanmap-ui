@@ -54,8 +54,8 @@ export default defineConfig(async ({ mode }) => {
       mode === "development" && componentTagger(),
       // Use Sentry plugin in all environments if token is available
       sentryAuthToken && sentryVitePlugin({
-        org: "cleanmap",
-        project: "cleanmap-ui",
+        org: "liammckie",
+        project: "javascript-react",
         authToken: sentryAuthToken,
         telemetry: false,
         silent: false, // Set to false to see debug information during build
