@@ -30,8 +30,14 @@ const ErrorFallback = ({ error, resetError }: FallbackProps) => (
   </Alert>
 );
 
+// Ensure the ErrorFallback matches Sentry's expected type
+const SentryFallback: Sentry.FallbackRender = (props) => {
+  const { error, resetError } = props;
+  return <ErrorFallback error={error as Error} resetError={resetError} />;
+};
+
 export const SentryErrorBoundary = ({ children }: { children: React.ReactNode }) => (
-  <Sentry.ErrorBoundary fallback={ErrorFallback}>
+  <Sentry.ErrorBoundary fallback={SentryFallback}>
     {children}
   </Sentry.ErrorBoundary>
 );

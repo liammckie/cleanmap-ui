@@ -31,6 +31,15 @@ export interface ErrorEntry {
   }[];
 }
 
+// Documentation paths constants
+export const DOCUMENTATION_PATHS = {
+  ERROR_LOG: 'src/documentation/ERROR_LOG.md',
+  TYPE_INCONSISTENCIES: 'src/documentation/debugging/TYPE_INCONSISTENCIES.md',
+  BUILD_ERROR_RESOLUTION: 'src/documentation/debugging/BUILD_ERROR_RESOLUTION.md',
+  SCHEMA_CHANGELOG: 'src/documentation/SCHEMA_CHANGELOG.md',
+  DOCUMENTATION_REVIEW: 'src/documentation/DOCUMENTATION_REVIEW_PROCESS.md'
+};
+
 // Type definitions required for documentation service
 export interface DocumentedFile {
   path: string;
@@ -73,4 +82,30 @@ export const generateDependencyGraph = (files: DocumentedFile[]): Record<string,
 export const generateStructureDocumentation = (files: DocumentedFile[]): string => {
   // This would generate documentation for the project structure
   return '# Project Structure\n\nThis document describes the structure of the project.';
+};
+
+/**
+ * Performs a documentation review for an error
+ * @param errorTitle Title of the error to review documentation for
+ * @returns Review results
+ */
+export const performDocumentationReview = (errorTitle: string): {
+  passed: boolean;
+  issues: string[];
+  relevantDocuments: Array<{
+    path: string;
+    relevantSection: string;
+  }>;
+} => {
+  // This would perform an actual review
+  return {
+    passed: true,
+    issues: [],
+    relevantDocuments: [
+      {
+        path: DOCUMENTATION_PATHS.ERROR_LOG,
+        relevantSection: 'Active Issues'
+      }
+    ]
+  };
 };

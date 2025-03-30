@@ -14,7 +14,7 @@ import {
 // Type for work order creation
 export type WorkOrderCreate = {
   site_id: string;
-  title: string; // Make sure this is required, not optional
+  title: string;
   description: string;
   scheduled_start: string;
   due_date: string;
@@ -49,7 +49,7 @@ export const createWorkOrder = async (workOrderData: WorkOrderCreate) => {
       .insert({
         id: uuidv4(),
         site_id: workOrderData.site_id,
-        title: workOrderData.title, // Now title is guaranteed to exist
+        title: workOrderData.title,
         description: workOrderData.description,
         scheduled_start: workOrderData.scheduled_start,
         due_date: workOrderData.due_date,
@@ -78,7 +78,7 @@ export type WorkOrder = {
   description: string;
   scheduled_start: string;
   due_date: string;
-  priority: typeof workOrderPriorities[number];
+  priority: 'Low' | 'Medium' | 'High';  // Changed from workOrderPriorities to fix type error
   status: typeof workOrderStatuses[number];
   category: typeof workOrderCategories[number];
   contract_id?: string;
@@ -113,6 +113,11 @@ export const getAllWorkOrders = async (): Promise<{ data: WorkOrder[] | null; er
  */
 export const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>): Promise<{ data: WorkOrder[] | null; error: any }> => {
   try {
+    // Make sure priority is limited to the allowed values
+    if (updates.priority && !['Low', 'Medium', 'High'].includes(updates.priority)) {
+      throw new Error(`Invalid priority: ${updates.priority}. Must be one of: Low, Medium, High`);
+    }
+    
     const { data, error } = await supabase
       .from('work_orders')
       .update(updates)
