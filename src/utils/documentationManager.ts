@@ -19,7 +19,10 @@ export const DOCUMENTATION_PATHS = {
   BUILD_ERROR_RESOLUTION: 'src/documentation/debugging/BUILD_ERROR_RESOLUTION.md',
   DOCUMENTATION_REVIEW: 'src/documentation/DOCUMENTATION_REVIEW_PROCESS.md',
   SCHEMA_CHANGELOG: 'src/documentation/SCHEMA_CHANGELOG.md',
-  DATABASE_RULES: 'src/documentation/DATABASE_RULES.md'
+  DATABASE_RULES: 'src/documentation/DATABASE_RULES.md',
+  ARCHITECTURE: 'src/documentation/architecture.md',
+  SERVICES_INDEX: 'src/documentation/services/index.md',
+  PROJECT_STRUCTURE: 'src/documentation/structure.md'
 };
 
 /**
@@ -720,6 +723,200 @@ export const createDocumentationReference = (
   } else {
     console.warn(`Section "${sourceSection}" not found in ${sourcePath}`);
   }
+};
+
+// Add new function to check for file path issues in documentation
+export const validateDocumentationFileReferences = (): Map<string, string[]> => {
+  const invalidPaths = new Map<string, string[]>();
+  
+  // For each documentation file, check file references
+  Object.values(DOCUMENTATION_PATHS).forEach(docPath => {
+    const content = readDocumentationFile(docPath);
+    const filePathRegex = /`(src\/[^`]+\.[a-z]+)`/g;
+    const matches = Array.from(content.matchAll(filePathRegex));
+    
+    const referencedPaths = matches.map(match => match[1]);
+    // In a real implementation, this would check if the file exists
+    // For now, we'll assume some paths don't exist
+    const invalidPathsInDoc = referencedPaths.filter(path => !checkFileExists(path));
+    
+    if (invalidPathsInDoc.length > 0) {
+      invalidPaths.set(docPath, invalidPathsInDoc);
+    }
+  });
+  
+  return invalidPaths;
+};
+
+// Helper function to check if a file exists
+// In a real implementation, this would check the filesystem
+// For now, we'll use a mock implementation
+const checkFileExists = (path: string): boolean => {
+  // Mock implementation - in reality would check the file system
+  const knownFiles = [
+    'src/components/operations/workOrder/WorkOrderForm.tsx',
+    'src/schema/operations/workOrder.schema.ts',
+    'src/services/workOrders/workOrderService.ts'
+  ];
+  
+  return knownFiles.includes(path);
+};
+
+// Add function to generate service documentation
+export const generateServiceDocs = async () => {
+  console.log('Generating service documentation');
+  
+  // In a real implementation, this would scan the services directory
+  // For now, we'll generate docs for a few known services
+  const services = [
+    'src/services/workOrders/workOrderService.ts',
+    'src/services/clients/clientService.ts'
+  ];
+  
+  // In a real implementation, this would read the file content
+  // For now, we'll use a mock implementation
+  const generateMockDocForService = (servicePath: string) => {
+    const serviceName = servicePath.split('/').pop()?.replace('.ts', '') || '';
+    
+    let documentation = `# ${serviceName}\n\n`;
+    documentation += `Path: \`${servicePath}\`\n\n`;
+    documentation += `## Overview\n\n`;
+    documentation += `This service provides functionality for managing ${servicePath.includes('workOrders') ? 'work orders' : 'clients'}.\n\n`;
+    
+    documentation += `## Functions\n\n`;
+    documentation += `### get${serviceName.charAt(0).toUpperCase() + serviceName.slice(1, -7)}\n\n`;
+    documentation += `Fetches ${servicePath.includes('workOrders') ? 'work orders' : 'clients'} from the database.\n\n`;
+    
+    documentation += `### create${serviceName.charAt(0).toUpperCase() + serviceName.slice(1, -7)}\n\n`;
+    documentation += `Creates a new ${servicePath.includes('workOrders') ? 'work order' : 'client'} in the database.\n\n`;
+    
+    return documentation;
+  };
+  
+  // Generate docs for each service
+  services.forEach(servicePath => {
+    const documentation = generateMockDocForService(servicePath);
+    const docPath = `src/documentation/services/${servicePath.split('/').slice(-2)[0]}/${servicePath.split('/').pop()?.replace('.ts', '')}.md`;
+    
+    // Write the documentation
+    writeDocumentationFile(docPath, documentation);
+  });
+  
+  // Generate services index
+  const indexDoc = `# Services Documentation\n\n## Available Services\n\n`;
+  writeDocumentationFile('src/documentation/services/index.md', indexDoc);
+  
+  console.log('Service documentation generated');
+};
+
+// Add function to automatically update documentation on errors
+export const updateDocumentationOnError = (error: Error, context: string) => {
+  console.log(`Updating documentation for error in ${context}`);
+  
+  // Check if this is a type error
+  if (error.message.includes('type') || error.message.includes('Type')) {
+    // Update the TYPE_INCONSISTENCIES.md file
+    const typeDocPath = DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES;
+    const typeDoc = readDocumentationFile(typeDocPath);
+    
+    const errorSection = `
+## New Type Error: ${error.message.substring(0, 50)}
+
+**Context:** ${context}
+**Error Message:** ${error.message}
+**Stack Trace:** ${error.stack || 'No stack trace available'}
+
+### Analysis
+
+This appears to be a type inconsistency issue. The error message suggests that there might be a mismatch between expected types.
+
+### Recommended Solution
+
+Review the types in ${context} and ensure they match the expected types.
+
+---
+
+`;
+    
+    // Add the new error section to the TYPE_INCONSISTENCIES.md file
+    writeDocumentationFile(typeDocPath, typeDoc + errorSection);
+  }
+  
+  // Also add to the ERROR_LOG.md file
+  const errorLogPath = DOCUMENTATION_PATHS.ERROR_LOG;
+  const errorLog = readDocumentationFile(errorLogPath);
+  
+  const currentDate = new Date().toISOString().split('T')[0];
+  
+  const errorEntry = `
+### Error in ${context}: ${error.message.substring(0, 50)}
+
+**Status:** Investigating  
+**First Identified:** ${currentDate}  
+**Last Updated:** ${currentDate}  
+**Severity:** High  
+
+**Description:**
+Runtime error in ${context}
+
+**Error Messages:**
+- \`${error.message}\`
+
+**Root Cause Analysis:**
+Under investigation
+
+**Resolution Steps:**
+⬜ Investigate error source
+⬜ Fix root cause
+⬜ Add tests to prevent regression
+
+**Related Files:**
+- ${context}
+
+---
+`;
+  
+  // Add the new error entry to the ERROR_LOG.md file
+  const updatedErrorLog = errorLog.replace(
+    '## Active Issues',
+    '## Active Issues\n\n' + errorEntry
+  );
+  
+  writeDocumentationFile(errorLogPath, updatedErrorLog);
+  
+  console.log('Documentation updated');
+};
+
+// Function to check how up-to-date documentation is
+export const checkDocumentationFreshness = () => {
+  const docs = Object.values(DOCUMENTATION_PATHS).map(path => {
+    const content = readDocumentationFile(path);
+    
+    // Look for a "Last Updated" line
+    const lastUpdatedMatch = content.match(/Last Updated: (\d{4}-\d{2}-\d{2})/);
+    const lastUpdated = lastUpdatedMatch ? new Date(lastUpdatedMatch[1]) : null;
+    
+    // Calculate age in days
+    const now = new Date();
+    const ageInDays = lastUpdated ? Math.floor((now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24)) : null;
+    
+    return {
+      path,
+      lastUpdated,
+      ageInDays,
+      stale: ageInDays !== null && ageInDays > 30
+    };
+  });
+  
+  return docs;
+};
+
+// Export new functions
+export const documentationUtils = {
+  validateDocumentationFileReferences,
+  generateServiceDocs,
+  updateDocumentationOnError,
+  checkDocumentationFreshness
 };
 
 // Export a function to add runtime error capture

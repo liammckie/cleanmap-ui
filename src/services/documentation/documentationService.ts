@@ -1,4 +1,3 @@
-
 /**
  * Documentation Service
  * 
@@ -14,14 +13,224 @@ import {
   createDocumentationReference,
   DOCUMENTATION_PATHS,
   type ErrorEntry,
-  initializeDocumentationSystem
+  initializeDocumentationSystem,
+  documentationUtils
 } from '@/utils/documentationManager';
+
+import { validateDocumentationPaths, generatePathValidationReport } from '@/utils/documentationPathValidator';
+
+import {
+  generateServiceDocumentation,
+  generateStructureDocumentation,
+  updateDocumentationFile,
+  generateServicesIndex,
+  generateDocumentationArchive
+} from '@/utils/documentationGenerator';
+
 import { captureBuildError } from '@/utils/errorCapture';
 import { format } from 'date-fns';
 
 // Initialize the documentation system
 if (typeof window !== 'undefined') {
   initializeDocumentationSystem();
+}
+
+/**
+ * Validates all documentation file paths and generates a report
+ * @returns Report of invalid file paths
+ */
+export async function validateDocumentation(): Promise<string> {
+  console.info('Validating documentation file paths');
+  
+  // Validate documentation file paths
+  const report = generatePathValidationReport();
+  
+  // Save the report to the documentation
+  updateDocumentationFile('src/documentation/validation-report.md', report);
+  
+  return report;
+}
+
+/**
+ * Automatically generates documentation for all services
+ */
+export async function generateAllServiceDocumentation(): Promise<void> {
+  console.info('Generating documentation for all services');
+  
+  // In a real implementation, this would scan the services directory
+  // For now, we'll generate docs for a few known services
+  const services = [
+    {
+      path: 'src/services/workOrders/workOrderService.ts',
+      code: `
+/**
+ * @description Fetches work orders from the database
+ * @param filter Filter criteria
+ * @returns Array of work orders
+ */
+export async function getWorkOrders(filter: WorkOrderFilter) {
+  // Implementation
+}
+
+/**
+ * @description Creates a new work order
+ * @param {WorkOrder} workOrder Work order data
+ * @returns Created work order
+ */
+export async function createWorkOrder(workOrder: WorkOrder) {
+  // Implementation
+}
+      `
+    },
+    {
+      path: 'src/services/clients/clientService.ts',
+      code: `
+/**
+ * @description Fetches clients from the database
+ * @param {ClientFilter} filter Filter criteria
+ * @returns Array of clients
+ */
+export async function getClients(filter: ClientFilter) {
+  // Implementation
+}
+
+/**
+ * @description Creates a new client
+ * @param {Client} client Client data
+ * @returns Created client
+ */
+export async function createClient(client: Client) {
+  // Implementation
+}
+      `
+    }
+  ];
+  
+  // Generate documentation for each service
+  for (const service of services) {
+    const documentation = generateServiceDocumentation(service.path, service.code);
+    const domain = service.path.split('/').slice(-2)[0];
+    const filename = service.path.split('/').pop()?.replace('.ts', '') || '';
+    const docPath = `src/documentation/services/${domain}/${filename}.md`;
+    
+    // Create the documentation file
+    updateDocumentationFile(docPath, documentation);
+  }
+  
+  // Generate services index
+  const indexDoc = generateServicesIndex(services.map(s => s.path));
+  updateDocumentationFile('src/documentation/services/index.md', indexDoc);
+  
+  console.info('Service documentation generated');
+}
+
+/**
+ * Generates documentation for the project structure
+ */
+export async function generateStructureDocumentation(): Promise<void> {
+  console.info('Generating project structure documentation');
+  
+  // Mock structure object
+  const structure = [
+    {
+      name: 'src',
+      type: 'folder',
+      children: [
+        {
+          name: 'components',
+          type: 'folder',
+          children: [
+            { name: 'common', type: 'folder' },
+            { name: 'hr', type: 'folder' },
+            { name: 'operations', type: 'folder' },
+            { name: 'ui', type: 'folder' }
+          ]
+        },
+        {
+          name: 'pages',
+          type: 'folder',
+          children: [
+            { name: 'Index.tsx', type: 'file' },
+            { name: 'Dashboard.tsx', type: 'file' },
+            { name: 'Documentation.tsx', type: 'file' }
+          ]
+        },
+        {
+          name: 'services',
+          type: 'folder',
+          children: [
+            { name: 'clients', type: 'folder' },
+            { name: 'workOrders', type: 'folder' },
+            { name: 'employees', type: 'folder' }
+          ]
+        }
+      ]
+    }
+  ];
+  
+  // Generate structure documentation
+  const documentation = generateStructureDocumentation(structure);
+  updateDocumentationFile(DOCUMENTATION_PATHS.PROJECT_STRUCTURE, documentation);
+  
+  console.info('Project structure documentation generated');
+}
+
+/**
+ * Generates a downloadable archive of all documentation
+ * @returns URL for downloading the archive
+ */
+export async function generateDocumentationArchiveForDownload(): Promise<string> {
+  console.info('Generating documentation archive for download');
+  
+  // Generate the archive
+  const archiveBlob = generateDocumentationArchive();
+  
+  // Create a URL for the blob
+  const url = URL.createObjectURL(archiveBlob);
+  
+  return url;
+}
+
+/**
+ * Checks how up-to-date all documentation is
+ * @returns Array of documentation status objects
+ */
+export async function checkDocumentationFreshness(): Promise<Array<{
+  path: string;
+  lastUpdated: Date | null;
+  ageInDays: number | null;
+  stale: boolean;
+}>> {
+  console.info('Checking documentation freshness');
+  
+  return documentationUtils.checkDocumentationFreshness();
+}
+
+/**
+ * Sets up automated documentation generation
+ */
+export function setupAutomatedDocumentation(): void {
+  console.info('Setting up automated documentation generation');
+  
+  // In a real implementation, this would set up interval-based checks
+  // For now, we'll just log a message
+  
+  // Generate service documentation on startup
+  setTimeout(() => {
+    generateAllServiceDocumentation();
+  }, 5000);
+  
+  // Validate documentation paths on startup
+  setTimeout(() => {
+    validateDocumentation();
+  }, 10000);
+  
+  // Generate structure documentation on startup
+  setTimeout(() => {
+    generateStructureDocumentation();
+  }, 15000);
+  
+  console.info('Automated documentation generation scheduled');
 }
 
 /**

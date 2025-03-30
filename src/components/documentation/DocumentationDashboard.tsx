@@ -5,10 +5,10 @@ import { readFromStorage } from '@/utils/localStorageManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { DocumentationStructureView } from './DocumentationStructureView';
 
 export function DocumentationDashboard() {
   const [activeTab, setActiveTab] = useState('errors');
@@ -16,6 +16,7 @@ export function DocumentationDashboard() {
   const [typeInconsistencies, setTypeInconsistencies] = useState<string>('');
   const [buildErrors, setBuildErrors] = useState<string>('');
   const [schemaChangelog, setSchemaChangelog] = useState<string>('');
+  const [architecture, setArchitecture] = useState<string>('');
   const [activeErrors, setActiveErrors] = useState<Array<{title: string, status: string}>>([]);
   const [resolvedErrors, setResolvedErrors] = useState<Array<{title: string, date: string}>>([]);
   
@@ -25,11 +26,13 @@ export function DocumentationDashboard() {
     const typeContent = readFromStorage(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES) || '';
     const buildContent = readFromStorage(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION) || '';
     const schemaContent = readFromStorage(DOCUMENTATION_PATHS.SCHEMA_CHANGELOG) || '';
+    const architectureContent = readFromStorage('src/documentation/architecture.md') || '';
     
     setErrorLog(errorLogContent);
     setTypeInconsistencies(typeContent);
     setBuildErrors(buildContent);
     setSchemaChangelog(schemaContent);
+    setArchitecture(architectureContent);
     
     // Parse active errors
     const activeMatches = errorLogContent.matchAll(/### (.+?)\n\n\*\*Status:\*\* (Investigating|In Progress)/g);
@@ -77,6 +80,8 @@ export function DocumentationDashboard() {
           <TabsTrigger value="types">Type Inconsistencies</TabsTrigger>
           <TabsTrigger value="build">Build Error Resolution</TabsTrigger>
           <TabsTrigger value="schema">Schema Changelog</TabsTrigger>
+          <TabsTrigger value="architecture">Architecture</TabsTrigger>
+          <TabsTrigger value="structure">Structure</TabsTrigger>
         </TabsList>
         
         <TabsContent value="errors">
@@ -162,6 +167,12 @@ export function DocumentationDashboard() {
                       {schemaChangelog ? 'Available' : 'Missing'}
                     </Badge>
                   </li>
+                  <li className="flex items-center justify-between">
+                    <span>Architecture</span>
+                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                      {architecture ? 'Available' : 'Missing'}
+                    </Badge>
+                  </li>
                 </ul>
               </CardContent>
             </Card>
@@ -216,6 +227,23 @@ export function DocumentationDashboard() {
               </ScrollArea>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="architecture">
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Architecture</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+                <pre className="text-sm whitespace-pre-wrap">{architecture}</pre>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="structure">
+          <DocumentationStructureView />
         </TabsContent>
       </Tabs>
     </div>
