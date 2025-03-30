@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
+import { formatISO } from 'date-fns'
 import { 
   WorkOrderFormValues, 
   workOrderSchema,
@@ -103,15 +104,35 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
       setIsSubmitting(true)
 
       if (isEditing && initialData && 'id' in initialData) {
+        // Format dates as ISO strings for API
+        const formattedData = {
+          ...data,
+          scheduled_start: formatISO(data.scheduled_start),
+          due_date: formatISO(data.due_date)
+        };
+        
         // Update existing work order
-        await updateWorkOrder(initialData.id as string, data)
+        await updateWorkOrder(initialData.id as string, formattedData)
         toast({
           title: 'Work Order Updated',
           description: 'The work order has been successfully updated.',
         })
       } else {
+        // Ensure site_id is provided and convert dates to strings for API
+        if (!data.site_id) {
+          throw new Error('Site ID is required for work orders');
+        }
+        
+        const createData = {
+          ...data,
+          site_id: data.site_id, // Explicitly include required field
+          description: data.description || '', // Ensure description is not undefined
+          scheduled_start: formatISO(data.scheduled_start),
+          due_date: formatISO(data.due_date)
+        };
+        
         // Create new work order
-        await createWorkOrder(data)
+        await createWorkOrder(createData)
         form.reset() // Clear form after successful creation
         toast({
           title: 'Work Order Created',

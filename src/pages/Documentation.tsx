@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentationDashboard } from "@/components/documentation/DocumentationDashboard";
 import { DocumentationStructureView } from "@/components/documentation/DocumentationStructureView";
 import { ErrorAnalytics } from "@/components/documentation/ErrorAnalytics";
+import { DocumentationNode } from "@/utils/documentationManager";
 
-// Mock structure for demo purposes
-const mockStructure = [
+// Mock structure for demo purposes - fixed with correct type literals
+const mockStructure: DocumentationNode[] = [
   {
     name: 'src',
     type: 'directory',

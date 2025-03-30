@@ -13,12 +13,12 @@ export const WORK_ORDER_STATUSES = [
 
 /**
  * Work order priority levels
+ * Note: Only using Low, Medium, High to match database constraints
  */
 export const WORK_ORDER_PRIORITIES = [
   'Low', 
   'Medium', 
-  'High', 
-  'Critical'
+  'High'
 ] as const
 
 /**

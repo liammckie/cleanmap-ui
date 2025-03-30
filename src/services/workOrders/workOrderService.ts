@@ -11,14 +11,14 @@ import {
   WORK_ORDER_STATUSES as workOrderStatuses 
 } from '@/constants/workOrders';
 
-// Type for work order creation
+// Type for work order creation - ensure site_id is required
 export type WorkOrderCreate = {
   site_id: string;
   title: string;
   description: string;
   scheduled_start: string;
   due_date: string;
-  priority?: typeof workOrderPriorities[number];
+  priority?: 'Low' | 'Medium' | 'High'; // Remove "Critical" to match DB constraints
   status?: typeof workOrderStatuses[number];
   category: typeof workOrderCategories[number];
   contract_id?: string;
@@ -34,14 +34,22 @@ export const createWorkOrder = async (workOrderData: WorkOrderCreate) => {
       throw new Error('Work order title is required');
     }
     
+    // Ensure site_id is present
+    if (!workOrderData.site_id) {
+      throw new Error('Site ID is required for work orders');
+    }
+    
     // Set default status if not provided
     if (!workOrderData.status) {
       workOrderData.status = 'Scheduled';
     }
     
-    // Set default priority if not provided
+    // Set default priority if not provided or validate it
     if (!workOrderData.priority) {
       workOrderData.priority = 'Medium';
+    } else if (!['Low', 'Medium', 'High'].includes(workOrderData.priority)) {
+      // Ensure priority is one of the allowed values
+      workOrderData.priority = 'Medium'; // Default to Medium if invalid
     }
     
     const { data, error } = await supabase
@@ -78,7 +86,7 @@ export type WorkOrder = {
   description: string;
   scheduled_start: string;
   due_date: string;
-  priority: 'Low' | 'Medium' | 'High';  // Changed from workOrderPriorities to fix type error
+  priority: 'Low' | 'Medium' | 'High';  // Match DB constraints
   status: typeof workOrderStatuses[number];
   category: typeof workOrderCategories[number];
   contract_id?: string;
