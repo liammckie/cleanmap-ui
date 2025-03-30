@@ -1,3 +1,4 @@
+
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
@@ -9,7 +10,7 @@ import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/
 import { setupMockEmployeeApi } from './utils/employeeDebug.ts'
 import { setupConsoleErrorCapture, simulateBuildErrorCapture } from './utils/buildErrorCapture.ts'
 
-// Initialize Sentry right away - no need to make it async
+// Initialize Sentry right away
 initSentry();
 
 // Set up global error capturing

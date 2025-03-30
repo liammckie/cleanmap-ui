@@ -17,12 +17,16 @@ export const initSentry = (): void => {
         integrations: [
           new BrowserTracing({
             routingInstrumentation: reactRouterV6Instrumentation(
-              // Using correct arguments for reactRouterV6Instrumentation
-              history => history,
+              // Correctly provide the history callback
+              (history) => history,
+              // Provide empty routes array - will be populated at runtime
               [] as RouteObject[],
+              // Provide options object with routeFilter
               {
-                // Additional options
-                routeFilter: () => true,
+                routeFilter: (route) => {
+                  // Include all routes by default
+                  return true;
+                }
               }
             ),
           }),
