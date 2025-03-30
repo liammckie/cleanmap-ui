@@ -1,34 +1,31 @@
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 
 interface SiteErrorStateProps {
-  error: Error | unknown
+  error: Error | null
 }
 
 const SiteErrorState: React.FC<SiteErrorStateProps> = ({ error }) => {
   const navigate = useNavigate()
 
   return (
-    <div className="container mx-auto py-6">
-      <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Sites
-      </Button>
-      <Card className="p-6 text-center">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <h2 className="text-xl font-bold">Error Loading Site</h2>
-          <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'Failed to load site details'}
-          </p>
-          <Button className="mt-4" onClick={() => navigate('/operations/site-list')}>
-            Return to Sites List
-          </Button>
-        </div>
-      </Card>
+    <div className="container mx-auto py-16 flex flex-col items-center justify-center max-w-md text-center">
+      <AlertCircle className="h-16 w-16 text-destructive mb-4" />
+      <h1 className="text-2xl font-bold mb-2">Unable to load site</h1>
+      <p className="text-muted-foreground mb-6">
+        {error?.message || "We couldn't find the site you're looking for. It may have been deleted or you may not have permission to view it."}
+      </p>
+      <div className="flex gap-4">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Go Back
+        </Button>
+        <Button onClick={() => navigate('/operations/sites')}>
+          View All Sites
+        </Button>
+      </div>
     </div>
   )
 }
