@@ -1,10 +1,9 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
@@ -34,7 +33,7 @@ export default defineConfig(async ({ mode }) => {
         );
         
         if (response.ok) {
-          const responseData = await response.json() as { token: string };
+          const responseData = await response.json();
           sentryAuthToken = responseData.token;
           console.log("Successfully retrieved Sentry token for build");
         } else {
@@ -60,14 +59,6 @@ export default defineConfig(async ({ mode }) => {
       port: 8080,
     },
     plugins: [
-    sentryVitePlugin({
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      org: "liammckie",
-      project: "javascript-react",
-      release: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
-      include: "./dist",
-      url: "https://sentry.io/"
-    }),
       react(),
       mode === "development" && componentTagger(),
       // Use Sentry plugin in all environments if token is available
@@ -75,6 +66,9 @@ export default defineConfig(async ({ mode }) => {
         org: "liammckie",
         project: "javascript-react",
         authToken: sentryAuthToken,
+        release: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
+        include: "./dist",
+        url: "https://sentry.io/",
         telemetry: false,
         silent: false, // Set to false to see debug information during build
       }),

@@ -13,6 +13,22 @@ serve(async (req) => {
   }
 
   try {
+    // Get the authorization header
+    const authorization = req.headers.get('Authorization');
+    if (!authorization) {
+      console.error("Missing Authorization header");
+      return new Response(
+        JSON.stringify({ 
+          error: "Missing Authorization header",
+          message: "Please provide an Authorization header with Bearer token"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
+    }
+
     // Get the Sentry auth token from secrets
     const sentryAuthToken = Deno.env.get("SENTRY_AUTH_TOKEN");
     console.log("Attempting to retrieve Sentry token");
@@ -22,8 +38,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: "SENTRY_AUTH_TOKEN not found in secrets",
-          message: "Please add the SENTRY_AUTH_TOKEN to your Supabase secrets",
-          secretsAvailable: Object.keys(Deno.env.toObject()).filter(key => !key.includes("PATH")).join(", ")
+          message: "Please add the SENTRY_AUTH_TOKEN to your Supabase secrets"
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
