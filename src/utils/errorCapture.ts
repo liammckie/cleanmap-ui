@@ -4,12 +4,20 @@
  */
 import { logBrowserInfo, checkForBrowserCompatibilityIssues } from './browserInfo';
 import { diagnoseSyntaxError } from './syntaxChecker';
+import { initializeDocumentationSystem } from './documentationManager';
+import { setupBuildErrorMonitoring } from '@/services/documentation/documentationService';
 
 /**
  * Sets up global error handlers to capture and log errors
  * that might be missed by the React error boundary
  */
 export const captureGlobalErrors = () => {
+  // Initialize the documentation system
+  initializeDocumentationSystem();
+  
+  // Set up monitoring for build errors to update documentation
+  setupBuildErrorMonitoring();
+  
   // Log browser information on startup
   logBrowserInfo();
   
@@ -117,4 +125,25 @@ export const safeTry = <T>(fn: () => T, fallback: T, errorHandler?: (error: unkn
     }
     return fallback;
   }
+};
+
+/**
+ * Logs an application error and updates documentation
+ * @param error The error object
+ * @param context Additional context about where the error occurred
+ */
+export const logAndDocumentError = (error: Error, context: {
+  component?: string;
+  operation?: string;
+  additionalInfo?: Record<string, any>;
+}): void => {
+  // Log the error to the console
+  console.error('Application error:', {
+    message: error.message,
+    stack: error.stack,
+    ...context
+  });
+  
+  // In a production environment, this would update the documentation
+  console.info('Would document this error in ERROR_LOG.md');
 };
