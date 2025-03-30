@@ -1,10 +1,15 @@
+
 /**
  * Work Order Service
  */
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { formatISO } from 'date-fns';
-import { workOrderPriorities, workOrderCategories, workOrderStatuses } from '@/constants/workOrders';
+import { 
+  WORK_ORDER_PRIORITIES as workOrderPriorities, 
+  WORK_ORDER_CATEGORIES as workOrderCategories, 
+  WORK_ORDER_STATUSES as workOrderStatuses 
+} from '@/constants/workOrders';
 
 // Type for work order creation
 export type WorkOrderCreate = {

@@ -1,3 +1,4 @@
+
 /**
  * Documentation Service
  * 
@@ -5,22 +6,14 @@
  * including component hierarchy, data flow, and error reporting
  */
 
-import fs from 'fs';
-import path from 'path';
+import { format } from 'date-fns';
 import {
-  parseCodeStructure,
-  DocumentedFile,
-  Component,
   DocumentationNode,
   ErrorEntry,
-  DocumentationSystem,
-  generateFileTreeMarkdown,
-  generateDependencyGraph,
-  generateStructureDocumentation
+  DocumentationSystem
 } from '@/utils/documentationManager';
 
-import { captureBuildError } from '@/utils/buildErrorCapture';
-import { format } from 'date-fns';
+import { Sentry } from '@/utils/sentryInit';
 
 // Initialize the documentation system
 const documentationSystem: DocumentationSystem = {
@@ -35,6 +28,18 @@ const documentationSystem: DocumentationSystem = {
  * @param errorEntry Error entry to document
  */
 export const documentError = async (errorEntry: ErrorEntry): Promise<void> => {
+  // Track error in Sentry
+  Sentry.captureMessage(`Documented error: ${errorEntry.title}`, {
+    level: 'error',
+    contexts: {
+      error: {
+        description: errorEntry.description,
+        affectedFiles: errorEntry.affectedFiles.join(', '),
+        status: errorEntry.status
+      }
+    }
+  });
+  
   documentationSystem.errors.push({
     ...errorEntry,
     timestamp: new Date()
@@ -53,6 +58,35 @@ export const documentError = async (errorEntry: ErrorEntry): Promise<void> => {
   
   return Promise.resolve();
 };
+
+/**
+ * Process a build error string and extract relevant information
+ */
+interface BuildErrorInfo {
+  file: string;
+  line: number;
+  column: number;
+  message: string;
+  originalMessage: string;
+}
+
+export function captureBuildError(error: string): BuildErrorInfo | null {
+  // Extract file path, line, and column info from error message
+  const regex = /([^(]+)\((\d+),(\d+)\):\s+(.+)/;
+  const match = error.match(regex);
+  
+  if (!match) {
+    return null;
+  }
+  
+  return {
+    file: match[1].trim(),
+    line: parseInt(match[2], 10),
+    column: parseInt(match[3], 10),
+    message: match[4].trim(),
+    originalMessage: error
+  };
+}
 
 /**
  * Automatically documents a build error
@@ -110,6 +144,18 @@ export function documentBuildError(error: string | ErrorEntry): void {
       }
     ]
   };
+  
+  // Track in Sentry
+  Sentry.captureMessage(`Build Error: ${errorInfo.message}`, {
+    level: 'error',
+    contexts: {
+      buildError: {
+        file: errorInfo.file,
+        line: errorInfo.line,
+        column: errorInfo.column
+      }
+    }
+  });
   
   // Add error to documentation system
   documentError(errorEntry).catch(err => {
@@ -228,7 +274,7 @@ function generateErrorsMarkdown(errors: (ErrorEntry & { timestamp?: Date })[]): 
     });
   }
   
-  // Add maintenance guidelines
+  // Add maintenance guidelines section
   markdown += `## Error Log Maintenance Guidelines\n\n`;
   markdown += `### Adding New Issues\n\n`;
   markdown += `When adding a new issue to the log:\n\n`;
