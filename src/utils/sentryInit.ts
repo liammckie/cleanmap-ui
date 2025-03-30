@@ -1,3 +1,4 @@
+
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
@@ -14,7 +15,19 @@ export const initSentry = (): void => {
         dsn: import.meta.env.VITE_SENTRY_DSN,
         integrations: [
           new BrowserTracing({
-            routingInstrumentation: reactRouterV6Instrumentation(),
+            // Explicitly pass an empty options object if no specific routing configuration is needed
+            routingInstrumentation: reactRouterV6Instrumentation({
+              // Provide minimal required options
+              useEffect: React.useEffect,
+              useLocation: () => {
+                const location = window.location;
+                return {
+                  pathname: location.pathname,
+                  search: location.search,
+                  hash: location.hash,
+                };
+              },
+            }),
           }),
         ],
         tracesSampleRate: 1.0,
