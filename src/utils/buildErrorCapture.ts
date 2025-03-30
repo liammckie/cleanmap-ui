@@ -2,122 +2,87 @@
 /**
  * Build Error Capture Utility
  * 
- * Monitors TypeScript build errors and automatically documents them
+ * Provides functionality to capture and parse build errors
  */
-import { captureBuildError } from './errorCapture';
 
-// Error message pattern for TypeScript errors
-const TS_ERROR_PATTERN = /([^()\n:]+\.ts\w*):(\d+):(\d+)(?:: error TS\d+:)?\s*(.*)/;
+import { documentBuildError } from '@/services/documentation/documentationService';
+import { trackErrors } from '@/utils/errorAnalytics';
 
 /**
- * Parses TypeScript error messages
- * @param errorOutput Raw error output from compiler
- * @returns Structured error information
+ * Captures and documents a build error
+ * @param errorMessage Build error message
+ * @returns Parsed error info
  */
-export function parseTypeScriptErrors(errorOutput: string): Array<{
-  filePath: string;
+export function captureBuildError(errorMessage: string): {
+  message: string;
+  file: string;
   line: number;
   column: number;
-  message: string;
-}> {
-  const errors = [];
-  const lines = errorOutput.split('\n');
+  originalMessage: string;
+} | null {
+  console.info('Capturing build error');
   
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const match = line.match(TS_ERROR_PATTERN);
-    
-    if (match) {
-      const [_, filePath, lineNum, colNum, message] = match;
-      errors.push({
-        filePath,
-        line: parseInt(lineNum, 10),
-        column: parseInt(colNum, 10),
-        message: message.trim()
-      });
-    }
+  // Simple regex to extract error details
+  const errorRegex = /(.+):(\d+):(\d+): (.+)/;
+  const match = errorMessage.match(errorRegex);
+  
+  if (!match) {
+    console.warn('Could not parse error message:', errorMessage);
+    return null;
   }
   
-  return errors;
+  const [, file, line, column, message] = match;
+  
+  // Create error info object
+  const errorInfo = {
+    message,
+    file,
+    line: parseInt(line, 10),
+    column: parseInt(column, 10),
+    originalMessage: errorMessage
+  };
+  
+  // Record errors for analytics
+  const errorsByFile: Record<string, string[]> = {
+    [file]: [message]
+  };
+  trackErrors(errorsByFile);
+  
+  console.info('Build error captured:', errorInfo);
+  
+  return errorInfo;
 }
 
 /**
- * Processes a collection of TypeScript errors and adds them to documentation
- * @param errorOutput Raw output from TypeScript compiler
+ * Simulates capturing build errors for testing
+ * @param errors Array of error messages to simulate
  */
-export function processBuildErrors(errorOutput: string): void {
-  console.info('Processing TypeScript build errors');
+export function simulateBuildErrorCapture(errors: string[]): void {
+  console.info('Simulating build error capture for', errors.length, 'errors');
   
-  const errors = parseTypeScriptErrors(errorOutput);
-  
-  if (errors.length === 0) {
-    console.info('No TypeScript errors found');
-    return;
-  }
-  
-  console.info(`Found ${errors.length} TypeScript errors`);
-  
-  // Group errors by file
+  // Process each error
   const errorsByFile: Record<string, string[]> = {};
   
   errors.forEach(error => {
-    const { filePath, message } = error;
-    if (!errorsByFile[filePath]) {
-      errorsByFile[filePath] = [];
-    }
-    errorsByFile[filePath].push(message);
-  });
-  
-  // Document each file's errors
-  Object.entries(errorsByFile).forEach(([filePath, messages]) => {
-    messages.forEach(message => {
-      captureBuildError(message, filePath);
-    });
-  });
-}
-
-/**
- * Simulated build error capture for development environment
- * In a real implementation, this would be connected to the build process
- * @param sampleErrors Array of sample error messages for testing
- */
-export function simulateBuildErrorCapture(sampleErrors?: string[]): void {
-  console.info('Simulating build error capture');
-  
-  // Default sample errors if none provided
-  const errors = sampleErrors || [
-    'src/utils/formSchemaValidator.ts:42:5: error TS2345: Argument of type \'unknown\' is not assignable to parameter of type \'ZodTypeAny\'.',
-    'src/components/operations/workOrder/WorkOrderForm.tsx:128:23: Type \'Date | undefined\' is not assignable to type \'Date\'.',
-    'src/services/workOrders/workOrderService.ts:56:18: Property \'site_id\' is optional in type but required in type.'
-  ];
-  
-  // Process the sample errors
-  processBuildErrors(errors.join('\n'));
-}
-
-// Setup to capture console errors that might be TypeScript-related
-export function setupConsoleErrorCapture(): void {
-  const originalConsoleError = console.error;
-  console.error = function(...args) {
-    // Call the original console.error
-    originalConsoleError.apply(console, args);
+    // Document the error
+    const errorInfo = captureBuildError(error);
     
-    // Check if this might be a TypeScript error
-    const errorMsg = args.join(' ');
-    if (
-      errorMsg.includes('error TS') || 
-      errorMsg.includes('Type ') && errorMsg.includes(' is not assignable to type ')
-    ) {
-      // Try to parse as TypeScript error
-      const errors = parseTypeScriptErrors(errorMsg);
-      if (errors.length > 0) {
-        errors.forEach(error => {
-          captureBuildError(error.message, error.filePath);
-        });
-      } else {
-        // If we couldn't parse, just capture the raw message
-        captureBuildError(errorMsg, 'unknown');
+    if (errorInfo) {
+      documentBuildError(error);
+      
+      // Add to errorsByFile for analytics
+      if (!errorsByFile[errorInfo.file]) {
+        errorsByFile[errorInfo.file] = [];
       }
+      
+      errorsByFile[errorInfo.file].push(errorInfo.message);
     }
-  };
+  });
+  
+  // Track errors for analytics
+  if (Object.keys(errorsByFile).length > 0) {
+    trackErrors(errorsByFile);
+  }
+  
+  console.info('Build error simulation complete');
 }

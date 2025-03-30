@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { siteFormTestCases, testSiteFormValidation } from '@/utils/testing/siteFormTesting'
 import { fetchSites, fetchSiteById } from '@/services/sites'
+import { trackErrors } from '@/utils/errorAnalytics'
 
 export function useSiteTesting() {
   const [isRunningTests, setIsRunningTests] = useState(false)
@@ -19,6 +20,16 @@ export function useSiteTesting() {
       
       const errorCount = results.filter(r => !r.passed).length
       
+      // Track errors for analytics
+      if (errorCount > 0) {
+        const errorsByFile: Record<string, string[]> = {
+          'src/utils/testing/siteFormTesting.ts': results
+            .filter(r => !r.passed)
+            .map(r => `Validation failed: ${r.description}`)
+        };
+        trackErrors(errorsByFile);
+      }
+      
       toast({
         title: errorCount ? `${errorCount} validation tests failed` : "All validation tests passed",
         description: `Completed ${results.length} validation tests`,
@@ -27,6 +38,13 @@ export function useSiteTesting() {
     } catch (error) {
       console.error('Error running form validation tests:', error)
       setTestErrors(prev => [...prev, `Form validation test error: ${error}`])
+      
+      // Track error for analytics
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorsByFile: Record<string, string[]> = {
+        'src/utils/testing/siteFormTesting.ts': [`Test error: ${errorMessage}`]
+      };
+      trackErrors(errorsByFile);
       
       toast({
         title: "Test Error",
@@ -70,6 +88,13 @@ export function useSiteTesting() {
     } catch (error) {
       console.error('Error testing site retrieval:', error)
       setTestErrors(prev => [...prev, `Site retrieval test error: ${error}`])
+      
+      // Track error for analytics
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorsByFile: Record<string, string[]> = {
+        'src/services/sites/index.ts': [`Data retrieval error: ${errorMessage}`]
+      };
+      trackErrors(errorsByFile);
       
       toast({
         title: "Data Retrieval Error",

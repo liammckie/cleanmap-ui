@@ -1,8 +1,10 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapIcon, BarChart3, PieChart } from 'lucide-react'
+import { MapIcon, BarChart3, PieChart, AlertTriangle } from 'lucide-react'
 import ReportsMap from '@/components/reports/ReportsMap'
+import { ErrorAnalytics } from '@/components/documentation/ErrorAnalytics'
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState<string>('locations')
@@ -29,6 +31,10 @@ const Reports = () => {
           <TabsTrigger value="financial" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             <span>Financial</span>
+          </TabsTrigger>
+          <TabsTrigger value="errors" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Error Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -72,6 +78,20 @@ const Reports = () => {
               <div className="flex items-center justify-center h-[300px] text-muted-foreground">
                 Financial charts coming soon
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="errors" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Build Error Analytics</CardTitle>
+              <CardDescription>
+                Track and analyze TypeScript errors to improve code quality
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ErrorAnalytics />
             </CardContent>
           </Card>
         </TabsContent>

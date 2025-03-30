@@ -2,29 +2,19 @@
 /**
  * Documentation Service
  * 
- * Provides functionality to manage, update, and review documentation
- * as part of the development workflow.
+ * Provides functionality to generate and manage documentation
  */
 
-import { 
-  addErrorToLog,
-  updateErrorStatus, 
-  performDocumentationReview,
-  updateSchemaChangelog,
-  createDocumentationReference,
-  DOCUMENTATION_PATHS,
-  type ErrorEntry,
-  initializeDocumentationSystem,
-  documentationUtils
-} from '@/utils/documentationManager';
-
-import { validateDocumentationPaths, generatePathValidationReport } from '@/utils/documentationPathValidator';
+import { writeToStorage, readFromStorage } from '@/utils/localStorageManager';
+import { generatePathValidationReport } from '@/utils/documentationPathValidator';
+import { DOCUMENTATION_PATHS } from '@/utils/documentationManager';
 
 import {
   generateServiceDocumentation,
   updateDocumentationFile,
   generateServicesIndex,
-  generateDocumentationArchive
+  generateDocumentationArchive,
+  generateStructureDocumentation
 } from '@/utils/documentationGenerator';
 
 import { captureBuildError } from '@/utils/errorCapture';
@@ -126,492 +116,301 @@ export async function createClient(client: Client) {
 
 /**
  * Generates documentation for the project structure
- * This function calls the imported utility from documentationGenerator
  */
-export async function generateProjectStructure(): Promise<void> {
+export async function generateProjectStructureDocumentation(): Promise<void> {
   console.info('Generating project structure documentation');
   
   // Mock structure object
   const structure = [
     {
       name: 'src',
-      type: 'folder',
       children: [
         {
           name: 'components',
-          type: 'folder',
           children: [
-            { name: 'common', type: 'folder' },
-            { name: 'hr', type: 'folder' },
-            { name: 'operations', type: 'folder' },
-            { name: 'ui', type: 'folder' }
-          ]
-        },
-        {
-          name: 'pages',
-          type: 'folder',
-          children: [
-            { name: 'Index.tsx', type: 'file' },
-            { name: 'Dashboard.tsx', type: 'file' },
-            { name: 'Documentation.tsx', type: 'file' }
+            { name: 'Dashboard', children: [] },
+            { name: 'Layout', children: [] },
+            { name: 'operations', children: [] },
+            { name: 'hr', children: [] },
+            { name: 'ui', children: [] }
           ]
         },
         {
           name: 'services',
-          type: 'folder',
           children: [
-            { name: 'clients', type: 'folder' },
-            { name: 'workOrders', type: 'folder' },
-            { name: 'employees', type: 'folder' }
+            { name: 'clients', children: [] },
+            { name: 'contracts', children: [] },
+            { name: 'documentation', children: [] },
+            { name: 'employees', children: [] },
+            { name: 'sites', children: [] },
+            { name: 'workOrders', children: [] }
+          ]
+        },
+        {
+          name: 'utils',
+          children: [
+            { name: 'dateFormatters.ts', children: [] },
+            { name: 'formValidation.ts', children: [] },
+            { name: 'errorCapture.ts', children: [] },
+            { name: 'documentationManager.ts', children: [] }
+          ]
+        },
+        {
+          name: 'pages',
+          children: [
+            { name: 'Dashboard.tsx', children: [] },
+            { name: 'Reports.tsx', children: [] },
+            { name: 'Documentation.tsx', children: [] }
           ]
         }
       ]
     }
   ];
   
-  // Use the imported function from documentationGenerator
+  // Generate structure documentation
   const documentation = generateStructureDocumentation(structure);
-  updateDocumentationFile(DOCUMENTATION_PATHS.PROJECT_STRUCTURE, documentation);
+  
+  // Update documentation file
+  updateDocumentationFile('src/documentation/structure.md', documentation);
   
   console.info('Project structure documentation generated');
 }
 
 /**
- * Generates a downloadable archive of all documentation
- * @returns URL for downloading the archive
+ * Automatically documents a build error
+ * @param error Build error details
  */
-export async function generateDocumentationArchiveForDownload(): Promise<string> {
-  console.info('Generating documentation archive for download');
+export function documentBuildError(error: string): void {
+  console.info('Documenting build error');
   
-  // Generate the archive
-  const archiveBlob = generateDocumentationArchive();
+  // Extract error information
+  const errorInfo = captureBuildError(error);
   
-  // Create a URL for the blob
-  const url = URL.createObjectURL(archiveBlob);
+  if (!errorInfo) {
+    console.warn('Could not parse build error');
+    return;
+  }
   
-  return url;
+  // Read existing error log
+  const errorLog = readFromStorage(DOCUMENTATION_PATHS.ERROR_LOG) || '';
+  
+  // Add new error to log
+  const newErrorEntry = `
+### ${errorInfo.message}
+
+**Status:** Investigating
+
+**File:** ${errorInfo.file}
+**Line:** ${errorInfo.line}
+**Column:** ${errorInfo.column}
+
+**Error Type:** TypeScript Error
+**Detected At:** ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}
+
+**Error Details:**
+\`\`\`
+${errorInfo.originalMessage}
+\`\`\`
+
+**Suggested Fix:**
+- Review the TypeScript types in ${errorInfo.file}
+- Ensure all required properties are provided
+- Check for duplicate definitions
+
+---
+`;
+
+  // Update the error log with the new entry
+  updateDocumentationFile(DOCUMENTATION_PATHS.ERROR_LOG, errorLog + newErrorEntry);
+  
+  // Update type inconsistencies doc if it's a type error
+  if (errorInfo.message.includes('type') || errorInfo.message.includes('Type')) {
+    documentTypeInconsistency(errorInfo);
+  }
+  
+  console.info('Build error documented');
 }
 
 /**
- * Checks how up-to-date all documentation is
- * @returns Array of documentation status objects
+ * Documents a type inconsistency
+ * @param errorInfo Error information
  */
-export async function checkDocumentationFreshness(): Promise<Array<{
-  path: string;
-  lastUpdated: Date | null;
-  ageInDays: number | null;
-  stale: boolean;
-}>> {
-  console.info('Checking documentation freshness');
+function documentTypeInconsistency(errorInfo: any): void {
+  console.info('Documenting type inconsistency');
   
-  return documentationUtils.checkDocumentationFreshness();
+  // Read existing type inconsistencies doc
+  const typeDoc = readFromStorage(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES) || '';
+  
+  // Extract affected types from error message
+  const typeMatch = errorInfo.originalMessage.match(/Type '([^']+)' is not assignable to type '([^']+)'/);
+  
+  let affectedTypes = '';
+  if (typeMatch && typeMatch.length >= 3) {
+    affectedTypes = `
+**Source Type:** \`${typeMatch[1]}\`
+**Target Type:** \`${typeMatch[2]}\`
+`;
+  }
+  
+  // Add new inconsistency to doc
+  const newInconsistency = `
+## ${errorInfo.file}
+
+**Error:** ${errorInfo.message}
+**Location:** Line ${errorInfo.line}, Column ${errorInfo.column}
+**Detected At:** ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}
+
+${affectedTypes}
+
+**Original Error:**
+\`\`\`
+${errorInfo.originalMessage}
+\`\`\`
+
+**Potential Solution:**
+- Review the type definitions in the file
+- Update interfaces to match the required structure
+- Consider adding type assertions if necessary
+
+---
+`;
+
+  // Update the type inconsistencies doc
+  updateDocumentationFile(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES, typeDoc + newInconsistency);
+  
+  console.info('Type inconsistency documented');
 }
 
 /**
- * Sets up automated documentation generation
+ * Documents a solution to a build error
+ * @param error Original error
+ * @param solution Solution description
+ */
+export function documentBuildErrorResolution(error: string, solution: string): void {
+  console.info('Documenting build error resolution');
+  
+  // Read existing resolutions
+  const resolutions = readFromStorage(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION) || '';
+  
+  // Add new resolution
+  const newResolution = `
+## ${error}
+
+**Resolution Date:** ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}
+
+**Solution:**
+${solution}
+
+**Code Example:**
+\`\`\`typescript
+// Example implementation of the solution
+// (Replace with actual code used to fix the issue)
+\`\`\`
+
+---
+`;
+
+  // Update the resolutions doc
+  updateDocumentationFile(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION, resolutions + newResolution);
+  
+  // Update the status in the error log
+  updateErrorLogStatus(error, 'Resolved', solution);
+  
+  console.info('Build error resolution documented');
+}
+
+/**
+ * Updates the status of an error in the error log
+ * @param errorMessage Error message to update
+ * @param status New status
+ * @param resolution Resolution details
+ */
+function updateErrorLogStatus(errorMessage: string, status: string, resolution?: string): void {
+  console.info('Updating error log status');
+  
+  // Read existing error log
+  const errorLog = readFromStorage(DOCUMENTATION_PATHS.ERROR_LOG) || '';
+  
+  // Replace the Status line
+  const updatedLog = errorLog.replace(
+    new RegExp(`### ${escapeRegExp(errorMessage)}\\s*\\n\\s*\\*\\*Status:\\*\\* [^\\n]+`),
+    `### ${errorMessage}\n\n**Status:** ${status}`
+  );
+  
+  // Add resolution details if provided
+  let finalLog = updatedLog;
+  if (resolution && status === 'Resolved') {
+    finalLog = updatedLog.replace(
+      new RegExp(`### ${escapeRegExp(errorMessage)}[\\s\\S]+?---`),
+      (match) => {
+        return match.replace(
+          /\*\*Suggested Fix:\*\*[^-]*---/,
+          `**Suggested Fix:**
+${match.includes('**Suggested Fix:**') ? '' : '\n'}- ${resolution}
+
+**Resolved On:** ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}
+
+---`
+        );
+      }
+    );
+  }
+  
+  // Update the error log
+  updateDocumentationFile(DOCUMENTATION_PATHS.ERROR_LOG, finalLog);
+  
+  console.info('Error log status updated');
+}
+
+/**
+ * Escapes special characters in a string for use in a regular expression
+ * @param string String to escape
+ * @returns Escaped string
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Initializes the documentation system
+ */
+function initializeDocumentationSystem(): void {
+  console.info('Initializing documentation system');
+  
+  // Set up default documentation if not present
+  if (!readFromStorage(DOCUMENTATION_PATHS.ERROR_LOG)) {
+    updateDocumentationFile(DOCUMENTATION_PATHS.ERROR_LOG, `# Error Log\n\nThis document captures TypeScript and runtime errors encountered during development.\n\n---\n`);
+  }
+  
+  if (!readFromStorage(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES)) {
+    updateDocumentationFile(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES, `# Type Inconsistencies Documentation\n\nThis document provides detailed analysis of type inconsistencies in the application.\n\n---\n`);
+  }
+  
+  if (!readFromStorage(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION)) {
+    updateDocumentationFile(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION, `# Build Error Resolution Guide\n\nThis document provides strategies for resolving common build errors in the application.\n\n---\n`);
+  }
+  
+  if (!readFromStorage(DOCUMENTATION_PATHS.SCHEMA_CHANGELOG)) {
+    updateDocumentationFile(DOCUMENTATION_PATHS.SCHEMA_CHANGELOG, `# Schema Changelog\n\nThis document tracks changes to the database schema over time.\n\n---\n`);
+  }
+  
+  // Generate initial documentation
+  generateProjectStructureDocumentation();
+  
+  console.info('Documentation system initialized');
+}
+
+/**
+ * Sets up automated documentation for errors and schema changes
  */
 export function setupAutomatedDocumentation(): void {
-  console.info('Setting up automated documentation generation');
+  console.info('Setting up automated documentation');
   
-  // In a real implementation, this would set up interval-based checks
-  // For now, we'll just log a message
+  // Initialize the documentation system
+  initializeDocumentationSystem();
   
-  // Generate service documentation on startup
-  setTimeout(() => {
-    generateAllServiceDocumentation();
-  }, 5000);
+  // Set up error listeners (in a real app)
+  // window.addEventListener('error', documentRuntimeError);
   
-  // Validate documentation paths on startup
-  setTimeout(() => {
-    validateDocumentation();
-  }, 10000);
-  
-  // Generate structure documentation on startup
-  setTimeout(() => {
-    generateStructureDocumentation();
-  }, 15000);
-  
-  console.info('Automated documentation generation scheduled');
+  console.info('Automated documentation set up');
 }
-
-/**
- * Documents a new error or issue in the system
- * @param errorDetails Details of the error to document
- */
-export async function documentError(errorDetails: ErrorEntry): Promise<void> {
-  console.info('Documenting new error:', errorDetails.title);
-  
-  // Log the error in the error log
-  addErrorToLog(errorDetails);
-  
-  // If this is a type inconsistency, also create cross-references
-  if (errorDetails.title.toLowerCase().includes('type') || 
-      errorDetails.description.toLowerCase().includes('type') ||
-      errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('type'))) {
-    
-    console.info('Type-related error detected, updating cross-references');
-    
-    // Create references between documentation files
-    createDocumentationReference(
-      DOCUMENTATION_PATHS.ERROR_LOG,
-      DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES,
-      'Active Issues',
-      `See also: Type inconsistency details in TYPE_INCONSISTENCIES.md`
-    );
-    
-    createDocumentationReference(
-      DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES,
-      DOCUMENTATION_PATHS.ERROR_LOG,
-      'Common Type Issues',
-      `See error: ${errorDetails.title} in ERROR_LOG.md`
-    );
-  }
-  
-  // Create references in related documentation
-  createErrorReferences(errorDetails);
-}
-
-/**
- * Updates the status or details of an existing error
- * @param errorTitle Title of the error to update
- * @param errorUpdates Updates to apply to the error
- */
-export async function updateErrorDocumentation(
-  errorTitle: string,
-  errorUpdates: {
-    status?: 'Investigating' | 'In Progress' | 'Resolved';
-    completedSteps?: number[];
-    newSteps?: Array<{
-      description: string;
-      completed: boolean;
-    }>;
-    rootCause?: string;
-    additionalErrorMessages?: string[];
-  }
-): Promise<void> {
-  console.info('Updating error documentation for:', errorTitle);
-  
-  // Update the error in the error log
-  updateErrorStatus(errorTitle, errorUpdates);
-  
-  // If error is resolved, move it to resolved section
-  if (errorUpdates.status === 'Resolved') {
-    console.info('Error resolved, moving to Resolved section in ERROR_LOG.md');
-    
-    // Would add a note in SCHEMA_CHANGELOG.md if this was a schema-related error
-    if (errorTitle.toLowerCase().includes('schema') || 
-        errorTitle.toLowerCase().includes('database') ||
-        errorTitle.toLowerCase().includes('type')) {
-      
-      updateSchemaChangelog('Fixed', [
-        `Fixed issue: ${errorTitle}`
-      ]);
-    }
-  }
-}
-
-/**
- * Performs a pre-implementation documentation review
- * @param errorTitle Optional title of the related error
- * @returns Review results including status and relevant documents
- */
-export async function reviewDocumentation(errorTitle?: string): Promise<{
-  passed: boolean;
-  issues: string[];
-  relevantDocuments: Array<{ path: string; relevantSection: string }>;
-}> {
-  console.info('Performing documentation review');
-  
-  // Perform the review
-  const reviewResults = performDocumentationReview(errorTitle);
-  
-  // Log review results
-  console.info(`Documentation review ${reviewResults.passed ? 'passed' : 'failed'}`);
-  if (reviewResults.issues.length > 0) {
-    console.warn('Documentation issues found:', reviewResults.issues);
-  }
-  
-  return reviewResults;
-}
-
-/**
- * Documents a schema change in the SCHEMA_CHANGELOG.md
- * @param changeType Type of schema change
- * @param changes Array of change descriptions
- */
-export async function documentSchemaChange(
-  changeType: 'Added' | 'Modified' | 'Fixed' | 'Refactored' | 'Security',
-  changes: string[]
-): Promise<void> {
-  console.info(`Documenting schema change (${changeType}):`, changes);
-  
-  // Update the schema changelog
-  updateSchemaChangelog(changeType, changes);
-}
-
-/**
- * Creates references between an error and related documentation
- * @param errorDetails Details of the error to reference
- */
-function createErrorReferences(errorDetails: ErrorEntry): void {
-  // Determine which documentation files are relevant to this error
-  const relevantDocuments: string[] = [];
-  
-  // Type errors are relevant to TYPE_INCONSISTENCIES.md
-  if (errorDetails.title.toLowerCase().includes('type') || 
-      errorDetails.description.toLowerCase().includes('type') ||
-      errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('type'))) {
-    relevantDocuments.push(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES);
-  }
-  
-  // Build errors are relevant to BUILD_ERROR_RESOLUTION.md
-  if (errorDetails.title.toLowerCase().includes('build') || 
-      errorDetails.description.toLowerCase().includes('build') ||
-      errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('error'))) {
-    relevantDocuments.push(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION);
-  }
-  
-  // Schema-related errors are relevant to SCHEMA_CHANGELOG.md
-  if (errorDetails.title.toLowerCase().includes('schema') || 
-      errorDetails.description.toLowerCase().includes('schema') ||
-      errorDetails.affectedFiles.some(file => file.includes('schema'))) {
-    relevantDocuments.push(DOCUMENTATION_PATHS.SCHEMA_CHANGELOG);
-  }
-  
-  // Create references to/from all relevant documents
-  for (const docPath of relevantDocuments) {
-    createDocumentationReference(
-      DOCUMENTATION_PATHS.ERROR_LOG,
-      docPath,
-      'Active Issues',
-      `See also: ${docPath}`
-    );
-    
-    createDocumentationReference(
-      docPath,
-      DOCUMENTATION_PATHS.ERROR_LOG,
-      'Related Errors',
-      `See error: ${errorDetails.title} in ERROR_LOG.md`
-    );
-  }
-}
-
-/**
- * Finalizes documentation for a completed feature or bug fix
- * @param errorTitle Optional title of the related error that was fixed
- * @param summary Summary of changes made
- * @param affectedFiles Files that were modified
- */
-export async function finalizeDocumentation(
-  errorTitle: string | undefined,
-  summary: string,
-  affectedFiles: string[]
-): Promise<void> {
-  console.info('Finalizing documentation for:', errorTitle || 'feature implementation');
-  
-  // Update error status if this was fixing a documented error
-  if (errorTitle) {
-    updateErrorStatus(errorTitle, { 
-      status: 'Resolved',
-      rootCause: summary
-    });
-    
-    // Document the resolution date
-    const currentDate = format(new Date(), 'yyyy-MM-dd');
-    console.info(`Resolution date: ${currentDate}`);
-  }
-  
-  // Document any schema changes if relevant
-  if (affectedFiles.some(file => file.includes('schema'))) {
-    documentSchemaChange('Fixed', [summary]);
-  }
-  
-  console.info('Documentation finalized');
-}
-
-/**
- * Set up monitoring to automatically capture build errors
- */
-export function setupBuildErrorMonitoring(): void {
-  console.info('Setting up build error monitoring for documentation');
-  
-  // In a real CI/CD environment, this would hook into the build process
-  // For now we'll listen for error messages in the console that match build error patterns
-  
-  const originalConsoleError = console.error;
-  console.error = function(...args) {
-    // Call the original console.error
-    originalConsoleError.apply(console, args);
-    
-    // Check if this might be a build error
-    const errorStr = args.join(' ');
-    if (
-      errorStr.includes('error TS') || 
-      errorStr.includes('No overload matches') ||
-      errorStr.includes('is not assignable to type')
-    ) {
-      // Try to extract file path and error message
-      const match = errorStr.match(/([^()\n:]+\.ts\w*):(\d+):(\d+):\s*(.*)/);
-      if (match) {
-        const [_, filePath, line, column, message] = match;
-        captureBuildError(message, filePath);
-      } else {
-        // If we can't extract details, just use the whole string
-        captureBuildError(errorStr, 'unknown');
-      }
-    }
-  };
-}
-
-/**
- * Documents the resolution of a type inconsistency
- * @param errorTitle Title of the error being resolved
- * @param resolution Details of how the type issue was resolved
- * @param affectedFiles Files that were modified
- */
-export async function documentTypeResolution(
-  errorTitle: string,
-  resolution: string,
-  affectedFiles: string[]
-): Promise<void> {
-  // Update error status
-  await updateErrorDocumentation(errorTitle, {
-    status: 'Resolved',
-    rootCause: resolution
-  });
-  
-  // Add to TYPE_INCONSISTENCIES.md
-  console.info('Updating TYPE_INCONSISTENCIES.md with resolution details');
-  
-  const typeDocPath = DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES;
-  const typeDoc = readDocumentationFile(typeDocPath);
-  
-  // Find the section for this error
-  const errorSectionRegex = new RegExp(`## ${errorTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
-  const match = errorSectionRegex.exec(typeDoc);
-  
-  if (match && match.index !== undefined) {
-    // Add resolution details to the section
-    const currentDate = format(new Date(), 'yyyy-MM-dd');
-    const resolutionText = `
-### Resolution (${currentDate})
-${resolution}
-
-**Affected Files:**
-${affectedFiles.map(file => `- ${file}`).join('\n')}
-
-**Prevention Measures:**
-- Added validation for required fields
-- Enhanced type safety with proper validations
-- Documented patterns for handling similar issues
-`;
-    
-    // Find the next section
-    let nextSectionIndex = typeDoc.indexOf('## ', match.index + errorTitle.length);
-    if (nextSectionIndex === -1) {
-      nextSectionIndex = typeDoc.length;
-    }
-    
-    // Insert the resolution before the next section
-    const updatedTypeDoc = 
-      typeDoc.substring(0, nextSectionIndex) + 
-      resolutionText + 
-      typeDoc.substring(nextSectionIndex);
-    
-    writeDocumentationFile(typeDocPath, updatedTypeDoc);
-  }
-  
-  // Also add to schema changelog if schema files were affected
-  if (affectedFiles.some(file => file.includes('schema'))) {
-    await documentSchemaChange('Fixed', [
-      `Fixed type inconsistency: ${errorTitle} - ${resolution}`
-    ]);
-  }
-}
-
-/**
- * Documents the current state of TypeScript errors in the project
- * @param errors Array of TypeScript error messages
- */
-export async function documentTypeScriptErrors(errors: string[]): Promise<void> {
-  console.info(`Documenting ${errors.length} TypeScript errors`);
-  
-  // Group errors by file
-  const errorsByFile: Record<string, string[]> = {};
-  
-  errors.forEach(error => {
-    const match = error.match(/([^()\n:]+\.ts\w*):(\d+):(\d+):\s*(.*)/);
-    if (match) {
-      const [_, filePath, line, column, message] = match;
-      if (!errorsByFile[filePath]) {
-        errorsByFile[filePath] = [];
-      }
-      errorsByFile[filePath].push(message);
-    } else {
-      // If we can't extract file, put in 'unknown'
-      if (!errorsByFile['unknown']) {
-        errorsByFile['unknown'] = [];
-      }
-      errorsByFile['unknown'].push(error);
-    }
-  });
-  
-  // For each file with errors, create an error entry
-  Object.entries(errorsByFile).forEach(([filePath, messages]) => {
-    const errorEntry: ErrorEntry = {
-      title: `TypeScript Errors in ${filePath}`,
-      status: 'Investigating',
-      description: `Build failing due to TypeScript errors in ${filePath}`,
-      errorMessages: messages,
-      affectedFiles: [filePath],
-      resolutionSteps: [
-        {
-          description: 'Review TypeScript errors',
-          completed: false
-        },
-        {
-          description: 'Fix type inconsistencies',
-          completed: false
-        },
-        {
-          description: 'Update error documentation',
-          completed: false
-        }
-      ]
-    };
-    
-    // Add the error to the log
-    addErrorToLog(errorEntry);
-  });
-}
-
-/**
- * Creates a dashboard report of all errors and documentation
- * @returns HTML string for the dashboard
- */
-export function generateDocumentationDashboard(): string {
-  return `
-    <div class="documentation-dashboard">
-      <h2>Documentation Dashboard</h2>
-      <p>Last updated: ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}</p>
-      
-      <h3>Active Issues</h3>
-      <ul>
-        <!-- This would be populated with actual active issues -->
-        <li>TypeScript Errors in formSchemaValidator.ts - <span class="status-investigating">Investigating</span></li>
-        <li>Work Order Form Type Inconsistencies - <span class="status-in-progress">In Progress</span></li>
-      </ul>
-      
-      <h3>Recently Resolved</h3>
-      <ul>
-        <!-- This would be populated with actual resolved issues -->
-        <li>Missing isSubmitting prop in FormActions - <span class="status-resolved">Resolved</span></li>
-      </ul>
-    </div>
-  `;
-}
-
-// Export the internal functions for testing
-export const _internal = {
-  createErrorReferences
-};

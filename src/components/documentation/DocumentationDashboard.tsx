@@ -9,6 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { DocumentationStructureView } from './DocumentationStructureView';
+import { ErrorAnalytics } from './ErrorAnalytics';
+import { runAllTests } from '@/utils/errorAnalytics';
 
 export function DocumentationDashboard() {
   const [activeTab, setActiveTab] = useState('errors');
@@ -59,12 +61,24 @@ export function DocumentationDashboard() {
       description: "Refreshing all documentation data...",
     });
   };
+  
+  // Run error tests
+  const handleRunTests = () => {
+    runAllTests();
+    toast({
+      title: "Tests Completed",
+      description: "Test errors have been generated for analytics.",
+    });
+  };
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Documentation Dashboard</h1>
-        <Button onClick={reloadDocumentation}>Reload Documentation</Button>
+        <div className="flex gap-2">
+          <Button onClick={reloadDocumentation}>Reload Documentation</Button>
+          <Button onClick={handleRunTests} variant="outline">Run Error Tests</Button>
+        </div>
       </div>
       
       <Tabs defaultValue="errors" value={activeTab} onValueChange={setActiveTab}>
@@ -72,11 +86,12 @@ export function DocumentationDashboard() {
           <TabsTrigger value="errors">
             Error Log
             {activeErrors.length > 0 && (
-              <Badge className="ml-2 bg-red-500" variant="secondary">
+              <Badge className="ml-2 bg-red-500" variant="destructive">
                 {activeErrors.length}
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="analytics">Error Analytics</TabsTrigger>
           <TabsTrigger value="types">Type Inconsistencies</TabsTrigger>
           <TabsTrigger value="build">Build Error Resolution</TabsTrigger>
           <TabsTrigger value="schema">Schema Changelog</TabsTrigger>
@@ -186,6 +201,17 @@ export function DocumentationDashboard() {
               <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                 <pre className="text-sm whitespace-pre-wrap">{errorLog}</pre>
               </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>Error Analytics Dashboard</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ErrorAnalytics />
             </CardContent>
           </Card>
         </TabsContent>

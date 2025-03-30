@@ -126,3 +126,27 @@ function extractErrorPattern(error: string): string {
     return error.substring(0, 30);
   }
 }
+
+/**
+ * Runs the site form tests to collect error data
+ */
+export function runAllTests(): void {
+  console.log("Running all tests to collect error data");
+  
+  // Simulate some tests and record errors
+  const mockErrors: ErrorsByFile = {
+    'src/components/operations/site/SiteForm.tsx': [
+      'Type \'string | undefined\' is not assignable to type \'string\'.',
+      'Property \'site_type\' is missing in type \'{ address: string; }\'',
+    ],
+    'src/services/sites/siteService.ts': [
+      'Cannot find name \'SiteFormValues\'',
+      'No overload matches this call.'
+    ]
+  };
+  
+  // Track these errors
+  trackErrors(mockErrors);
+  
+  console.log("Completed test run");
+}

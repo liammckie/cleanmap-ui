@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { simulateBuildErrorCapture } from '@/utils/buildErrorCapture';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Check } from 'lucide-react';
+import { ErrorAnalytics } from '@/components/documentation/ErrorAnalytics';
 
 export default function Documentation() {
   const [isTestingErrors, setIsTestingErrors] = useState(false);
+  const [showErrorAnalytics, setShowErrorAnalytics] = useState(false);
   
   useEffect(() => {
     // Set up automated documentation
@@ -51,20 +53,28 @@ export default function Documentation() {
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Documentation Center</h1>
-          <Button 
-            onClick={handleTestErrorCapture} 
-            disabled={isTestingErrors}
-            variant="outline"
-          >
-            {isTestingErrors ? (
-              <>
-                <Check className="mr-2 h-4 w-4" />
-                Testing Error Capture
-              </>
-            ) : (
-              'Test Error Capture'
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleTestErrorCapture} 
+              disabled={isTestingErrors}
+              variant="outline"
+            >
+              {isTestingErrors ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Testing Error Capture
+                </>
+              ) : (
+                'Test Error Capture'
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowErrorAnalytics(!showErrorAnalytics)}
+              variant="outline"
+            >
+              {showErrorAnalytics ? "Hide Analytics" : "Show Error Analytics"}
+            </Button>
+          </div>
         </div>
         
         <Alert>
@@ -76,6 +86,13 @@ export default function Documentation() {
           </AlertDescription>
         </Alert>
       </div>
+      
+      {showErrorAnalytics && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">Error Analytics</h2>
+          <ErrorAnalytics />
+        </div>
+      )}
       
       <DocumentationDashboard />
     </MainLayout>

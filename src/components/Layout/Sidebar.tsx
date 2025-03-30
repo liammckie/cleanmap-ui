@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,7 +12,7 @@ import {
   MapPin, 
   BarChart, 
   LogOut,
-  Spraymop as CleaningIcon,
+  Brush as CleaningIcon,
   FileSearch
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
