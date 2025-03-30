@@ -4,7 +4,7 @@ import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { toast } from "@/components/ui/use-toast";
 import type { RouteObject } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useLocation, createRoutesFromChildren, matchRoutes } from "react-router-dom";
 
 // Export Sentry for use in other files
 export { Sentry };
@@ -18,12 +18,14 @@ export const initSentry = (): void => {
         integrations: [
           new BrowserTracing({
             routingInstrumentation: reactRouterV6Instrumentation(
-              // 1. History callback
-              (history) => history,
+              // 1. History callback - not needed for React Router v6 when using browserRouter
+              history => history,
               // 2. Routes - empty array that will be populated at runtime
               [] as RouteObject[],
-              // 3. Match path - required for instrumentation
-              useLocation, // Provide the useLocation hook directly
+              // 3. Match path utility function
+              location => {
+                return matchRoutes([] as RouteObject[], location) || [];
+              },
               // 4. The React Router major version (required parameter)
               6,
               // 5. Common routing components to handle routing instrumentation
