@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { 
   WorkOrderFormValues, 
-  workOrderSchema 
+  workOrderSchema,
+  WorkOrder
 } from '@/schema/operations/workOrder.schema'
 import { 
   fetchWorkOrderStatuses, 
@@ -18,14 +19,14 @@ import { fetchSites } from '@/services/sites'
 import { useToast } from '@/hooks/use-toast'
 
 interface UseWorkOrderFormProps {
-  initialData?: Partial<WorkOrderFormValues>
+  initialData?: Partial<WorkOrder>
   onSuccess: () => void
 }
 
 export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormProps) {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const isEditing = !!initialData?.id
+  const isEditing = initialData && 'id' in initialData ? true : false
 
   // Fetch sites for the dropdown
   const { data: sitesData } = useQuery({
@@ -69,24 +70,30 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
       scheduled_start: new Date(),
       due_date: new Date(),
       description: '',
-      ...initialData,
     },
   })
 
   // Update form values when initialData changes
   useEffect(() => {
     if (initialData) {
-      // Reset form with initial data
-      form.reset({
+      // Convert initialData (WorkOrder) to WorkOrderFormValues format
+      const formValues: Partial<WorkOrderFormValues> = {
         ...initialData,
         // Ensure dates are Date objects
         scheduled_start: initialData.scheduled_start
-          ? new Date(initialData.scheduled_start)
+          ? typeof initialData.scheduled_start === 'string' 
+            ? new Date(initialData.scheduled_start)
+            : initialData.scheduled_start
           : new Date(),
         due_date: initialData.due_date
-          ? new Date(initialData.due_date)
+          ? typeof initialData.due_date === 'string'
+            ? new Date(initialData.due_date)
+            : initialData.due_date
           : new Date(),
-      })
+      }
+      
+      // Reset form with converted values
+      form.reset(formValues as WorkOrderFormValues)
     }
   }, [initialData, form])
 
@@ -95,9 +102,9 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
     try {
       setIsSubmitting(true)
 
-      if (isEditing && initialData?.id) {
+      if (isEditing && initialData && 'id' in initialData) {
         // Update existing work order
-        await updateWorkOrder(initialData.id, data)
+        await updateWorkOrder(initialData.id as string, data)
         toast({
           title: 'Work Order Updated',
           description: 'The work order has been successfully updated.',

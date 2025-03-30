@@ -51,7 +51,7 @@ export async function createWorkOrder(workOrder: WorkOrderFormValues) {
 
   const { data, error } = await supabase
     .from('work_orders')
-    .insert([preparedData])
+    .insert(preparedData) // Fixed: removed array brackets
     .select()
     .single()
 

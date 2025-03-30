@@ -24,7 +24,8 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
     categories,
     priorities,
     onSubmit,
-    isEditing
+    isEditing,
+    isSubmitting
   } = useWorkOrderForm({
     initialData,
     onSuccess
@@ -44,7 +45,11 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
         
         <DescriptionSection />
         
-        <FormActions onCancel={onCancel} isEditing={isEditing} />
+        <FormActions 
+          onCancel={onCancel} 
+          isEditing={isEditing} 
+          isSubmitting={isSubmitting}
+        />
       </form>
     </Form>
   )
