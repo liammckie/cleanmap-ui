@@ -1,5 +1,6 @@
 
 import { Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Index from './pages/Index'
 import Dashboard from './pages/Dashboard'
 import Reports from './pages/Reports'
@@ -22,42 +23,47 @@ import { Toaster } from '@/components/ui/toaster'
 
 import Documentation from './pages/Documentation';
 
+// Create a client
+const queryClient = new QueryClient()
+
 function App() {
   return (
-    <div className="app">
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/locations" element={<Locations />} />
-        <Route path="/documentation" element={<Documentation />} />
-        
-        <Route path="/hr">
-          <Route path="employees" element={<Employees />} />
-        </Route>
-        
-        <Route path="/operations">
-          <Route path="clients" element={<Clients />} />
-          <Route path="create-client" element={<CreateClient />} />
-          <Route path="sites" element={<Sites />} />
-          <Route path="sites/:siteId" element={<SiteDetails />} />
-          <Route path="site-list" element={<SiteList />} />
-          <Route path="create-site" element={<CreateSite />} />
-          <Route path="work-orders" element={<WorkOrders />} />
-          <Route path="contracts" element={<Contracts />} />
-          <Route path="contracts/:id" element={<ContractDetails />} />
-          <Route path="create-contract" element={<CreateContract />} />
-        </Route>
-        
-        <Route path="/sales">
-          <Route path="leads" element={<Leads />} />
-          <Route path="quotes" element={<Quotes />} />
-        </Route>
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/locations" element={<Locations />} />
+          <Route path="/documentation" element={<Documentation />} />
+          
+          <Route path="/hr">
+            <Route path="employees" element={<Employees />} />
+          </Route>
+          
+          <Route path="/operations">
+            <Route path="clients" element={<Clients />} />
+            <Route path="create-client" element={<CreateClient />} />
+            <Route path="sites" element={<Sites />} />
+            <Route path="sites/:siteId" element={<SiteDetails />} />
+            <Route path="site-list" element={<SiteList />} />
+            <Route path="create-site" element={<CreateSite />} />
+            <Route path="work-orders" element={<WorkOrders />} />
+            <Route path="contracts" element={<Contracts />} />
+            <Route path="contracts/:id" element={<ContractDetails />} />
+            <Route path="create-contract" element={<CreateContract />} />
+          </Route>
+          
+          <Route path="/sales">
+            <Route path="leads" element={<Leads />} />
+            <Route path="quotes" element={<Quotes />} />
+          </Route>
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </div>
+    </QueryClientProvider>
   );
 }
 

@@ -1,138 +1,149 @@
+/**
+ * Work Order Service
+ */
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+import { formatISO } from 'date-fns';
+import { workOrderPriorities, workOrderCategories, workOrderStatuses } from '@/constants/workOrders';
 
-import { supabase } from '@/integrations/supabase/client'
-import { WorkOrderFormValues } from '@/schema/operations/workOrder.schema'
-import { formatDateForDb } from '@/utils/dateUtils'
-import { WORK_ORDER_CATEGORIES } from '@/constants/workOrders'
-import { logAndDocumentError } from '@/utils/errorCapture'
+// Type for work order creation
+export type WorkOrderCreate = {
+  site_id: string;
+  title: string; // Make sure this is required, not optional
+  description: string;
+  scheduled_start: string;
+  due_date: string;
+  priority?: typeof workOrderPriorities[number];
+  status?: typeof workOrderStatuses[number];
+  category: typeof workOrderCategories[number];
+  contract_id?: string;
+};
 
 /**
- * Fetches all work orders with related site information
+ * Create a new work order
  */
-export async function fetchWorkOrders() {
-  const { data, error } = await supabase
-    .from('work_orders')
-    .select(`
-      *,
-      site:site_id(id, site_name, client_id, client:client_id(company_name))
-    `)
-    .order('created_at', { ascending: false })
+export const createWorkOrder = async (workOrderData: WorkOrderCreate) => {
+  try {
+    // Ensure title is present
+    if (!workOrderData.title) {
+      throw new Error('Work order title is required');
+    }
+    
+    // Set default status if not provided
+    if (!workOrderData.status) {
+      workOrderData.status = 'Scheduled';
+    }
+    
+    // Set default priority if not provided
+    if (!workOrderData.priority) {
+      workOrderData.priority = 'Medium';
+    }
+    
+    const { data, error } = await supabase
+      .from('work_orders')
+      .insert({
+        id: uuidv4(),
+        site_id: workOrderData.site_id,
+        title: workOrderData.title, // Now title is guaranteed to exist
+        description: workOrderData.description,
+        scheduled_start: workOrderData.scheduled_start,
+        due_date: workOrderData.due_date,
+        priority: workOrderData.priority,
+        status: workOrderData.status,
+        category: workOrderData.category,
+        contract_id: workOrderData.contract_id,
+        created_at: formatISO(new Date()),
+        updated_at: formatISO(new Date())
+      })
+      .select();
+    
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error creating work order:', error);
+    return { data: null, error };
+  }
+};
 
-  if (error) throw new Error(`Error fetching work orders: ${error.message}`)
-  return data || []
-}
+// Define the WorkOrder type to match your Supabase table schema
+export type WorkOrder = {
+  id: string;
+  site_id: string;
+  title: string;
+  description: string;
+  scheduled_start: string;
+  due_date: string;
+  priority: typeof workOrderPriorities[number];
+  status: typeof workOrderStatuses[number];
+  category: typeof workOrderCategories[number];
+  contract_id?: string;
+  created_at: string;
+  updated_at: string;
+};
 
 /**
- * Fetches a specific work order by ID
+ * Fetches all work orders from Supabase
  */
-export async function fetchWorkOrderById(id: string) {
-  const { data, error } = await supabase
-    .from('work_orders')
-    .select(`
-      *,
-      site:site_id(id, site_name, client_id, client:client_id(company_name))
-    `)
-    .eq('id', id)
-    .single()
-
-  if (error) throw new Error(`Error fetching work order: ${error.message}`)
-  return data
-}
-
-/**
- * Creates a new work order
- */
-export async function createWorkOrder(workOrder: WorkOrderFormValues) {
-  // Validate required fields
-  if (!workOrder.description) {
-    throw new Error('Work order description is required')
-  }
-  
-  if (!workOrder.site_id) {
-    throw new Error('Site ID is required for work orders')
-  }
-
-  // Transform dates to ISO strings for database storage
-  const preparedData = {
-    ...workOrder,
-    site_id: workOrder.site_id, // Explicitly include site_id
-    scheduled_start: formatDateForDb(workOrder.scheduled_start),
-    due_date: formatDateForDb(workOrder.due_date),
-    category: workOrder.category || WORK_ORDER_CATEGORIES[0], // Ensure category is always set
-    description: workOrder.description // Explicitly include the required field
-  }
-
+export const getAllWorkOrders = async (): Promise<{ data: WorkOrder[] | null; error: any }> => {
   try {
     const { data, error } = await supabase
       .from('work_orders')
-      .insert(preparedData)
-      .select()
-      .single()
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (error) throw new Error(`Error creating work order: ${error.message}`)
-    return data
+    if (error) {
+      console.error('Error fetching work orders:', error);
+      return { data: null, error };
+    }
+
+    return { data: data as WorkOrder[], error: null };
   } catch (error) {
-    // Log the error and document it for future reference
-    logAndDocumentError(error instanceof Error ? error : new Error('Unknown error'), {
-      component: 'workOrderService',
-      operation: 'createWorkOrder',
-      additionalInfo: { workOrderData: preparedData }
-    });
-    throw error;
+    console.error('Error fetching work orders:', error);
+    return { data: null, error };
   }
-}
+};
 
 /**
  * Updates an existing work order
  */
-export async function updateWorkOrder(
-  id: string, 
-  workOrder: Partial<WorkOrderFormValues>
-) {
-  // Transform dates to ISO strings if present
-  const preparedData: Record<string, any> = { ...workOrder }
-  
-  if (workOrder.scheduled_start) {
-    preparedData.scheduled_start = formatDateForDb(workOrder.scheduled_start)
-  }
-  
-  if (workOrder.due_date) {
-    preparedData.due_date = formatDateForDb(workOrder.due_date)
-  }
-  
-  // Ensure category is included if provided
-  if (workOrder.category) {
-    preparedData.category = workOrder.category
-  }
-
+export const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>): Promise<{ data: WorkOrder[] | null; error: any }> => {
   try {
     const { data, error } = await supabase
       .from('work_orders')
-      .update(preparedData)
+      .update(updates)
       .eq('id', id)
-      .select()
-      .single()
+      .select();
 
-    if (error) throw new Error(`Error updating work order: ${error.message}`)
-    return data
+    if (error) {
+      console.error(`Error updating work order with id ${id}:`, error);
+      return { data: null, error };
+    }
+
+    return { data: data as WorkOrder[], error: null };
   } catch (error) {
-    // Log the error and document it
-    logAndDocumentError(error instanceof Error ? error : new Error('Unknown error'), {
-      component: 'workOrderService',
-      operation: 'updateWorkOrder',
-      additionalInfo: { workOrderId: id, updates: preparedData }
-    });
-    throw error;
+    console.error(`Error updating work order with id ${id}:`, error);
+    return { data: null, error };
   }
-}
+};
 
 /**
- * Deletes a work order
+ * Deletes a work order by ID
  */
-export async function deleteWorkOrder(id: string) {
-  const { error } = await supabase
-    .from('work_orders')
-    .delete()
-    .eq('id', id)
+export const deleteWorkOrder = async (id: string): Promise<{ data: null; error: any }> => {
+  try {
+    const { data, error } = await supabase
+      .from('work_orders')
+      .delete()
+      .eq('id', id);
 
-  if (error) throw new Error(`Error deleting work order: ${error.message}`)
-}
+    if (error) {
+      console.error(`Error deleting work order with id ${id}:`, error);
+      return { data: null, error };
+    }
+
+    return { data: null, error: null };
+  } catch (error) {
+    console.error(`Error deleting work order with id ${id}:`, error);
+    return { data: null, error };
+  }
+};

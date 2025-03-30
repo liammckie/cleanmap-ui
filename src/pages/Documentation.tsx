@@ -1,100 +1,82 @@
 
-import React, { useEffect, useState } from 'react';
-import { DocumentationDashboard } from '@/components/documentation/DocumentationDashboard';
-import MainLayout from '@/components/Layout/MainLayout';
-import { setupAutomatedDocumentation } from '@/services/documentation/documentationService';
-import { toast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { simulateBuildErrorCapture } from '@/utils/buildErrorCapture';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Check } from 'lucide-react';
-import { ErrorAnalytics } from '@/components/documentation/ErrorAnalytics';
+/**
+ * Documentation Page
+ */
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DocumentationDashboard } from "@/components/documentation/DocumentationDashboard";
+import { DocumentationStructureView } from "@/components/documentation/DocumentationStructureView";
+import { ErrorAnalytics } from "@/components/documentation/ErrorAnalytics";
+
+// Mock structure for demo purposes
+const mockStructure = [
+  {
+    name: 'src',
+    type: 'directory',
+    children: [
+      {
+        name: 'components',
+        type: 'directory',
+        children: [
+          { name: 'Button.tsx', type: 'file', isComponent: true },
+          { name: 'Card.tsx', type: 'file', isComponent: true }
+        ]
+      },
+      {
+        name: 'hooks',
+        type: 'directory',
+        children: [
+          { name: 'useAuth.tsx', type: 'file', isHook: true },
+          { name: 'useForm.ts', type: 'file', isHook: true }
+        ]
+      },
+      { name: 'App.tsx', type: 'file', isComponent: true }
+    ]
+  }
+];
 
 export default function Documentation() {
-  const [isTestingErrors, setIsTestingErrors] = useState(false);
-  const [showErrorAnalytics, setShowErrorAnalytics] = useState(false);
-  
-  useEffect(() => {
-    // Set up automated documentation
-    setupAutomatedDocumentation();
-    
-    // Show toast notification
-    toast({
-      title: "Documentation System Active",
-      description: "The automated documentation system is running in the background.",
-    });
-  }, []);
-  
-  const handleTestErrorCapture = () => {
-    setIsTestingErrors(true);
-    
-    // Simulate TypeScript build errors
-    simulateBuildErrorCapture([
-      'src/utils/formSchemaValidator.ts:42:5: error TS2345: Argument of type \'unknown\' is not assignable to parameter of type \'ZodTypeAny\'.',
-      'src/components/operations/workOrder/WorkOrderForm.tsx:128:23: Type \'Date | undefined\' is not assignable to type \'Date\'.',
-      'src/services/workOrders/workOrderService.ts:56:18: Property \'site_id\' is optional in type but required in type.',
-      'src/components/hr/EmployeeForm.tsx:89:12: Cannot find name \'EmployeeFormValues\'.'
-    ]);
-    
-    // Show success toast
-    toast({
-      title: "Error Capture Test",
-      description: "Successfully simulated build errors. Check documentation for details.",
-    });
-    
-    // Reset state after a delay
-    setTimeout(() => {
-      setIsTestingErrors(false);
-    }, 3000);
-  };
+  const [activeTab, setActiveTab] = useState('overview');
   
   return (
-    <MainLayout>
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Documentation Center</h1>
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleTestErrorCapture} 
-              disabled={isTestingErrors}
-              variant="outline"
-            >
-              {isTestingErrors ? (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Testing Error Capture
-                </>
-              ) : (
-                'Test Error Capture'
-              )}
-            </Button>
-            <Button
-              onClick={() => setShowErrorAnalytics(!showErrorAnalytics)}
-              variant="outline"
-            >
-              {showErrorAnalytics ? "Hide Analytics" : "Show Error Analytics"}
-            </Button>
-          </div>
-        </div>
-        
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Automatic Error Documentation</AlertTitle>
-          <AlertDescription>
-            The system now automatically captures and documents TypeScript errors during build and runtime.
-            Use the "Test Error Capture" button to simulate build errors and see how they are documented.
-          </AlertDescription>
-        </Alert>
+    <div className="container py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
+        <p className="text-muted-foreground mt-2">
+          Technical documentation and error analytics for the application
+        </p>
       </div>
       
-      {showErrorAnalytics && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Error Analytics</h2>
-          <ErrorAnalytics />
-        </div>
-      )}
-      
-      <DocumentationDashboard />
-    </MainLayout>
+      <Tabs defaultValue="overview" onValueChange={setActiveTab}>
+        <TabsList className="mb-8">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="structure">Structure</TabsTrigger>
+          <TabsTrigger value="errors">Error Analytics</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview">
+          <DocumentationDashboard />
+        </TabsContent>
+        
+        <TabsContent value="structure">
+          <DocumentationStructureView structure={mockStructure} />
+        </TabsContent>
+        
+        <TabsContent value="errors">
+          <Card>
+            <CardHeader>
+              <CardTitle>Error Analytics</CardTitle>
+              <CardDescription>
+                Track and analyze errors to improve application quality
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ErrorAnalytics />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
