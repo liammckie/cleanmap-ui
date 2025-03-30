@@ -36,8 +36,11 @@ jobs:
 
       - name: Upload sourcemaps to Sentry
         run: |
-          npx sentry-cli releases new cleanmap-ui@${GITHUB_SHA::7}
-          npx sentry-cli releases files cleanmap-ui@${GITHUB_SHA::7} upload-sourcemaps dist --rewrite --validate --url-prefix "~/"
-          npx sentry-cli releases finalize cleanmap-ui@${GITHUB_SHA::7}
+
+          RELEASE=cleanmap-ui@${GITHUB_SHA:0:7}
+          echo "Using release: $RELEASE"
+          npx sentry-cli releases new $RELEASE
+          npx sentry-cli releases files $RELEASE upload-sourcemaps dist --rewrite --validate --url-prefix "~/"
+          npx sentry-cli releases finalize $RELEASE
         env:
           SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
