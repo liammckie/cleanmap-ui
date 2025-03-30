@@ -622,3 +622,59 @@ These colors are applied consistently across:
 - Priority indicators
 - Charts and visualizations
 - Interactive elements
+
+## Reports Page
+
+**Route**: `/reports`
+
+**Purpose**: Provide comprehensive analytics and insights about cleaning operations
+
+**Layout Components**:
+- Tabbed interface with three main sections:
+  1. Locations Map
+  2. Performance Metrics
+  3. Financial Reports
+
+### Locations Map Tab
+- Interactive map showing cleaning locations
+- Displays site locations with markers
+- Potential future enhancements:
+  - Staff allocation visualization
+  - Site density indicators
+  - Filtering capabilities
+
+### Performance Tab
+- Currently a placeholder for future performance charts
+- Intended to show:
+  - Work order completion rates
+  - Service quality metrics
+  - Employee performance indicators
+
+### Financial Tab
+- Currently a placeholder for future financial reporting
+- Planned to include:
+  - Revenue breakdown
+  - Cost analysis
+  - Profitability metrics
+
+**Key Components Used**:
+- Tabs component from shadcn/ui
+- Card components for structured layout
+- Map integration for location visualization
+- Lucide icons for tab navigation
+
+**Responsive Behavior**:
+- Tabs collapse into dropdown on mobile
+- Map and chart areas adjust to screen size
+- Mobile-friendly navigation
+
+**Tech Stack**:
+- React hooks for state management
+- React Query for potential data fetching
+- Recharts library for future chart implementations
+
+**Future Roadmap**:
+- Implement actual charts in Performance tab
+- Add real financial reporting data
+- Enhance map with more interactive features
+- Add filtering and drill-down capabilities

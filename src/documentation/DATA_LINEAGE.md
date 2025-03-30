@@ -1,41 +1,41 @@
-# Data Lineage Documentation
 
-This file tracks the origin and source of data in the database schema.
+## Reports Module Data Lineage
 
-## Clients Table
+### Reports Data Sources
 
-### Origin: Internal Operations Module
+| Data Source | Origin | Type | Description |
+|------------|--------|------|-------------|
+| sites | Internal Operations | Primary | Source for location map data |
+| work_orders | Operations Tracking | Metrics | Used for performance calculations |
+| employees | HR Module | Performance | Potential source for staff allocation |
+| contracts | Billing Module | Financial | Source for revenue calculations |
 
-### Source Type: Internal User Input
+### Data Flow for Reports
 
-| Field                    | Origin           | Source Type   | Notes                                        |
-| ------------------------ | ---------------- | ------------- | -------------------------------------------- |
-| id                       | System Generated | UUID          | Primary key, auto-generated                  |
-| company_name             | Manual Input     | Internal User | Required field                               |
-| contact_name             | Manual Input     | Internal User | Required field                               |
-| contact_email            | Manual Input     | Internal User | Optional field                               |
-| contact_phone            | Manual Input     | Internal User | Optional field                               |
-| billing_address_street   | Manual Input     | Internal User | Required field                               |
-| billing_address_city     | Manual Input     | Internal User | Required field                               |
-| billing_address_state    | Manual Input     | Internal User | Required field                               |
-| billing_address_postcode | Manual Input     | Internal User | Required field                               |
-| status                   | Manual Input     | Internal User | Required field, enum: Active, On Hold        |
-| industry                 | Manual Input     | Internal User | Optional field                               |
-| region                   | Manual Input     | Internal User | Optional field                               |
-| notes                    | Manual Input     | Internal User | Optional field                               |
-| payment_terms            | Manual Input     | Internal User | Required field                               |
-| business_number          | Manual Input     | Internal User | Optional field                               |
-| on_hold_reason           | Manual Input     | Internal User | Optional field, required if status="On Hold" |
-| created_at               | System Generated | Timestamp     | Auto-generated                               |
-| updated_at               | System Generated | Timestamp     | Auto-updated via trigger                     |
+1. **Location Map**
+   - Retrieves active site information from `sites` table
+   - Uses `sites.coordinates` for map marker placement
+   - Joins with `clients` to show client name
 
-## Type Locked Fields
+2. **Performance Metrics** (Planned)
+   - Aggregate data from `work_orders`
+   - Calculate:
+     - Completion rates
+     - Average time to complete
+     - Work order status distributions
 
-The following fields have locked types to prevent accidental schema changes:
+3. **Financial Reports** (Planned)
+   - Derive data from:
+     - `contracts.monthly_value`
+     - `work_orders.billing_amount`
+     - Potential joins with invoice tables
 
-| Table   | Field      | Type      | Justification                              |
-| ------- | ---------- | --------- | ------------------------------------------ |
-| clients | id         | uuid      | Primary key used in relationships          |
-| clients | status     | enum      | Used in business logic for client handling |
-| clients | created_at | timestamp | Used for audit trails and sorting          |
-| clients | updated_at | timestamp | Used for change tracking                   |
+### Data Transformation Notes
+- Coordinates are parsed from storage format
+- Locations are filtered to show only active sites
+- Future implementations will require more complex aggregations
+
+### Potential Data Enrichment
+- Add geospatial analysis of site locations
+- Performance scoring for employees and sites
+- Predictive analytics for service demand
