@@ -7,13 +7,23 @@ import { captureGlobalErrors } from './utils/errorCapture.ts'
 import { checkSyntax, diagnoseSyntaxError } from './utils/syntaxChecker.ts'
 import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo.ts'
 import { setupMockEmployeeApi } from './utils/employeeDebug.ts'
+import { setupConsoleErrorCapture, simulateBuildErrorCapture } from './utils/buildErrorCapture.ts'
 
 // Set up global error capturing
 captureGlobalErrors();
 
+// Set up console error capturing for build errors
+setupConsoleErrorCapture();
+
 // Initialize mock API in development mode
 if (process.env.NODE_ENV === 'development') {
   setupMockEmployeeApi();
+  
+  // In development mode, simulate build error capture for testing purposes
+  // This would be removed in production and replaced with actual build process integration
+  setTimeout(() => {
+    simulateBuildErrorCapture();
+  }, 5000);
 }
 
 // Check Vite client compatibility before starting
