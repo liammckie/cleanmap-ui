@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@sentry/vite-plugin": "^3.2.4",
+    "lovable-tagger": "^1.1.8",
     "typescript": "^5.0.4",
     "vite": "^5.0.0"
   }

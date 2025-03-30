@@ -65,7 +65,7 @@ const MainLayout = () => {
     { id: 'operations', name: 'Operations', icon: Briefcase, 
       subItems: [
         { id: 'clients', name: 'Clients', path: '/operations/clients' },
-        { id: 'sites', name: 'Sites', path: '/operations/sites' }, // Fixed: changed from site-list to sites
+        { id: 'sites', name: 'Sites', path: '/operations/sites' }, 
         { id: 'contracts', name: 'Contracts', path: '/operations/contracts' },
         { id: 'work-orders', name: 'Work Orders', path: '/operations/work-orders' },
       ]
@@ -170,6 +170,7 @@ const MainLayout = () => {
             </p>
           </footer>
         </div>
+        <Toaster />
       </div>
     </SidebarProvider>
   )
