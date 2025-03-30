@@ -2,6 +2,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SentryErrorBoundary } from '@/components/ui/error-boundary'
+import { useEffect, useState } from 'react'
+import { verifySentryToken } from '@/utils/sentryInit'
 import Index from './pages/Index'
 import Dashboard from './pages/Dashboard'
 import Reports from './pages/Reports'
@@ -45,6 +47,28 @@ const TestErrorButton = () => (
   </button>
 );
 
+// Sentry token verification display component
+const SentryTokenStatus = () => {
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const result = await verifySentryToken();
+      setIsVerified(result);
+    };
+    
+    checkToken();
+  }, []);
+
+  if (isVerified === null) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 p-2 rounded text-xs z-50 bg-gray-800 text-white">
+      Sentry Token: {isVerified ? "✅ Valid" : "❌ Invalid"}
+    </div>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -83,6 +107,7 @@ function App() {
           </Routes>
           <Toaster />
           {process.env.NODE_ENV === 'development' && <TestErrorButton />}
+          {process.env.NODE_ENV === 'development' && <SentryTokenStatus />}
         </div>
       </SentryErrorBoundary>
     </QueryClientProvider>

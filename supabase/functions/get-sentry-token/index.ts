@@ -17,6 +17,7 @@ serve(async (req) => {
     const sentryAuthToken = Deno.env.get("SENTRY_AUTH_TOKEN");
 
     if (!sentryAuthToken) {
+      console.error("SENTRY_AUTH_TOKEN not found in Supabase secrets");
       return new Response(
         JSON.stringify({ error: "SENTRY_AUTH_TOKEN not found in secrets" }),
         {
@@ -26,9 +27,13 @@ serve(async (req) => {
       );
     }
 
+    console.log("Sentry token retrieved successfully");
+    
     return new Response(
       JSON.stringify({ 
-        token: sentryAuthToken 
+        token: sentryAuthToken,
+        // Include timestamp for debugging
+        timestamp: new Date().toISOString()
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -36,6 +41,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error retrieving Sentry token:", error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

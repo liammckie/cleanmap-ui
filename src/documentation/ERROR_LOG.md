@@ -32,6 +32,39 @@ The formSchemaValidator.ts utility is not properly type-casting variables to Zod
 
 ---
 
+### Sentry Token Configuration
+
+**Status:** Resolved  
+**First Identified:** 2024-06-24  
+**Last Updated:** 2024-06-24  
+**Resolved On:** 2024-06-24  
+**Severity:** Medium  
+
+**Description:**
+Issues with Sentry token persistence and availability during the build process.
+
+**Root Cause Analysis:**
+The Sentry token was being fetched but not properly cached or made available during the build process, leading to missing source maps in Sentry.
+
+**Resolution Steps:**
+1. ✅ Implemented token caching in sentryInit.ts to avoid repeated API calls
+2. ✅ Updated the get-sentry-token edge function with better error handling and logging
+3. ✅ Modified vite.config.ts to attempt direct token retrieval during build when needed
+4. ✅ Added a token verification utility to test token availability during development
+
+**Related Files:**
+- src/utils/sentryInit.ts
+- supabase/functions/get-sentry-token/index.ts
+- vite.config.ts
+- src/App.tsx
+
+**Prevention Measures:**
+- Added token verification components in development mode to quickly identify token issues
+- Implemented caching to improve performance and reduce API calls
+- Added comprehensive error logging throughout the token retrieval process
+
+---
+
 ## Resolved Issues
 
 ### Work Order Form Type Inconsistencies
@@ -70,33 +103,6 @@ Type errors in WorkOrderForm and workOrderService preventing successful build.
 - Added runtime validation for required fields before database submission
 - Enhanced error capture to document similar issues automatically
 - Updated Build Error Resolution guide with specific fixes for this pattern
-
----
-
-### Example Resolved Issue (Template)
-
-**Status:** Resolved  
-**First Identified:** YYYY-MM-DD  
-**Resolved On:** YYYY-MM-DD  
-**Severity:** Low/Medium/High/Critical  
-
-**Description:**
-Brief description of the issue
-
-**Error Messages:**
-- Exact error messages
-
-**Root Cause:**
-Explanation of what caused the issue
-
-**Resolution:**
-How the issue was fixed
-
-**Affected Files:**
-- List of files that were modified to fix the issue
-
-**Prevention Measures:**
-Steps taken to prevent similar issues in the future (tests, validations, etc.)
 
 ---
 
