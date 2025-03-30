@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { toast } from "@/components/ui/use-toast";
+import React from 'react';
 
 // Export Sentry for use in other files
 export { Sentry };
@@ -27,6 +28,13 @@ export const initSentry = (): void => {
                   hash: location.hash,
                 };
               },
+              routes: [], // Empty routes array
+              matchPath: () => null, // Simple matchPath function
+              // Required router object
+              router: {
+                navigate: () => {},
+                createHref: () => "",
+              }
             }),
           }),
         ],
