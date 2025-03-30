@@ -6,6 +6,18 @@ import { logBrowserInfo, checkForBrowserCompatibilityIssues } from './browserInf
 import { diagnoseSyntaxError } from './syntaxChecker';
 import { documentError } from '@/services/documentation/documentationService';
 import { ErrorEntry } from '@/utils/documentationManager';
+import { writeToStorage, readFromStorage } from './localStorageManager';
+
+// Store for errors that have already been documented
+const ERROR_CACHE_KEY = 'error_cache';
+const documentedErrors = new Set<string>(
+  JSON.parse(readFromStorage(ERROR_CACHE_KEY) || '[]')
+);
+
+// Helper to update the error cache
+const updateErrorCache = () => {
+  writeToStorage(ERROR_CACHE_KEY, JSON.stringify(Array.from(documentedErrors)));
+};
 
 /**
  * Sets up global error handlers to capture and log errors
@@ -32,6 +44,19 @@ export const captureGlobalErrors = () => {
       error: event.error,
       stack: event.error?.stack,
     });
+    
+    // Create a unique error key to avoid duplicates
+    const errorKey = `${event.message}:${event.filename}:${event.lineno}`;
+    
+    // Check if we've already documented this error
+    if (documentedErrors.has(errorKey)) {
+      console.log('This error has already been documented, skipping');
+      return false;
+    }
+    
+    // Add to documented errors set
+    documentedErrors.add(errorKey);
+    updateErrorCache();
     
     // Create an error entry and document it
     const errorEntry: ErrorEntry = {
@@ -75,6 +100,19 @@ export const captureGlobalErrors = () => {
       reason: event.reason,
       stack: event.reason?.stack,
     });
+    
+    // Create a unique key for this error
+    const errorKey = `promise:${event.reason.toString()}`;
+    
+    // Check if we've already documented this error
+    if (documentedErrors.has(errorKey)) {
+      console.log('This promise rejection has already been documented, skipping');
+      return;
+    }
+    
+    // Add to documented errors set
+    documentedErrors.add(errorKey);
+    updateErrorCache();
     
     // Create an error entry and document it
     const errorEntry: ErrorEntry = {
@@ -134,6 +172,19 @@ export const logAndDocumentError = (error: Error, context: {
     ...context
   });
   
+  // Create a unique key for this error
+  const errorKey = `${context.component || 'unknown'}:${context.operation || 'unknown'}:${error.message}`;
+  
+  // Check if we've already documented this error
+  if (documentedErrors.has(errorKey)) {
+    console.log('This application error has already been documented, skipping');
+    return;
+  }
+  
+  // Add to documented errors set
+  documentedErrors.add(errorKey);
+  updateErrorCache();
+  
   // Create error entry with relevant information
   const errorEntry: ErrorEntry = {
     title: `Error in ${context.component || 'unknown component'}: ${error.message.substring(0, 50)}`,
@@ -178,6 +229,19 @@ export const logAndDocumentError = (error: Error, context: {
 export const captureBuildError = (errorMessage: string, filePath: string): void => {
   console.error(`Build error in ${filePath}:`, errorMessage);
   
+  // Create a unique key for this error
+  const errorKey = `build:${filePath}:${errorMessage}`;
+  
+  // Check if we've already documented this error
+  if (documentedErrors.has(errorKey)) {
+    console.log('This build error has already been documented, skipping');
+    return;
+  }
+  
+  // Add to documented errors set
+  documentedErrors.add(errorKey);
+  updateErrorCache();
+  
   // Parse error for title
   const errorTitle = errorMessage.includes(':')
     ? errorMessage.split(':').slice(0, 2).join(':')
@@ -217,4 +281,83 @@ export const captureBuildError = (errorMessage: string, filePath: string): void 
   documentError(errorEntry).catch(err => {
     console.error('Failed to document build error:', err);
   });
+};
+
+/**
+ * Creates a single comprehensive error report for an issue
+ * @param title Title of the error
+ * @param description Detailed description
+ * @param errors Collection of error messages
+ * @param files Affected files
+ * @returns The error entry that was created
+ */
+export const createComprehensiveErrorReport = (
+  title: string,
+  description: string,
+  errors: string[],
+  files: string[]
+): ErrorEntry => {
+  // Create a unique key for this error
+  const errorKey = `report:${title}`;
+  
+  // Check if we've already documented this error
+  if (documentedErrors.has(errorKey)) {
+    console.log('This error report has already been documented, skipping');
+    return {
+      title,
+      status: 'Investigating',
+      description,
+      errorMessages: errors,
+      affectedFiles: files,
+      resolutionSteps: []
+    };
+  }
+  
+  // Add to documented errors set
+  documentedErrors.add(errorKey);
+  updateErrorCache();
+  
+  // Create error entry
+  const errorEntry: ErrorEntry = {
+    title,
+    status: 'Investigating',
+    description,
+    errorMessages: errors,
+    affectedFiles: files,
+    resolutionSteps: [
+      {
+        description: 'Investigate issue',
+        completed: false
+      }
+    ]
+  };
+  
+  // Auto-analyze errors and suggest resolution steps
+  if (errors.some(e => e.includes('type'))) {
+    errorEntry.resolutionSteps.push({
+      description: 'Check type compatibility',
+      completed: false
+    });
+  }
+  
+  if (errors.some(e => e.includes('undefined') || e.includes('null'))) {
+    errorEntry.resolutionSteps.push({
+      description: 'Add null/undefined checks',
+      completed: false
+    });
+  }
+  
+  if (errors.some(e => e.includes('async') || e.includes('promise'))) {
+    errorEntry.resolutionSteps.push({
+      description: 'Review async/await flow',
+      completed: false
+    });
+  }
+  
+  // Document the error
+  documentError(errorEntry).catch(err => {
+    console.error('Failed to document comprehensive error report:', err);
+  });
+  
+  return errorEntry;
 };

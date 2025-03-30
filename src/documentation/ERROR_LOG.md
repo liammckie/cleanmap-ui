@@ -32,6 +32,8 @@ The formSchemaValidator.ts utility is not properly type-casting variables to Zod
 
 ---
 
+## Resolved Issues
+
 ### Work Order Form Type Inconsistencies
 
 **Status:** Resolved  
@@ -70,8 +72,6 @@ Type errors in WorkOrderForm and workOrderService preventing successful build.
 - Updated Build Error Resolution guide with specific fixes for this pattern
 
 ---
-
-## Resolved Issues
 
 ### Example Resolved Issue (Template)
 
@@ -136,4 +136,3 @@ When an issue is resolved:
 7. Add any prevention measures implemented
 
 This log should be updated regularly as part of the development process to maintain an accurate record of issues and their resolutions.
-

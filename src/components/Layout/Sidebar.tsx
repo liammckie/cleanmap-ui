@@ -1,159 +1,112 @@
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import {
-  Activity,
-  Map,
-  Users,
-  Calendar,
-  Files,
-  Clipboard,
-  BarChart3,
+import { 
+  LayoutDashboard, 
+  Users, 
+  Building, 
+  ClipboardCheck, 
+  FileText, 
+  Target, 
+  Receipt, 
+  UserSquare, 
   Settings,
-  Menu,
-  X,
-  UserCog,
-  Briefcase, // Added HR icon and Briefcase icon
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+  MapPin, 
+  BarChart, 
+  LogOut,
+  Spraymop as CleaningIcon,
+  FileSearch
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-interface SidebarProps {
-  isMobile: boolean
-  isOpen: boolean
-  toggleSidebar: () => void
+interface SidebarLinkProps {
+  to: string;
+  icon: React.ReactNode;
+  text: string;
 }
 
-const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
-  const [activeItem, setActiveItem] = useState('dashboard')
-
-  const navItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
-    { id: 'clients', name: 'Clients', icon: Users, path: '/clients' },
-    { id: 'locations', name: 'Locations', icon: Map, path: '/locations' },
-    { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' },
-    { id: 'schedule', name: 'Schedule', icon: Calendar, path: '/schedule' },
-    { id: 'contracts', name: 'Contracts', icon: Clipboard, path: '/contracts' },
-    { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },
-    { id: 'documents', name: 'Documents', icon: Files, path: '/documents' },
-    { id: 'settings', name: 'Settings', icon: Settings, path: '/settings' },
-    {
-      title: 'Operations',
-      icon: Briefcase,
-      items: [
-        { title: 'Clients', path: '/operations/clients' },
-        { title: 'Sites', path: '/operations/site-list' },
-      ],
-    },
-  ]
-
-  if (isMobile && !isOpen) {
-    return (
-      <div className="fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleSidebar}
-          className="bg-white dark:bg-gray-800 shadow-md"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <aside
-      className={cn(
-        'fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-gray-900 shadow-md',
-        'transition-transform duration-300 ease-in-out',
-        'border-r border-gray-200 dark:border-gray-800',
-        isMobile && !isOpen && '-translate-x-full',
-        isMobile && isOpen && 'translate-x-0',
-      )}
+const SidebarLink = ({ to, icon, text }: SidebarLinkProps) => (
+  <li>
+    <Link
+      to={to}
+      className="flex items-center space-x-3 rounded-md p-2 text-gray-700 hover:bg-gray-200 hover:text-gray-900"
     >
-      <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-brand-blue text-white font-bold">
-            CE
-          </div>
-          <span className="text-lg font-semibold">CleanERP</span>
-        </div>
-        {isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-            <X className="h-5 w-5" />
-          </Button>
-        )}
+      {icon}
+      <span>{text}</span>
+    </Link>
+  </li>
+);
+
+interface SidebarSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const SidebarSection = ({ title, children }: SidebarSectionProps) => (
+  <div className="mt-4">
+    <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      {title}
+    </h3>
+    <ul className="mt-2 space-y-1">{children}</ul>
+  </div>
+);
+
+const Sidebar = () => {
+  return (
+    <div className="h-screen flex flex-col bg-gray-100 border-r">
+      {/* Brand/Logo */}
+      <div className="p-4 border-b">
+        <Link to="/" className="flex items-center space-x-2">
+          <CleaningIcon className="h-6 w-6 text-primary" />
+          <span className="font-bold text-xl">CleanMap</span>
+        </Link>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          {navItems.map((item) => {
-            if (item.items) {
-              return (
-                <li key={item.title}>
-                  <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all">
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.title}</span>
-                  </div>
-                  <ul className="space-y-1 px-4">
-                    {item.items.map((subItem) => (
-                      <li key={subItem.path}>
-                        <NavLink
-                          to={subItem.path}
-                          className={({ isActive }) =>
-                            cn(
-                              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
-                              isActive
-                                ? 'bg-brand-blue text-white'
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
-                            )
-                          }
-                          onClick={() => setActiveItem(subItem.path)}
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span>{subItem.title}</span>
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              )
-            } else {
-              return (
-                <li key={item.id}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
-                        isActive
-                          ? 'bg-brand-blue text-white'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
-                      )
-                    }
-                    onClick={() => setActiveItem(item.id)}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </NavLink>
-                </li>
-              )
-            }
-          })}
+          <SidebarLink to="/dashboard" icon={<LayoutDashboard className="h-5 w-5" />} text="Dashboard" />
+          
+          {/* Operations Section */}
+          <SidebarSection title="Operations">
+            <SidebarLink to="/operations/clients" icon={<Users className="h-5 w-5" />} text="Clients" />
+            <SidebarLink to="/operations/sites" icon={<Building className="h-5 w-5" />} text="Sites" />
+            <SidebarLink to="/operations/work-orders" icon={<ClipboardCheck className="h-5 w-5" />} text="Work Orders" />
+            <SidebarLink to="/operations/contracts" icon={<FileText className="h-5 w-5" />} text="Contracts" />
+          </SidebarSection>
+          
+          {/* Sales Section */}
+          <SidebarSection title="Sales">
+            <SidebarLink to="/sales/leads" icon={<Target className="h-5 w-5" />} text="Leads" />
+            <SidebarLink to="/sales/quotes" icon={<Receipt className="h-5 w-5" />} text="Quotes" />
+          </SidebarSection>
+          
+          {/* HR Section */}
+          <SidebarSection title="Human Resources">
+            <SidebarLink to="/hr/employees" icon={<UserSquare className="h-5 w-5" />} text="Employees" />
+          </SidebarSection>
+          
+          {/* Other Links */}
+          <SidebarLink to="/locations" icon={<MapPin className="h-5 w-5" />} text="Locations" />
+          <SidebarLink to="/reports" icon={<BarChart className="h-5 w-5" />} text="Reports" />
+          <SidebarLink to="/documentation" icon={<FileSearch className="h-5 w-5" />} text="Documentation" />
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Admin User</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">admin@cleanerp.com</p>
+      {/* User Section */}
+      <div className="p-4 border-t">
+        <button className="flex items-center space-x-2 w-full rounded hover:bg-gray-200 p-2 transition-colors">
+          <Avatar>
+            <AvatarImage src="/placeholder.svg" alt="User" />
+            <AvatarFallback>JD</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 text-left">
+            <div className="text-sm font-medium">John Doe</div>
+            <div className="text-xs text-gray-500">Admin</div>
           </div>
-        </div>
+          <LogOut className="h-4 w-4 text-gray-500" />
+        </button>
       </div>
-    </aside>
-  )
-}
+    </div>
+  );
+};
 
-export default Sidebar
+export default Sidebar;

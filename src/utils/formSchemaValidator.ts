@@ -54,23 +54,23 @@ export function validateSchemaConsistency(
     }
     
     // Check for type mismatches
-    if (getZodTypeName(formField as z.ZodTypeAny) !== getZodTypeName(dbField as z.ZodTypeAny)) {
-      const formType = getZodTypeName(formField as z.ZodTypeAny);
-      const dbType = getZodTypeName(dbField as z.ZodTypeAny);
-      
+    const formTypeName = getZodTypeName(formField as z.ZodTypeAny);
+    const dbTypeName = getZodTypeName(dbField as z.ZodTypeAny);
+    
+    if (formTypeName !== dbTypeName) {
       // Special check for date vs string
       const isDateStringMismatch = 
-        (formType === 'date' && dbType === 'string') || 
-        (formType === 'string' && dbType === 'date');
+        (formTypeName === 'date' && dbTypeName === 'string') || 
+        (formTypeName === 'string' && dbTypeName === 'date');
       
       mismatches.push({
         field: fieldName,
-        formType,
-        dbType,
+        formType: formTypeName,
+        dbType: dbTypeName,
         critical: !isDateStringMismatch, // Date/string mismatches are common and can be handled
         suggestion: isDateStringMismatch
           ? `Use a date transformation function like formatDateForDb() when submitting to database`
-          : `Align the types: change ${formType} to ${dbType} or vice versa`
+          : `Align the types: change ${formTypeName} to ${dbTypeName} or vice versa`
       });
     }
     
@@ -116,6 +116,8 @@ export function validateSchemaConsistency(
  * @returns Type name as string
  */
 function getZodTypeName(schema: z.ZodTypeAny): string {
+  if (!schema) return 'unknown';
+  
   if (schema instanceof z.ZodString) return 'string';
   if (schema instanceof z.ZodNumber) return 'number';
   if (schema instanceof z.ZodBoolean) return 'boolean';
@@ -139,6 +141,8 @@ function getZodTypeName(schema: z.ZodTypeAny): string {
  * @returns Whether the schema is optional
  */
 function isZodOptional(schema: z.ZodTypeAny): boolean {
+  if (!schema) return false;
+  
   if (schema instanceof z.ZodOptional) return true;
   if (schema instanceof z.ZodNullable && schema._def.innerType instanceof z.ZodOptional) return true;
   return false;

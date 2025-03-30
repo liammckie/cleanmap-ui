@@ -13,10 +13,16 @@ import {
   updateSchemaChangelog,
   createDocumentationReference,
   DOCUMENTATION_PATHS,
-  type ErrorEntry
+  type ErrorEntry,
+  initializeDocumentationSystem
 } from '@/utils/documentationManager';
 import { captureBuildError } from '@/utils/errorCapture';
 import { format } from 'date-fns';
+
+// Initialize the documentation system
+if (typeof window !== 'undefined') {
+  initializeDocumentationSystem();
+}
 
 /**
  * Documents a new error or issue in the system
@@ -28,34 +34,27 @@ export async function documentError(errorDetails: ErrorEntry): Promise<void> {
   // Log the error in the error log
   addErrorToLog(errorDetails);
   
-  // If this is a type inconsistency, also update the TYPE_INCONSISTENCIES.md
+  // If this is a type inconsistency, also create cross-references
   if (errorDetails.title.toLowerCase().includes('type') || 
       errorDetails.description.toLowerCase().includes('type') ||
       errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('type'))) {
     
-    console.info('Type-related error detected, updating TYPE_INCONSISTENCIES.md');
+    console.info('Type-related error detected, updating cross-references');
     
-    // In a full implementation, we would update the TYPE_INCONSISTENCIES.md file
-    // with details from the error
-    
-    // Find patterns in error messages that indicate specific type issues
-    const isRequiredVsOptional = errorDetails.errorMessages.some(msg => 
-      msg.includes('required') && msg.includes('optional')
+    // Create references between documentation files
+    createDocumentationReference(
+      DOCUMENTATION_PATHS.ERROR_LOG,
+      DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES,
+      'Active Issues',
+      `See also: Type inconsistency details in TYPE_INCONSISTENCIES.md`
     );
     
-    const isWrongType = errorDetails.errorMessages.some(msg => 
-      msg.includes('not assignable to') || msg.includes('No overload matches')
+    createDocumentationReference(
+      DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES,
+      DOCUMENTATION_PATHS.ERROR_LOG,
+      'Common Type Issues',
+      `See error: ${errorDetails.title} in ERROR_LOG.md`
     );
-    
-    if (isRequiredVsOptional) {
-      console.info('Required vs. Optional field mismatch detected');
-      // Would update TYPE_INCONSISTENCIES.md with specific advice
-    }
-    
-    if (isWrongType) {
-      console.info('Type incompatibility detected');
-      // Would update TYPE_INCONSISTENCIES.md with specific advice
-    }
   }
   
   // Create references in related documentation
@@ -174,7 +173,7 @@ function createErrorReferences(errorDetails: ErrorEntry): void {
     createDocumentationReference(
       DOCUMENTATION_PATHS.ERROR_LOG,
       docPath,
-      errorDetails.title,
+      'Active Issues',
       `See also: ${docPath}`
     );
     
@@ -274,8 +273,43 @@ export async function documentTypeResolution(
   // Add to TYPE_INCONSISTENCIES.md
   console.info('Updating TYPE_INCONSISTENCIES.md with resolution details');
   
-  // Would update the type inconsistencies document with details about how
-  // the resolution was implemented and lessons learned
+  const typeDocPath = DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES;
+  const typeDoc = readDocumentationFile(typeDocPath);
+  
+  // Find the section for this error
+  const errorSectionRegex = new RegExp(`## ${errorTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+  const match = errorSectionRegex.exec(typeDoc);
+  
+  if (match && match.index !== undefined) {
+    // Add resolution details to the section
+    const currentDate = format(new Date(), 'yyyy-MM-dd');
+    const resolutionText = `
+### Resolution (${currentDate})
+${resolution}
+
+**Affected Files:**
+${affectedFiles.map(file => `- ${file}`).join('\n')}
+
+**Prevention Measures:**
+- Added validation for required fields
+- Enhanced type safety with proper validations
+- Documented patterns for handling similar issues
+`;
+    
+    // Find the next section
+    let nextSectionIndex = typeDoc.indexOf('## ', match.index + errorTitle.length);
+    if (nextSectionIndex === -1) {
+      nextSectionIndex = typeDoc.length;
+    }
+    
+    // Insert the resolution before the next section
+    const updatedTypeDoc = 
+      typeDoc.substring(0, nextSectionIndex) + 
+      resolutionText + 
+      typeDoc.substring(nextSectionIndex);
+    
+    writeDocumentationFile(typeDocPath, updatedTypeDoc);
+  }
   
   // Also add to schema changelog if schema files were affected
   if (affectedFiles.some(file => file.includes('schema'))) {
@@ -340,3 +374,34 @@ export async function documentTypeScriptErrors(errors: string[]): Promise<void> 
     addErrorToLog(errorEntry);
   });
 }
+
+/**
+ * Creates a dashboard report of all errors and documentation
+ * @returns HTML string for the dashboard
+ */
+export function generateDocumentationDashboard(): string {
+  return `
+    <div class="documentation-dashboard">
+      <h2>Documentation Dashboard</h2>
+      <p>Last updated: ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}</p>
+      
+      <h3>Active Issues</h3>
+      <ul>
+        <!-- This would be populated with actual active issues -->
+        <li>TypeScript Errors in formSchemaValidator.ts - <span class="status-investigating">Investigating</span></li>
+        <li>Work Order Form Type Inconsistencies - <span class="status-in-progress">In Progress</span></li>
+      </ul>
+      
+      <h3>Recently Resolved</h3>
+      <ul>
+        <!-- This would be populated with actual resolved issues -->
+        <li>Missing isSubmitting prop in FormActions - <span class="status-resolved">Resolved</span></li>
+      </ul>
+    </div>
+  `;
+}
+
+// Export the internal functions for testing
+export const _internal = {
+  createErrorReferences
+};

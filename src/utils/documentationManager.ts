@@ -6,6 +6,11 @@
  */
 
 import { format } from 'date-fns';
+import { 
+  readFromStorage, 
+  writeToStorage, 
+  getAllDocumentation 
+} from './localStorageManager';
 
 // Documentation file paths
 export const DOCUMENTATION_PATHS = {
@@ -31,6 +36,9 @@ export interface ErrorEntry {
     description: string;
     completed: boolean;
   }>;
+  severity?: 'Low' | 'Medium' | 'High' | 'Critical';
+  firstIdentified?: string;
+  resolvedOn?: string;
 }
 
 /**
@@ -40,45 +48,22 @@ export interface ErrorEntry {
  */
 export const readDocumentationFile = (filePath: string): string => {
   try {
-    // In a browser environment, we'll need to use fetch to read files
-    // This is a simplified implementation for demonstration
-    console.log(`Reading documentation file: ${filePath}`);
+    // First, try to read from localStorage
+    const storedContent = readFromStorage(filePath);
+    if (storedContent) {
+      return storedContent;
+    }
     
-    // For the ERROR_LOG.md, we have it in memory
+    // If not in localStorage, fallback to default content
+    console.log(`Documentation file not found in localStorage: ${filePath}, loading default content`);
+    
+    // Return default content for ERROR_LOG.md
     if (filePath === DOCUMENTATION_PATHS.ERROR_LOG) {
       return `# Error Log
 
 This document tracks errors, bugs, and build issues encountered in the application, along with their resolution status and steps taken.
 
 ## Active Issues
-
-### Work Order Form Type Inconsistencies
-
-**Status:** In Progress  
-**First Identified:** 2024-06-14  
-**Last Updated:** 2024-06-14  
-**Severity:** High  
-
-**Description:**
-Type errors in WorkOrderForm and workOrderService preventing successful build.
-
-**Error Messages:**
-- \`Property 'isSubmitting' does not exist on type 'IntrinsicAttributes & FormActionsProps'\`
-- \`Property 'description' is optional in type but required in Supabase insert call\`
-
-**Root Cause Analysis:**
-- The FormActions component doesn't include isSubmitting in its props interface
-- The workOrderService.ts insert function requires description field but it's being treated as optional
-
-**Resolution Steps:**
-1. ✅ Update FormActions component to include isSubmitting prop
-2. ✅ Ensure description is properly handled as required in workOrderService.ts
-
-**Related Files:**
-- src/components/operations/workOrder/form-sections/FormActions.tsx
-- src/services/workOrders/workOrderService.ts
-
----
 
 ## Resolved Issues
 
@@ -148,6 +133,68 @@ This log should be updated regularly as part of the development process to maint
 `;
     }
     
+    if (filePath === DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES) {
+      return `# Type Inconsistencies Documentation
+
+This document provides detailed analysis of type inconsistencies in the application.
+
+## Common Type Issues
+
+### Date Handling Inconsistencies
+
+A common source of typing errors stems from inconsistent date handling:
+
+- **Database**: Stores dates as ISO strings
+- **API Responses**: Return dates as strings
+- **UI Components**: Expect Date objects for date pickers
+- **Form Validation**: Zod schema expects Date objects
+
+This leads to a cycle of conversions:
+1. String from DB → Date for UI
+2. Date in form → String for DB insert/update
+3. String from DB → Date for form default values
+
+### Required vs Optional Field Mismatches
+
+Another common issue is mismatches between optional fields in forms and required fields in the database:
+
+- Form fields are often marked as optional for user experience
+- Database fields may be required for data integrity
+- This creates a disconnect that must be handled in service layer
+
+## Recommended Solutions
+
+### Date Handling
+
+1. Implement consistent date handling utilities:
+   - \`toApiDate(date: Date): string\` - Convert for API calls
+   - \`fromApiDate(dateString: string): Date\` - Convert from API responses
+   - \`toFormDate(dateInput: Date | string): Date\` - Safely convert to form Date
+
+### Required Field Validation
+
+1. Add automatic validation of required fields:
+   - Create a utility that validates all required fields before database operations
+   - Generate validation code from database schema
+   - Example:
+  
+\`\`\`typescript
+// Validate required fields before submission
+if (!formData.site_id) {
+  throw new Error('Site ID is required for work orders');
+}
+\`\`\`
+
+## Testing Strategy
+
+1. Add TypeScript tests that verify type compatibility between layers
+2. Add unit tests for date conversion utilities
+3. Add integration tests that verify the full cycle: form submission → API → database → retrieval
+4. Add runtime checks that validate database requirements are met before submission
+
+`;
+    }
+    
     // Return empty string for other files
     return '';
   } catch (error) {
@@ -163,17 +210,11 @@ This log should be updated regularly as part of the development process to maint
  */
 export const writeDocumentationFile = (filePath: string, content: string): void => {
   try {
-    // In a production environment, this would write to actual files
-    // For this implementation, we'll log what would be written
-    console.log(`Writing to documentation file: ${filePath}`);
-    console.log('Content preview:', content.substring(0, 200) + '...');
-    
-    // In a real implementation with Node.js:
-    // fs.writeFileSync(filePath, content, 'utf8');
-    
-    // For now, we can store this in localStorage for demo purposes
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(`doc:${filePath}`, content);
+    // Write to localStorage
+    if (writeToStorage(filePath, content)) {
+      console.log(`Successfully wrote to documentation file: ${filePath}`);
+    } else {
+      console.error(`Failed to write to documentation file: ${filePath}`);
     }
   } catch (error) {
     console.error(`Error writing to documentation file ${filePath}:`, error);
@@ -186,13 +227,15 @@ export const writeDocumentationFile = (filePath: string, content: string): void 
  */
 export const addErrorToLog = (error: ErrorEntry): void => {
   const currentDate = format(new Date(), 'yyyy-MM-dd');
+  error.firstIdentified = error.firstIdentified || currentDate;
+  
   const errorTemplate = `
 ### ${error.title}
 
 **Status:** ${error.status}  
-**First Identified:** ${currentDate}  
+**First Identified:** ${error.firstIdentified}  
 **Last Updated:** ${currentDate}  
-**Severity:** High  
+**Severity:** ${error.severity || 'High'}  
 
 **Description:**
 ${error.description}
@@ -259,10 +302,100 @@ const updateTypeInconsistenciesDoc = (error: ErrorEntry): void => {
   const typeDocPath = DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES;
   const typeDoc = readDocumentationFile(typeDocPath);
   
-  // For now, just log that we would update it
-  console.log(`Would update ${typeDocPath} with error: ${error.title}`);
-  console.log('Error messages:', error.errorMessages);
+  // Create a section for this specific error
+  const currentDate = format(new Date(), 'yyyy-MM-dd');
+  const typeSection = `
+## ${error.title} (${currentDate})
+
+**Status:** ${error.status}
+**Related Files:** ${error.affectedFiles.join(', ')}
+
+### Issue Description
+${error.description}
+
+### Error Messages
+${error.errorMessages.map(msg => `- \`${msg}\``).join('\n')}
+
+### Analysis
+${analyzeTypeError(error)}
+
+### Recommended Solution
+${suggestTypeSolution(error)}
+
+`;
+  
+  // Add the section to the document
+  const updatedTypeDoc = typeDoc + typeSection;
+  writeDocumentationFile(typeDocPath, updatedTypeDoc);
 };
+
+/**
+ * Analyzes a type error and returns a description
+ */
+function analyzeTypeError(error: ErrorEntry): string {
+  const errorText = error.errorMessages.join(' ');
+  
+  if (errorText.includes('required') && errorText.includes('optional')) {
+    return 'This error is caused by a mismatch between required and optional fields. A field that is marked as optional in the form schema is required in the database schema.';
+  }
+  
+  if (errorText.includes('Date') || errorText.includes('string') || errorText.includes('date')) {
+    return 'This error is related to date handling. There is likely a mismatch between Date objects used in the application and string dates used in the database.';
+  }
+  
+  if (errorText.includes('no overload matches')) {
+    return 'This error indicates a function is being called with parameters that don\'t match any of its defined signatures. Check parameter types and required vs optional parameters.';
+  }
+  
+  return 'This type error requires further investigation to determine the root cause.';
+}
+
+/**
+ * Suggests a solution for a type error
+ */
+function suggestTypeSolution(error: ErrorEntry): string {
+  const errorText = error.errorMessages.join(' ');
+  
+  if (errorText.includes('required') && errorText.includes('optional')) {
+    return `
+1. Add validation before database submission:
+\`\`\`typescript
+// Validate required fields
+if (!data.requiredField) {
+  throw new Error('Required field is missing');
+}
+\`\`\`
+
+2. Or make the field required in the form schema:
+\`\`\`typescript
+const formSchema = z.object({
+  requiredField: z.string(), // No .optional()
+});
+\`\`\`
+`;
+  }
+  
+  if (errorText.includes('Date') || errorText.includes('string') || errorText.includes('date')) {
+    return `
+1. Use proper date conversion utilities:
+\`\`\`typescript
+// When sending to API/database
+const preparedData = {
+  ...formData,
+  dateField: formatDateForDb(formData.dateField)
+};
+
+// When receiving from API/database for form
+const formDefaultValues = {
+  ...data,
+  dateField: data.dateField ? new Date(data.dateField) : undefined
+};
+\`\`\`
+`;
+  }
+  
+  return 'A detailed review of the code is needed to determine the appropriate solution for this type error.';
+}
 
 /**
  * Updates the build error resolution documentation with a new error
@@ -273,10 +406,61 @@ const updateBuildErrorResolutionDoc = (error: ErrorEntry): void => {
   const buildErrorDocPath = DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION;
   const buildErrorDoc = readDocumentationFile(buildErrorDocPath);
   
-  // For now, just log that we would update it
-  console.log(`Would update ${buildErrorDocPath} with error: ${error.title}`);
-  console.log('Error messages:', error.errorMessages);
+  // Check if we need to add a new error type section
+  let errorType = 'General Error';
+  if (error.errorMessages.some(msg => msg.includes('Type') || msg.includes('type'))) {
+    errorType = 'Type Incompatibility';
+  } else if (error.errorMessages.some(msg => msg.includes('property') || msg.includes('Property'))) {
+    errorType = 'Property Does Not Exist on Type';
+  } else if (error.errorMessages.some(msg => msg.includes('overload') || msg.includes('Overload'))) {
+    errorType = 'No Overload Matches Call';
+  }
+  
+  // Create a section for this error type if it doesn't exist
+  if (!buildErrorDoc.includes(`### ${errorType}`)) {
+    const newSection = `
+### ${errorType}
+
+**Example Error:**
+\`\`\`
+${error.errorMessages[0] || 'Error message'}
+\`\`\`
+
+**Resolution Steps:**
+1. ${suggestBuildErrorResolution(error)}
+
+`;
+    
+    // Add the section to the document
+    const updatedBuildErrorDoc = buildErrorDoc + newSection;
+    writeDocumentationFile(buildErrorDocPath, updatedBuildErrorDoc);
+  }
 };
+
+/**
+ * Suggests a resolution for a build error
+ */
+function suggestBuildErrorResolution(error: ErrorEntry): string {
+  const errorText = error.errorMessages.join(' ');
+  
+  if (errorText.includes('required') && errorText.includes('optional')) {
+    return 'Add validation before database operations to catch missing required fields.';
+  }
+  
+  if (errorText.includes('Date') || errorText.includes('string') || errorText.includes('date')) {
+    return 'Use proper date formatting utilities to convert between Date objects and strings.';
+  }
+  
+  if (errorText.includes('no overload matches')) {
+    return 'Check the function signature and ensure you\'re passing the correct parameter types.';
+  }
+  
+  if (errorText.includes('property') || errorText.includes('Property')) {
+    return 'Check the interface definition and ensure all required properties are defined.';
+  }
+  
+  return 'Analyze the error message carefully to understand the specific type mismatch or issue.';
+}
 
 /**
  * Updates the status of an existing error in the error log
@@ -331,6 +515,22 @@ export const updateErrorStatus = (
       /\*\*Status:\*\* [^\n]*/, 
       `**Status:** ${updates.status}`
     );
+    
+    // If resolved, also add resolved date
+    if (updates.status === 'Resolved') {
+      if (updatedEntry.includes('**Resolved On:**')) {
+        updatedEntry = updatedEntry.replace(
+          /\*\*Resolved On:\*\* [^\n]*/, 
+          `**Resolved On:** ${currentDate}`
+        );
+      } else {
+        // Add resolved date after last updated
+        updatedEntry = updatedEntry.replace(
+          /\*\*Last Updated:\*\* [^\n]*/, 
+          `**Last Updated:** ${currentDate}  \n**Resolved On:** ${currentDate}`
+        );
+      }
+    }
   }
   
   // Update last updated date
@@ -378,9 +578,6 @@ export const updateErrorStatus = (
     );
   }
   
-  // Update the error log with the updated entry
-  const updatedErrorLog = errorLog.substring(0, errorStartIndex) + updatedEntry + errorLog.substring(errorEndIndex);
-  
   // If the error is resolved, move it to the resolved section
   if (updates.status === 'Resolved') {
     // Remove from active issues
@@ -395,6 +592,7 @@ export const updateErrorStatus = (
     writeDocumentationFile(errorLogPath, withoutEntry);
   } else {
     // Otherwise just update in place
+    const updatedErrorLog = errorLog.substring(0, errorStartIndex) + updatedEntry + errorLog.substring(errorEndIndex);
     writeDocumentationFile(errorLogPath, updatedErrorLog);
   }
 };
@@ -423,7 +621,7 @@ export const performDocumentationReview = (relatedError?: string): {
   )) {
     relevantDocuments.push({ 
       path: DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES, 
-      relevantSection: "WorkOrder Type System" 
+      relevantSection: "Common Type Issues" 
     });
   }
   
@@ -491,23 +689,51 @@ export const createDocumentationReference = (
   referenceText: string
 ): void => {
   console.log(`Creating reference from ${sourcePath} to ${targetPath}`);
-  console.log(`Would add to section "${sourceSection}": ${referenceText}`);
   
-  // In a real implementation, we would:
-  // 1. Read the source file
-  // 2. Find the source section
-  // 3. Add the reference text
-  // 4. Write the updated file
+  // Read the source file
+  const sourceContent = readDocumentationFile(sourcePath);
+  
+  // Check if the reference already exists
+  if (sourceContent.includes(referenceText)) {
+    console.log('Reference already exists, skipping');
+    return;
+  }
+  
+  // Find the source section
+  const sectionMatch = new RegExp(`## ${sourceSection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).exec(sourceContent);
+  
+  if (sectionMatch && sectionMatch.index !== undefined) {
+    // Find the next section
+    let nextSectionIndex = sourceContent.indexOf('## ', sectionMatch.index + sourceSection.length);
+    if (nextSectionIndex === -1) {
+      nextSectionIndex = sourceContent.length;
+    }
+    
+    // Add the reference before the next section
+    const updatedContent = 
+      sourceContent.substring(0, nextSectionIndex) + 
+      `\n> ${referenceText}\n\n` + 
+      sourceContent.substring(nextSectionIndex);
+    
+    // Write the updated content
+    writeDocumentationFile(sourcePath, updatedContent);
+  } else {
+    console.warn(`Section "${sourceSection}" not found in ${sourcePath}`);
+  }
 };
 
 // Export a function to add runtime error capture
 export const initializeDocumentationSystem = () => {
   console.log('Documentation system initialized');
   
+  // Load initial documentation from localStorage
+  const allDocs = getAllDocumentation();
+  console.log(`Loaded ${Object.keys(allDocs).length} documentation files from localStorage`);
+  
   // In a real implementation, this would set up listeners for errors
   window.addEventListener('error', (event) => {
     // Capture errors and log them to documentation
-    console.log('Would log runtime error to documentation:', event.error);
+    console.log('Runtime error detected:', event.error);
     
     // Create an error entry
     const errorEntry: ErrorEntry = {
@@ -516,6 +742,7 @@ export const initializeDocumentationSystem = () => {
       description: event.message,
       errorMessages: [event.message],
       affectedFiles: [event.filename || 'unknown'],
+      severity: 'High',
       resolutionSteps: [
         {
           description: 'Investigate error source',
