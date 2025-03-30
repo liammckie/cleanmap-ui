@@ -1,8 +1,6 @@
-
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
-import { diagnoseSyntaxError } from './syntaxChecker';
 import { handleRenderError } from './errorHandlers/renderErrorHandler';
 import React from 'react';
 
@@ -16,24 +14,9 @@ export const renderApp = (): void => {
       console.error('Root element not found');
       return;
     }
-    
+
     console.log('Starting to render application...');
-    
-    // Check for syntax errors in critical modules
-    try {
-      // Get the source of App.tsx for syntax validation
-      fetch('/src/App.tsx')
-        .then(response => response.text())
-        .then(code => {
-          diagnoseSyntaxError('App.tsx', code);
-        })
-        .catch(error => {
-          console.error('Failed to load App.tsx for syntax checking:', error);
-        });
-    } catch (checkError) {
-      console.error('Error checking syntax:', checkError);
-    }
-    
+
     // Render the application
     createRoot(rootElement).render(
       React.createElement(
@@ -42,7 +25,7 @@ export const renderApp = (): void => {
         React.createElement(App, null)
       )
     );
-    
+
     console.log('App successfully mounted');
   } catch (error) {
     handleRenderError(error);
