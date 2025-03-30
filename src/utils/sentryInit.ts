@@ -1,12 +1,4 @@
-
-/**
- * Sentry initialization module
- * 
- * This module configures and initializes Sentry error tracking.
- * It should be imported as early as possible in the application lifecycle.
- */
 import * as Sentry from "@sentry/react";
-// Import the specific packages needed for browser tracing and session replay
 import { BrowserTracing, Replay } from "@sentry/browser";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { supabase } from "@/integrations/supabase/client";
