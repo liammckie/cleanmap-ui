@@ -32,7 +32,7 @@ export default defineConfig(async ({ mode }) => {
         );
         
         if (response.ok) {
-          const responseData = await response.json();
+          const responseData = await response.json() as { token?: string };
           if (responseData && typeof responseData.token === 'string') {
             sentryAuthToken = responseData.token;
             console.log("Successfully retrieved Sentry token for build");
@@ -66,7 +66,7 @@ export default defineConfig(async ({ mode }) => {
         name: 'dev-only-component-tagger',
         apply: 'serve',
         // Custom lightweight implementation instead of using lovable-tagger directly
-        transform(code, id) {
+        transform(code: string, id: string) {
           if (id.endsWith('.tsx') && id.includes('/components/')) {
             return code.replace(
               /export default ([A-Za-z0-9_]+);/g,
@@ -83,7 +83,9 @@ export default defineConfig(async ({ mode }) => {
         release: {
           name: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
         },
-        include: "./dist",
+        sourcemaps: {
+          include: ["./dist"],
+        },
         url: "https://sentry.io/",
         telemetry: false,
         silent: false, // Set to false to see debug information during build

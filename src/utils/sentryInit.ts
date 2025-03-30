@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { toast } from "@/components/ui/use-toast";
+import type { RouteObject } from "react-router-dom";
 
 // Export Sentry for use in other files
 export { Sentry };
@@ -15,7 +16,12 @@ export const initSentry = (): void => {
         dsn: import.meta.env.VITE_SENTRY_DSN,
         integrations: [
           new BrowserTracing({
-            routingInstrumentation: reactRouterV6Instrumentation(),
+            routingInstrumentation: reactRouterV6Instrumentation(
+              // Pass empty arrays as these will be populated at runtime
+              () => [], // History object, populated automatically at runtime
+              [] as RouteObject[], // Routes array, populated automatically at runtime
+              {} // Custom options
+            ),
           }),
         ],
         tracesSampleRate: 1.0,
