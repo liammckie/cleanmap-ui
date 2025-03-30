@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
@@ -59,6 +60,14 @@ export default defineConfig(async ({ mode }) => {
       port: 8080,
     },
     plugins: [
+    sentryVitePlugin({
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      org: "liammckie",
+      project: "javascript-react",
+      release: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
+      include: "./dist",
+      url: "https://sentry.io/"
+    }),
       react(),
       mode === "development" && componentTagger(),
       // Use Sentry plugin in all environments if token is available

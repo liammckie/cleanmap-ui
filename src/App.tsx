@@ -1,133 +1,42 @@
+import { SentryErrorBoundary } from "@/components/common/SentryErrorBoundary";
 
-import { Routes, Route } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { SentryErrorBoundary } from '@/components/ui/error-boundary'
-import { useEffect, useState } from 'react'
-import { verifySentryToken } from '@/utils/sentryInit'
-import Index from './pages/Index'
-import Dashboard from './pages/Dashboard'
-import Reports from './pages/Reports'
-import Locations from './pages/Locations'
-import Employees from '@/pages/hr/Employees'
-import Clients from '@/pages/operations/Clients'
-import Sites from '@/pages/operations/Sites'
-import SiteDetails from '@/pages/operations/SiteDetails'
-import SiteList from '@/pages/operations/SiteList'
-import CreateSite from '@/pages/operations/CreateSite'
-import WorkOrders from '@/pages/operations/WorkOrders'
-import Contracts from '@/pages/operations/Contracts'
-import ContractDetails from '@/pages/operations/ContractDetails'
-import CreateContract from '@/pages/operations/CreateContract'
-import Leads from '@/pages/sales/Leads'
-import Quotes from '@/pages/sales/Quotes'
-import NotFound from './pages/NotFound'
-import CreateClient from '@/pages/operations/CreateClient'
-import { Toaster } from '@/components/ui/toaster'
-import Documentation from './pages/Documentation';
+import { Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { verifySentryToken } from '@/utils/sentryInit';
 
-// Create a QueryClient instance with default options
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-})
-
-// Test button component with intentional error for Sentry verification
-const TestErrorButton = () => (
-  <button 
-    className="fixed bottom-4 right-4 bg-red-500 text-white p-2 rounded text-xs z-50"
-    onClick={() => {
-      throw new Error("This is a test error for Sentry!");
-    }}
-  >
-    Test Sentry Error
-  </button>
-);
-
-// Sentry token verification display component
-const SentryTokenStatus = () => {
-  const [isVerified, setIsVerified] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        setIsChecking(true);
-        const result = await verifySentryToken();
-        setIsVerified(result);
-      } catch (error) {
-        console.error("Failed to verify Sentry token:", error);
-        setIsVerified(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-    
-    checkToken();
-  }, []);
-
-  return (
-    <div className="fixed bottom-4 left-4 p-2 rounded text-xs z-50 bg-gray-800 text-white">
-      Sentry Token: {isChecking ? "⏳ Checking..." : isVerified ? "✅ Valid" : "❌ Invalid"}
-      {!isVerified && !isChecking && (
-        <button 
-          className="ml-2 bg-blue-500 text-white px-2 py-1 rounded text-xs"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </button>
-      )}
-    </div>
-  );
-};
+import Index from './pages/Index';
+import Dashboard from './pages/Dashboard';
+import Reports from './pages/Reports';
+import Locations from './pages/Locations';
+import Employees from '@/pages/hr/Employees';
+import Clients from '@/pages/operations/Clients';
+import Sites from '@/pages/operations/Sites';
+import SiteDetails from '@/pages/operations/SiteDetails';
+import SiteList from '@/pages/operations/SiteList';
+import CreateSite from '@/pages/operations/CreateSite';
+import WorkOrders from '@/pages/operations/WorkOrders';
+import Contracts from '@/pages/operations/Contracts';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SentryErrorBoundary>
-        <div className="app">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/locations" element={<Locations />} />
-            <Route path="/documentation" element={<Documentation />} />
-            
-            <Route path="/hr">
-              <Route path="employees" element={<Employees />} />
-            </Route>
-            
-            <Route path="/operations">
-              <Route path="clients" element={<Clients />} />
-              <Route path="create-client" element={<CreateClient />} />
-              <Route path="sites" element={<Sites />} />
-              <Route path="sites/:siteId" element={<SiteDetails />} />
-              <Route path="site-list" element={<SiteList />} />
-              <Route path="create-site" element={<CreateSite />} />
-              <Route path="work-orders" element={<WorkOrders />} />
-              <Route path="contracts" element={<Contracts />} />
-              <Route path="contracts/:id" element={<ContractDetails />} />
-              <Route path="create-contract" element={<CreateContract />} />
-            </Route>
-            
-            <Route path="/sales">
-              <Route path="leads" element={<Leads />} />
-              <Route path="quotes" element={<Quotes />} />
-            </Route>
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-          {/* Always show Sentry test tools */}
-          <TestErrorButton />
-          <SentryTokenStatus />
-        </div>
-      </SentryErrorBoundary>
-    </QueryClientProvider>
+    <SentryErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/locations" element={<Locations />} />
+        <Route path="/employees" element={<Employees />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/sites" element={<Sites />} />
+        <Route path="/sites/:id" element={<SiteDetails />} />
+        <Route path="/site-list" element={<SiteList />} />
+        <Route path="/create-site" element={<CreateSite />} />
+        <Route path="/work-orders" element={<WorkOrders />} />
+        <Route path="/contracts" element={<Contracts />} />
+      </Routes>
+    </SentryErrorBoundary>
   );
 }
 
-export default App
+export default App;
