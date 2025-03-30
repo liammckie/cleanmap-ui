@@ -33,7 +33,7 @@ export default defineConfig(async ({ mode }) => {
         );
         
         if (response.ok) {
-          const responseData = await response.json();
+          const responseData = await response.json() as { token: string };
           sentryAuthToken = responseData.token;
           console.log("Successfully retrieved Sentry token for build");
         } else {

@@ -6,6 +6,9 @@
  * It should be imported as early as possible in the application lifecycle.
  */
 import * as Sentry from "@sentry/react";
+// Import the specific packages needed for browser tracing and session replay
+import { BrowserTracing, Replay } from "@sentry/browser";
+import { reactRouterV6Instrumentation } from "@sentry/react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Cache the Sentry token to avoid unnecessary API calls
@@ -22,11 +25,11 @@ export const initSentry = async () => {
     Sentry.init({
       dsn: "https://ffa7539c938a11e1a39a3bf96b87fb99@o4509064558477312.ingest.us.sentry.io/4509064656519168",
       integrations: [
-        new Sentry.BrowserTracing({
+        new BrowserTracing({
           // Set sampling based on route changes
-          routingInstrumentation: Sentry.reactRouterV6Instrumentation(history),
+          routingInstrumentation: reactRouterV6Instrumentation(history),
         }),
-        new Sentry.Replay(),
+        new Replay(),
       ],
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
       tracesSampleRate: 1.0,
@@ -38,10 +41,6 @@ export const initSentry = async () => {
       environment: process.env.NODE_ENV || 'development',
       // Set release version if available
       release: import.meta.env.VITE_APP_VERSION || 'development',
-      // Set organization
-      org: "liammckie",
-      // Set project
-      projectName: "javascript-react",
       // Configure session replay
       replaysSessionSampleRate: 0.1, // Sample 10% of sessions
       replaysOnErrorSampleRate: 1.0, // Sample 100% of sessions with errors
