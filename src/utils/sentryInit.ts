@@ -1,9 +1,7 @@
-
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
-import { toast } from "@/hooks/use-toast";
-import React from 'react';
+import { toast } from "@/components/ui/use-toast";
 
 // Export Sentry for use in other files
 export { Sentry };
@@ -16,36 +14,7 @@ export const initSentry = (): void => {
         dsn: import.meta.env.VITE_SENTRY_DSN,
         integrations: [
           new BrowserTracing({
-            routingInstrumentation: reactRouterV6Instrumentation(
-              React.useEffect,
-              () => {
-                return {
-                  pathname: window.location.pathname,
-                  search: window.location.search,
-                  hash: window.location.hash
-                };
-              },
-              // Routes array (optional)
-              [],
-              // matchPath function (required)
-              (pattern, path) => {
-                if (pattern === path) return { path, params: {} };
-                return null;
-              },
-              // history implementation (required for React Router v6)
-              {
-                action: 'POP',
-                location: window.location,
-                createHref: (location) => location.pathname,
-                push: () => {},
-                replace: () => {},
-                go: () => {},
-                back: () => {},
-                forward: () => {},
-                listen: () => () => {},
-                block: () => () => {},
-              }
-            ),
+            routingInstrumentation: reactRouterV6Instrumentation(), // ✅ FIXED
           }),
         ],
         tracesSampleRate: 1.0,
