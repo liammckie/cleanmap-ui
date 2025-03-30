@@ -4,31 +4,36 @@ import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { toast } from "@/components/ui/use-toast";
 
-// Initialize Sentry only if DSN is available
-if (import.meta.env.VITE_SENTRY_DSN) {
-  try {
-    Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN,
-      integrations: [
-        new BrowserTracing({
-          routingInstrumentation: reactRouterV6Instrumentation(),
-        }),
-      ],
-      tracesSampleRate: 1.0,
-      environment: import.meta.env.MODE,
-      // Enable debug in development
-      debug: import.meta.env.DEV,
-      // Only send errors in production by default
-      enabled: import.meta.env.PROD,
-    });
+// Export Sentry for use in other files
+export { Sentry };
 
-    console.log("Sentry initialized successfully");
-  } catch (error) {
-    console.error("Failed to initialize Sentry:", error);
+// Initialize Sentry function that can be called from main.tsx
+export const initSentry = (): void => {
+  if (import.meta.env.VITE_SENTRY_DSN) {
+    try {
+      Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        integrations: [
+          new BrowserTracing({
+            routingInstrumentation: reactRouterV6Instrumentation(),
+          }),
+        ],
+        tracesSampleRate: 1.0,
+        environment: import.meta.env.MODE,
+        // Enable debug in development
+        debug: import.meta.env.DEV,
+        // Only send errors in production by default
+        enabled: import.meta.env.PROD,
+      });
+
+      console.log("Sentry initialized successfully");
+    } catch (error) {
+      console.error("Failed to initialize Sentry:", error);
+    }
+  } else {
+    console.warn("Sentry DSN not found. Error tracking disabled.");
   }
-} else {
-  console.warn("Sentry DSN not found. Error tracking disabled.");
-}
+};
 
 // Expose a function to verify the Sentry token for development purposes
 export const verifySentryToken = async (): Promise<boolean> => {

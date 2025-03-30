@@ -3,7 +3,6 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
@@ -34,8 +33,10 @@ export default defineConfig(async ({ mode }) => {
         
         if (response.ok) {
           const responseData = await response.json();
-          sentryAuthToken = responseData.token;
-          console.log("Successfully retrieved Sentry token for build");
+          if (responseData && typeof responseData.token === 'string') {
+            sentryAuthToken = responseData.token;
+            console.log("Successfully retrieved Sentry token for build");
+          }
         } else {
           console.error("Failed to retrieve Sentry token for build:", await response.text());
         }
@@ -60,13 +61,28 @@ export default defineConfig(async ({ mode }) => {
     },
     plugins: [
       react(),
-      mode === "development" && componentTagger(),
+      // Only enable componentTagger in development mode
+      mode === "development" && {
+        name: 'dev-only-component-tagger',
+        apply: 'serve',
+        // Custom lightweight implementation instead of using lovable-tagger directly
+        transform(code, id) {
+          if (id.endsWith('.tsx') && id.includes('/components/')) {
+            return code.replace(
+              /export default ([A-Za-z0-9_]+);/g,
+              'export default $1; // Component: $1'
+            );
+          }
+        }
+      },
       // Use Sentry plugin in all environments if token is available
       sentryPluginEnabled && sentryVitePlugin({
         org: "liammckie",
         project: "javascript-react",
         authToken: sentryAuthToken,
-        release: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
+        release: {
+          name: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
+        },
         include: "./dist",
         url: "https://sentry.io/",
         telemetry: false,
