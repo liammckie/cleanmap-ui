@@ -41,17 +41,23 @@ export async function fetchWorkOrderById(id: string) {
  * Creates a new work order
  */
 export async function createWorkOrder(workOrder: WorkOrderFormValues) {
+  // Ensure description is always provided (it's required by the database)
+  if (!workOrder.description) {
+    throw new Error('Work order description is required')
+  }
+
   // Transform dates to ISO strings for database storage
   const preparedData = {
     ...workOrder,
     scheduled_start: formatDateForDb(workOrder.scheduled_start),
     due_date: formatDateForDb(workOrder.due_date),
-    category: workOrder.category || WORK_ORDER_CATEGORIES[0] // Ensure category is always set
+    category: workOrder.category || WORK_ORDER_CATEGORIES[0], // Ensure category is always set
+    description: workOrder.description // Explicitly include the required field
   }
 
   const { data, error } = await supabase
     .from('work_orders')
-    .insert(preparedData) // Fixed: removed array brackets
+    .insert(preparedData)
     .select()
     .single()
 

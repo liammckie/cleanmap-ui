@@ -1,45 +1,34 @@
-
 # Error Log
 
 This document tracks errors, bugs, and build issues encountered in the application, along with their resolution status and steps taken.
 
 ## Active Issues
 
-### Work Order Type Inconsistencies
+### Work Order Form Type Inconsistencies
 
 **Status:** In Progress  
-**First Identified:** 2025-03-30  
-**Last Updated:** 2025-03-30  
+**First Identified:** 2024-06-14  
+**Last Updated:** 2024-06-14  
 **Severity:** High  
 
 **Description:**
-Multiple TypeScript errors related to WorkOrder types, particularly with date handling between string and Date object types, and inconsistencies between WorkOrder and WorkOrderFormValues interfaces.
+Type errors in WorkOrderForm and workOrderService preventing successful build.
 
 **Error Messages:**
-- `Type 'Partial<WorkOrder>' is not assignable to type 'Partial<WorkOrderFormValues>'`
-- `Type 'string | Date' is not assignable to type 'Date'`
-- `Property 'id' does not exist on type 'Partial<WorkOrderFormValues>'`
-- Type error in `insert` call in workOrderService.ts
+- `Property 'isSubmitting' does not exist on type 'IntrinsicAttributes & FormActionsProps'`
+- `Property 'description' is optional in type but required in Supabase insert call`
 
 **Root Cause Analysis:**
-- The WorkOrder interface has date fields (scheduled_start, due_date) that can be either string or Date
-- The WorkOrderFormValues expects only Date objects
-- The WorkOrderFormValues interface doesn't include an 'id' field but it's being referenced
-- The insert function in createWorkOrder expects different format than provided
+- The FormActions component doesn't include isSubmitting in its props interface
+- The workOrderService.ts insert function requires description field but it's being treated as optional
 
 **Resolution Steps:**
-1. ✅ Review the interfaces in workOrder.schema.ts
-2. ✅ Examine date handling in formatDateForDb utility
-3. ⬜ Update WorkOrderForm component to properly convert between types
-4. ⬜ Fix type inconsistencies in useWorkOrderForm hook
-5. ⬜ Fix the insert function call in workOrderService.ts
+1. ✅ Update FormActions component to include isSubmitting prop
+2. ✅ Ensure description is properly handled as required in workOrderService.ts
 
 **Related Files:**
-- src/components/operations/workOrder/WorkOrderForm.tsx
-- src/components/operations/workOrder/hooks/useWorkOrderForm.ts
+- src/components/operations/workOrder/form-sections/FormActions.tsx
 - src/services/workOrders/workOrderService.ts
-- src/schema/operations/workOrder.schema.ts
-- src/utils/dateUtils.ts
 
 ---
 

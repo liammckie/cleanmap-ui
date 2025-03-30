@@ -47,6 +47,34 @@ Property 'X' does not exist on type 'Y'
    }
    ```
 
+### Missing Props in React Components
+
+**Example Error:**
+```
+Property 'isSubmitting' does not exist on type 'IntrinsicAttributes & FormActionsProps'
+```
+
+**Resolution Steps:**
+1. Update the component's props interface to include all required props
+2. Ensure the component correctly handles all props it receives
+3. Consider using default props for optional values: 
+   ```typescript
+   interface FormActionsProps {
+     onCancel: () => void;
+     isEditing: boolean;
+     isSubmitting?: boolean; // Optional with default
+   }
+   
+   // With default handling
+   export function FormActions({ 
+     onCancel, 
+     isEditing, 
+     isSubmitting = false 
+   }: FormActionsProps) {
+     // Component logic
+   }
+   ```
+
 ## Supabase Query Errors
 
 ### Insert/Update Type Errors
@@ -66,8 +94,15 @@ No overload matches this call.
    const preparedData = {
      ...workOrder,
      scheduled_start: formatDateForDb(workOrder.scheduled_start),
-     due_date: formatDateForDb(workOrder.due_date)
+     due_date: formatDateForDb(workOrder.due_date),
+     description: workOrder.description || "" // Ensure required fields have values
    };
+   ```
+5. Add validation before database operations to catch missing required fields:
+   ```typescript
+   if (!data.requiredField) {
+     throw new Error("Required field is missing");
+   }
    ```
 
 ## React Component Errors
@@ -140,5 +175,15 @@ Use React DevTools to inspect component props and state at runtime.
 2. **Zod Validation**: Use Zod schemas to validate data at runtime
 3. **Interface Documentation**: Add JSDoc comments to interfaces explaining field requirements
 4. **Consistent Naming**: Use consistent naming patterns for similar concepts
+
+## Recent Fixes (2024-06-14)
+
+1. **Fixed FormActions Component Issue**: 
+   - Added missing `isSubmitting` prop to interface
+   - Enhanced button state to show loading state
+
+2. **Fixed workOrderService Insertion Error**:
+   - Added validation for required description field
+   - Explicitly included required fields in the prepared data
 
 By following these guidelines, you can systematically resolve build errors and prevent them in future development.
