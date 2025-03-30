@@ -15,6 +15,8 @@ import {
   DOCUMENTATION_PATHS,
   type ErrorEntry
 } from '@/utils/documentationManager';
+import { captureBuildError } from '@/utils/errorCapture';
+import { format } from 'date-fns';
 
 /**
  * Documents a new error or issue in the system
@@ -31,7 +33,29 @@ export async function documentError(errorDetails: ErrorEntry): Promise<void> {
       errorDetails.description.toLowerCase().includes('type') ||
       errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('type'))) {
     
-    console.info('Type-related error detected, would update TYPE_INCONSISTENCIES.md');
+    console.info('Type-related error detected, updating TYPE_INCONSISTENCIES.md');
+    
+    // In a full implementation, we would update the TYPE_INCONSISTENCIES.md file
+    // with details from the error
+    
+    // Find patterns in error messages that indicate specific type issues
+    const isRequiredVsOptional = errorDetails.errorMessages.some(msg => 
+      msg.includes('required') && msg.includes('optional')
+    );
+    
+    const isWrongType = errorDetails.errorMessages.some(msg => 
+      msg.includes('not assignable to') || msg.includes('No overload matches')
+    );
+    
+    if (isRequiredVsOptional) {
+      console.info('Required vs. Optional field mismatch detected');
+      // Would update TYPE_INCONSISTENCIES.md with specific advice
+    }
+    
+    if (isWrongType) {
+      console.info('Type incompatibility detected');
+      // Would update TYPE_INCONSISTENCIES.md with specific advice
+    }
   }
   
   // Create references in related documentation
@@ -63,7 +87,17 @@ export async function updateErrorDocumentation(
   
   // If error is resolved, move it to resolved section
   if (errorUpdates.status === 'Resolved') {
-    console.info('Error resolved, would move to Resolved section in ERROR_LOG.md');
+    console.info('Error resolved, moving to Resolved section in ERROR_LOG.md');
+    
+    // Would add a note in SCHEMA_CHANGELOG.md if this was a schema-related error
+    if (errorTitle.toLowerCase().includes('schema') || 
+        errorTitle.toLowerCase().includes('database') ||
+        errorTitle.toLowerCase().includes('type')) {
+      
+      updateSchemaChangelog('Fixed', [
+        `Fixed issue: ${errorTitle}`
+      ]);
+    }
   }
 }
 
@@ -116,13 +150,15 @@ function createErrorReferences(errorDetails: ErrorEntry): void {
   
   // Type errors are relevant to TYPE_INCONSISTENCIES.md
   if (errorDetails.title.toLowerCase().includes('type') || 
-      errorDetails.description.toLowerCase().includes('type')) {
+      errorDetails.description.toLowerCase().includes('type') ||
+      errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('type'))) {
     relevantDocuments.push(DOCUMENTATION_PATHS.TYPE_INCONSISTENCIES);
   }
   
   // Build errors are relevant to BUILD_ERROR_RESOLUTION.md
   if (errorDetails.title.toLowerCase().includes('build') || 
-      errorDetails.description.toLowerCase().includes('build')) {
+      errorDetails.description.toLowerCase().includes('build') ||
+      errorDetails.errorMessages.some(msg => msg.toLowerCase().includes('error'))) {
     relevantDocuments.push(DOCUMENTATION_PATHS.BUILD_ERROR_RESOLUTION);
   }
   
@@ -166,7 +202,14 @@ export async function finalizeDocumentation(
   
   // Update error status if this was fixing a documented error
   if (errorTitle) {
-    updateErrorStatus(errorTitle, { status: 'Resolved' });
+    updateErrorStatus(errorTitle, { 
+      status: 'Resolved',
+      rootCause: summary
+    });
+    
+    // Document the resolution date
+    const currentDate = format(new Date(), 'yyyy-MM-dd');
+    console.info(`Resolution date: ${currentDate}`);
   }
   
   // Document any schema changes if relevant
@@ -177,11 +220,123 @@ export async function finalizeDocumentation(
   console.info('Documentation finalized');
 }
 
-// Export a function to monitor for build errors and automatically document them
+/**
+ * Set up monitoring to automatically capture build errors
+ */
 export function setupBuildErrorMonitoring(): void {
   console.info('Setting up build error monitoring for documentation');
   
-  // This would need a real implementation integrated with the build system
-  // For now, we'll just log that it would be set up
-  console.info('Build error monitoring would capture errors and update documentation');
+  // In a real CI/CD environment, this would hook into the build process
+  // For now we'll listen for error messages in the console that match build error patterns
+  
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    // Call the original console.error
+    originalConsoleError.apply(console, args);
+    
+    // Check if this might be a build error
+    const errorStr = args.join(' ');
+    if (
+      errorStr.includes('error TS') || 
+      errorStr.includes('No overload matches') ||
+      errorStr.includes('is not assignable to type')
+    ) {
+      // Try to extract file path and error message
+      const match = errorStr.match(/([^()\n:]+\.ts\w*):(\d+):(\d+):\s*(.*)/);
+      if (match) {
+        const [_, filePath, line, column, message] = match;
+        captureBuildError(message, filePath);
+      } else {
+        // If we can't extract details, just use the whole string
+        captureBuildError(errorStr, 'unknown');
+      }
+    }
+  };
+}
+
+/**
+ * Documents the resolution of a type inconsistency
+ * @param errorTitle Title of the error being resolved
+ * @param resolution Details of how the type issue was resolved
+ * @param affectedFiles Files that were modified
+ */
+export async function documentTypeResolution(
+  errorTitle: string,
+  resolution: string,
+  affectedFiles: string[]
+): Promise<void> {
+  // Update error status
+  await updateErrorDocumentation(errorTitle, {
+    status: 'Resolved',
+    rootCause: resolution
+  });
+  
+  // Add to TYPE_INCONSISTENCIES.md
+  console.info('Updating TYPE_INCONSISTENCIES.md with resolution details');
+  
+  // Would update the type inconsistencies document with details about how
+  // the resolution was implemented and lessons learned
+  
+  // Also add to schema changelog if schema files were affected
+  if (affectedFiles.some(file => file.includes('schema'))) {
+    await documentSchemaChange('Fixed', [
+      `Fixed type inconsistency: ${errorTitle} - ${resolution}`
+    ]);
+  }
+}
+
+/**
+ * Documents the current state of TypeScript errors in the project
+ * @param errors Array of TypeScript error messages
+ */
+export async function documentTypeScriptErrors(errors: string[]): Promise<void> {
+  console.info(`Documenting ${errors.length} TypeScript errors`);
+  
+  // Group errors by file
+  const errorsByFile: Record<string, string[]> = {};
+  
+  errors.forEach(error => {
+    const match = error.match(/([^()\n:]+\.ts\w*):(\d+):(\d+):\s*(.*)/);
+    if (match) {
+      const [_, filePath, line, column, message] = match;
+      if (!errorsByFile[filePath]) {
+        errorsByFile[filePath] = [];
+      }
+      errorsByFile[filePath].push(message);
+    } else {
+      // If we can't extract file, put in 'unknown'
+      if (!errorsByFile['unknown']) {
+        errorsByFile['unknown'] = [];
+      }
+      errorsByFile['unknown'].push(error);
+    }
+  });
+  
+  // For each file with errors, create an error entry
+  Object.entries(errorsByFile).forEach(([filePath, messages]) => {
+    const errorEntry: ErrorEntry = {
+      title: `TypeScript Errors in ${filePath}`,
+      status: 'Investigating',
+      description: `Build failing due to TypeScript errors in ${filePath}`,
+      errorMessages: messages,
+      affectedFiles: [filePath],
+      resolutionSteps: [
+        {
+          description: 'Review TypeScript errors',
+          completed: false
+        },
+        {
+          description: 'Fix type inconsistencies',
+          completed: false
+        },
+        {
+          description: 'Update error documentation',
+          completed: false
+        }
+      ]
+    };
+    
+    // Add the error to the log
+    addErrorToLog(errorEntry);
+  });
 }

@@ -4,20 +4,14 @@
  */
 import { logBrowserInfo, checkForBrowserCompatibilityIssues } from './browserInfo';
 import { diagnoseSyntaxError } from './syntaxChecker';
-import { initializeDocumentationSystem } from './documentationManager';
-import { setupBuildErrorMonitoring } from '@/services/documentation/documentationService';
+import { documentError } from '@/services/documentation/documentationService';
+import { ErrorEntry } from '@/utils/documentationManager';
 
 /**
  * Sets up global error handlers to capture and log errors
  * that might be missed by the React error boundary
  */
 export const captureGlobalErrors = () => {
-  // Initialize the documentation system
-  initializeDocumentationSystem();
-  
-  // Set up monitoring for build errors to update documentation
-  setupBuildErrorMonitoring();
-  
   // Log browser information on startup
   logBrowserInfo();
   
@@ -39,6 +33,26 @@ export const captureGlobalErrors = () => {
       stack: event.error?.stack,
     });
     
+    // Create an error entry and document it
+    const errorEntry: ErrorEntry = {
+      title: `Runtime Error: ${event.message.substring(0, 50)}`,
+      status: 'Investigating',
+      description: event.message,
+      errorMessages: [event.message],
+      affectedFiles: [event.filename || 'unknown'],
+      resolutionSteps: [
+        {
+          description: 'Investigate error source',
+          completed: false
+        }
+      ]
+    };
+    
+    // Document the error
+    documentError(errorEntry).catch(err => {
+      console.error('Failed to document error:', err);
+    });
+    
     // Try to diagnose syntax errors
     if (event.error instanceof SyntaxError && event.filename) {
       fetch(event.filename)
@@ -51,23 +65,6 @@ export const captureGlobalErrors = () => {
         });
     }
     
-    // Log additional information about the document state
-    console.info('Document readyState:', document.readyState);
-    console.info('Current scripts:', Array.from(document.scripts).map(s => s.src || 'inline script'));
-    
-    // Check for common script loading issues
-    const missingScripts = [];
-    if (!Array.from(document.scripts).some(s => s.src?.includes('react'))) {
-      missingScripts.push('React script may be missing or failed to load');
-    }
-    if (!Array.from(document.scripts).some(s => s.src?.includes('vite'))) {
-      missingScripts.push('Vite client script may be missing or failed to load');
-    }
-    
-    if (missingScripts.length > 0) {
-      console.warn('Potential script loading issues:', missingScripts);
-    }
-    
     // Return false to allow the default browser error handling
     return false;
   });
@@ -78,34 +75,27 @@ export const captureGlobalErrors = () => {
       reason: event.reason,
       stack: event.reason?.stack,
     });
-  });
-
-  // Log when the document is fully loaded
-  window.addEventListener('load', () => {
-    console.info('Document fully loaded');
     
-    // Check DOM structure
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      console.info('Root element content on load:', {
-        childNodes: rootElement.childNodes.length,
-        innerHTML: rootElement.innerHTML.substring(0, 100) + (rootElement.innerHTML.length > 100 ? '...' : ''),
-      });
-    } else {
-      console.error('Root element not found after document load');
-    }
+    // Create an error entry and document it
+    const errorEntry: ErrorEntry = {
+      title: `Unhandled Promise Rejection: ${event.reason.toString().substring(0, 50)}`,
+      status: 'Investigating',
+      description: event.reason.toString(),
+      errorMessages: [event.reason.toString()],
+      affectedFiles: ['unknown'],
+      resolutionSteps: [
+        {
+          description: 'Investigate promise rejection source',
+          completed: false
+        }
+      ]
+    };
+    
+    // Document the error
+    documentError(errorEntry).catch(err => {
+      console.error('Failed to document error:', err);
+    });
   });
-
-  // Set timeout to check if the app has rendered
-  setTimeout(() => {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      console.info('Root element content after 2s:', {
-        childNodes: rootElement.childNodes.length,
-        innerHTML: rootElement.innerHTML.substring(0, 100) + (rootElement.innerHTML.length > 100 ? '...' : ''),
-      });
-    }
-  }, 2000);
 
   console.info('Global error handlers installed');
 };
@@ -144,6 +134,87 @@ export const logAndDocumentError = (error: Error, context: {
     ...context
   });
   
-  // In a production environment, this would update the documentation
-  console.info('Would document this error in ERROR_LOG.md');
+  // Create error entry with relevant information
+  const errorEntry: ErrorEntry = {
+    title: `Error in ${context.component || 'unknown component'}: ${error.message.substring(0, 50)}`,
+    status: 'Investigating',
+    description: error.message,
+    errorMessages: [error.message],
+    affectedFiles: context.component ? [`src/services/${context.component}.ts`] : ['unknown'],
+    resolutionSteps: [
+      {
+        description: `Investigate error in ${context.operation || 'operation'}`,
+        completed: false
+      }
+    ]
+  };
+  
+  // Add additional steps based on error message patterns
+  if (error.message.includes('required')) {
+    errorEntry.resolutionSteps.push({
+      description: 'Check for missing required fields',
+      completed: false
+    });
+  }
+  
+  if (error.message.includes('type')) {
+    errorEntry.resolutionSteps.push({
+      description: 'Verify type compatibility between form and database schema',
+      completed: false
+    });
+  }
+  
+  // Document the error
+  documentError(errorEntry).catch(err => {
+    console.error('Failed to document error:', err);
+  });
+};
+
+/**
+ * Captures and documents a TypeScript build error
+ * @param errorMessage The TypeScript error message
+ * @param filePath Path to the file with the error
+ */
+export const captureBuildError = (errorMessage: string, filePath: string): void => {
+  console.error(`Build error in ${filePath}:`, errorMessage);
+  
+  // Parse error for title
+  const errorTitle = errorMessage.includes(':')
+    ? errorMessage.split(':').slice(0, 2).join(':')
+    : errorMessage.substring(0, 50);
+  
+  // Create error entry
+  const errorEntry: ErrorEntry = {
+    title: `Build Error: ${errorTitle}`,
+    status: 'Investigating',
+    description: `TypeScript build error in ${filePath}`,
+    errorMessages: [errorMessage],
+    affectedFiles: [filePath],
+    resolutionSteps: [
+      {
+        description: 'Investigate TypeScript error',
+        completed: false
+      }
+    ]
+  };
+  
+  // Add additional steps based on error patterns
+  if (errorMessage.includes('No overload matches this call')) {
+    errorEntry.resolutionSteps.push({
+      description: 'Check function parameter types',
+      completed: false
+    });
+    
+    if (errorMessage.includes('required')) {
+      errorEntry.resolutionSteps.push({
+        description: 'Ensure required fields are provided',
+        completed: false
+      });
+    }
+  }
+  
+  // Document the error
+  documentError(errorEntry).catch(err => {
+    console.error('Failed to document build error:', err);
+  });
 };

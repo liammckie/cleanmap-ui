@@ -1,14 +1,43 @@
+
 # Error Log
 
 This document tracks errors, bugs, and build issues encountered in the application, along with their resolution status and steps taken.
 
 ## Active Issues
 
-### Work Order Form Type Inconsistencies
+### TypeScript Errors in Form Schema Validator
 
 **Status:** In Progress  
+**First Identified:** 2024-06-19  
+**Last Updated:** 2024-06-19  
+**Severity:** High  
+
+**Description:**
+Type errors in formSchemaValidator.ts preventing successful build.
+
+**Error Messages:**
+- `Argument of type 'unknown' is not assignable to parameter of type 'ZodTypeAny'`
+- `Type '{}' is missing the following properties from type 'ZodType<any, any, any>': _type, _output, _input, _def, and 32 more.`
+
+**Root Cause Analysis:**
+The formSchemaValidator.ts utility is not properly type-casting variables to ZodTypeAny before using them with Zod-specific functions.
+
+**Resolution Steps:**
+1. ✅ Add proper type assertions for Zod types
+2. ⬜ Review other Zod utilities for similar issues
+3. ⬜ Consider refactoring formSchemaValidator.ts into smaller functions
+
+**Related Files:**
+- src/utils/formSchemaValidator.ts
+
+---
+
+### Work Order Form Type Inconsistencies
+
+**Status:** Resolved  
 **First Identified:** 2024-06-14  
-**Last Updated:** 2024-06-14  
+**Last Updated:** 2024-06-19  
+**Resolved On:** 2024-06-19  
 **Severity:** High  
 
 **Description:**
@@ -17,70 +46,28 @@ Type errors in WorkOrderForm and workOrderService preventing successful build.
 **Error Messages:**
 - `Property 'isSubmitting' does not exist on type 'IntrinsicAttributes & FormActionsProps'`
 - `Property 'description' is optional in type but required in Supabase insert call`
+- `Property 'site_id' is optional in type but required in type...`
 
 **Root Cause Analysis:**
-- The FormActions component doesn't include isSubmitting in its props interface
-- The workOrderService.ts insert function requires description field but it's being treated as optional
+- The FormActions component didn't include isSubmitting in its props interface
+- The workOrderService.ts insert function requires description and site_id fields but they were being treated as optional in the form schema
+- Inconsistency between form schema (optional fields) and database requirements (required fields)
 
 **Resolution Steps:**
 1. ✅ Update FormActions component to include isSubmitting prop
 2. ✅ Ensure description is properly handled as required in workOrderService.ts
+3. ✅ Add validation for site_id before database operation
+4. ✅ Explicitly include required fields in prepared data
+5. ✅ Add error logging and documentation
 
 **Related Files:**
 - src/components/operations/workOrder/form-sections/FormActions.tsx
 - src/services/workOrders/workOrderService.ts
 
----
-
-### Supabase Query Errors
-
-**Status:** Investigating  
-**First Identified:** 2025-03-30  
-**Last Updated:** 2025-03-30  
-**Severity:** Medium  
-
-**Description:**
-Errors when fetching data from Supabase, particularly in locations-related API calls.
-
-**Error Messages:**
-- `Error fetching locations: { "message": "TypeError: Failed to fetch" }`
-
-**Root Cause Analysis:**
-- Could be network connectivity issues
-- Supabase configuration might be incorrect
-- Missing RLS policies or permissions
-
-**Resolution Steps:**
-1. ✅ Check Supabase client configuration
-2. ⬜ Verify RLS policies for relevant tables
-3. ⬜ Add error handling and retry logic
-4. ⬜ Implement offline fallbacks where appropriate
-
----
-
-### Google Maps Integration Issues
-
-**Status:** Investigating  
-**First Identified:** 2025-03-30  
-**Last Updated:** 2025-03-30  
-**Severity:** Medium  
-
-**Description:**
-Google Maps script loading failures affecting map components.
-
-**Error Messages:**
-- `Error loading Google Maps: "Google Maps script loading failed: [object Event]"`
-
-**Root Cause Analysis:**
-- API key might be invalid or restricted
-- Script loading mechanism might be failing
-- CSP issues preventing script execution
-
-**Resolution Steps:**
-1. ⬜ Verify Google Maps API key
-2. ⬜ Check script loading implementation
-3. ⬜ Implement better error handling in map components
-4. ⬜ Add fallback UI for when maps fail to load
+**Prevention Measures:**
+- Added runtime validation for required fields before database submission
+- Enhanced error capture to document similar issues automatically
+- Updated Build Error Resolution guide with specific fixes for this pattern
 
 ---
 
@@ -149,3 +136,4 @@ When an issue is resolved:
 7. Add any prevention measures implemented
 
 This log should be updated regularly as part of the development process to maintain an accurate record of issues and their resolutions.
+

@@ -105,6 +105,21 @@ No overload matches this call.
    }
    ```
 
+6. **Fix for Required Field in Optional Type**:
+   When a field is optional in a form type but required in the database:
+   ```typescript
+   // Validate required fields before submission
+   if (!formData.site_id) {
+     throw new Error('Site ID is required for work orders');
+   }
+   
+   // Explicitly include required fields in prepared data
+   const preparedData = {
+     ...formData,
+     site_id: formData.site_id, // Explicitly include to satisfy TypeScript
+   };
+   ```
+
 ## React Component Errors
 
 ### Props Type Errors
@@ -185,5 +200,20 @@ Use React DevTools to inspect component props and state at runtime.
 2. **Fixed workOrderService Insertion Error**:
    - Added validation for required description field
    - Explicitly included required fields in the prepared data
+   - Added validation for site_id which is optional in form type but required for DB
+   - Enhanced error handling with logging
+
+## Automated Documentation
+
+To help prevent similar issues in the future, we have:
+
+1. **Implemented Error Capture**:
+   - Added automatic documentation of build errors
+   - Integrated runtime error capture with documentation system
+
+2. **Enhanced Type Validation**:
+   - Fixed form schema validator to properly handle Zod types
+   - Added runtime checks for required fields before database operations
 
 By following these guidelines, you can systematically resolve build errors and prevent them in future development.
+
