@@ -54,9 +54,9 @@ export function validateSchemaConsistency(
     }
     
     // Check for type mismatches
-    if (getZodTypeName(formField) !== getZodTypeName(dbField)) {
-      const formType = getZodTypeName(formField);
-      const dbType = getZodTypeName(dbField);
+    if (getZodTypeName(formField as z.ZodTypeAny) !== getZodTypeName(dbField as z.ZodTypeAny)) {
+      const formType = getZodTypeName(formField as z.ZodTypeAny);
+      const dbType = getZodTypeName(dbField as z.ZodTypeAny);
       
       // Special check for date vs string
       const isDateStringMismatch = 
@@ -75,8 +75,8 @@ export function validateSchemaConsistency(
     }
     
     // Check for required vs optional mismatches
-    const formRequired = !isZodOptional(formField);
-    const dbRequired = !isZodOptional(dbField);
+    const formRequired = !isZodOptional(formField as z.ZodTypeAny);
+    const dbRequired = !isZodOptional(dbField as z.ZodTypeAny);
     
     if (formRequired !== dbRequired) {
       mismatches.push({
@@ -93,7 +93,7 @@ export function validateSchemaConsistency(
   
   // Check for required db fields missing from form
   for (const [fieldName, dbField] of Object.entries(dbShape)) {
-    if (!formShape[fieldName] && !isZodOptional(dbField)) {
+    if (!formShape[fieldName] && !isZodOptional(dbField as z.ZodTypeAny)) {
       mismatches.push({
         field: fieldName,
         formType: 'missing',

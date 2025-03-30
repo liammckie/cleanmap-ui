@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { WorkOrderFormValues } from '@/schema/operations/workOrder.schema'
 import { formatDateForDb } from '@/utils/dateUtils'
 import { WORK_ORDER_CATEGORIES } from '@/constants/workOrders'
+import { logAndDocumentError } from '@/utils/errorCapture'
 
 /**
  * Fetches all work orders with related site information
@@ -41,28 +42,43 @@ export async function fetchWorkOrderById(id: string) {
  * Creates a new work order
  */
 export async function createWorkOrder(workOrder: WorkOrderFormValues) {
-  // Ensure description is always provided (it's required by the database)
+  // Validate required fields
   if (!workOrder.description) {
     throw new Error('Work order description is required')
+  }
+  
+  if (!workOrder.site_id) {
+    throw new Error('Site ID is required for work orders')
   }
 
   // Transform dates to ISO strings for database storage
   const preparedData = {
     ...workOrder,
+    site_id: workOrder.site_id, // Explicitly include site_id
     scheduled_start: formatDateForDb(workOrder.scheduled_start),
     due_date: formatDateForDb(workOrder.due_date),
     category: workOrder.category || WORK_ORDER_CATEGORIES[0], // Ensure category is always set
     description: workOrder.description // Explicitly include the required field
   }
 
-  const { data, error } = await supabase
-    .from('work_orders')
-    .insert(preparedData)
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('work_orders')
+      .insert(preparedData)
+      .select()
+      .single()
 
-  if (error) throw new Error(`Error creating work order: ${error.message}`)
-  return data
+    if (error) throw new Error(`Error creating work order: ${error.message}`)
+    return data
+  } catch (error) {
+    // Log the error and document it for future reference
+    logAndDocumentError(error instanceof Error ? error : new Error('Unknown error'), {
+      component: 'workOrderService',
+      operation: 'createWorkOrder',
+      additionalInfo: { workOrderData: preparedData }
+    });
+    throw error;
+  }
 }
 
 /**
@@ -88,15 +104,25 @@ export async function updateWorkOrder(
     preparedData.category = workOrder.category
   }
 
-  const { data, error } = await supabase
-    .from('work_orders')
-    .update(preparedData)
-    .eq('id', id)
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('work_orders')
+      .update(preparedData)
+      .eq('id', id)
+      .select()
+      .single()
 
-  if (error) throw new Error(`Error updating work order: ${error.message}`)
-  return data
+    if (error) throw new Error(`Error updating work order: ${error.message}`)
+    return data
+  } catch (error) {
+    // Log the error and document it
+    logAndDocumentError(error instanceof Error ? error : new Error('Unknown error'), {
+      component: 'workOrderService',
+      operation: 'updateWorkOrder',
+      additionalInfo: { workOrderId: id, updates: preparedData }
+    });
+    throw error;
+  }
 }
 
 /**
