@@ -19,7 +19,10 @@ serve(async (req) => {
     if (!sentryAuthToken) {
       console.error("SENTRY_AUTH_TOKEN not found in Supabase secrets");
       return new Response(
-        JSON.stringify({ error: "SENTRY_AUTH_TOKEN not found in secrets" }),
+        JSON.stringify({ 
+          error: "SENTRY_AUTH_TOKEN not found in secrets",
+          message: "Please add the SENTRY_AUTH_TOKEN to your Supabase secrets"
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
@@ -32,7 +35,6 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         token: sentryAuthToken,
-        // Include timestamp for debugging
         timestamp: new Date().toISOString()
       }),
       {
@@ -43,7 +45,10 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error retrieving Sentry token:", error.message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

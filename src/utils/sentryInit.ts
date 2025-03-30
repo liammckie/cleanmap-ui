@@ -16,30 +16,25 @@ let sentryAuthTokenCache: string | null = null;
  */
 export const initSentry = async () => {
   try {
-    // Only initialize Sentry in production or when explicitly enabled
-    if (process.env.NODE_ENV === 'production' || import.meta.env.VITE_ENABLE_SENTRY === 'true') {
-      console.info('Initializing Sentry...');
-      
-      // Initialize with basic configuration first
-      Sentry.init({
-        dsn: "https://f3363aeeeeede88b10e39595a79554d3@o4509064558477312.ingest.us.sentry.io/4509064570798080",
-        integrations: [],
-        // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
-        tracesSampleRate: 1.0,
-        // Enable debug in development
-        debug: process.env.NODE_ENV !== 'production',
-        // Only send errors in production by default
-        enabled: process.env.NODE_ENV === 'production' || import.meta.env.VITE_ENABLE_SENTRY === 'true',
-        // Set environment
-        environment: process.env.NODE_ENV || 'development',
-        // Set release version if available
-        release: import.meta.env.VITE_APP_VERSION || 'development',
-      });
-      
-      console.info('Sentry initialized with release:', import.meta.env.VITE_APP_VERSION || 'development');
-    } else {
-      console.info('Sentry initialization skipped in development mode');
-    }
+    console.info('Initializing Sentry...');
+    
+    // Initialize with basic configuration first - always enabled
+    Sentry.init({
+      dsn: "https://f3363aeeeeede88b10e39595a79554d3@o4509064558477312.ingest.us.sentry.io/4509064570798080",
+      integrations: [],
+      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
+      tracesSampleRate: 1.0,
+      // Enable debug in development
+      debug: process.env.NODE_ENV !== 'production',
+      // Enable in all environments
+      enabled: true,
+      // Set environment
+      environment: process.env.NODE_ENV || 'development',
+      // Set release version if available
+      release: import.meta.env.VITE_APP_VERSION || 'development',
+    });
+    
+    console.info('Sentry initialized with release:', import.meta.env.VITE_APP_VERSION || 'development');
   } catch (error) {
     console.error('Error initializing Sentry:', error);
   }
@@ -59,13 +54,37 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
       return sentryAuthTokenCache;
     }
     
-    console.log('Fetching Sentry auth token from edge function...');
-    const { data, error } = await supabase.functions.invoke('get-sentry-token');
+    // First check if token is available via environment variable
+    if (import.meta.env.VITE_SENTRY_AUTH_TOKEN) {
+      console.log('Using Sentry auth token from environment variable');
+      sentryAuthTokenCache = import.meta.env.VITE_SENTRY_AUTH_TOKEN;
+      return sentryAuthTokenCache;
+    }
     
-    if (error) {
-      console.error('Error fetching Sentry auth token:', error);
+    console.log('Fetching Sentry auth token from edge function...');
+    
+    // Add detailed logging to diagnose issues
+    console.log('Supabase client available:', !!supabase);
+    console.log('Supabase functions available:', !!supabase.functions);
+    
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-sentry-token`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error fetching Sentry token: ${response.status} ${response.statusText}`, errorText);
       return null;
     }
+    
+    const data = await response.json();
     
     if (!data?.token) {
       console.error('No token returned from get-sentry-token function');
@@ -78,7 +97,7 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
     
     return sentryAuthTokenCache;
   } catch (error) {
-    console.error('Error invoking get-sentry-token function:', error);
+    console.error('Error getting Sentry auth token:', error);
     return null;
   }
 };

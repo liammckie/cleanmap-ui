@@ -50,21 +50,36 @@ const TestErrorButton = () => (
 // Sentry token verification display component
 const SentryTokenStatus = () => {
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const checkToken = async () => {
-      const result = await verifySentryToken();
-      setIsVerified(result);
+      try {
+        setIsChecking(true);
+        const result = await verifySentryToken();
+        setIsVerified(result);
+      } catch (error) {
+        console.error("Failed to verify Sentry token:", error);
+        setIsVerified(false);
+      } finally {
+        setIsChecking(false);
+      }
     };
     
     checkToken();
   }, []);
 
-  if (isVerified === null) return null;
-
   return (
     <div className="fixed bottom-4 left-4 p-2 rounded text-xs z-50 bg-gray-800 text-white">
-      Sentry Token: {isVerified ? "✅ Valid" : "❌ Invalid"}
+      Sentry Token: {isChecking ? "⏳ Checking..." : isVerified ? "✅ Valid" : "❌ Invalid"}
+      {!isVerified && !isChecking && (
+        <button 
+          className="ml-2 bg-blue-500 text-white px-2 py-1 rounded text-xs"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      )}
     </div>
   );
 };
@@ -106,8 +121,9 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
-          {process.env.NODE_ENV === 'development' && <TestErrorButton />}
-          {process.env.NODE_ENV === 'development' && <SentryTokenStatus />}
+          {/* Always show Sentry test tools */}
+          <TestErrorButton />
+          <SentryTokenStatus />
         </div>
       </SentryErrorBoundary>
     </QueryClientProvider>
