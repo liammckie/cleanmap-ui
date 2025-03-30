@@ -20,6 +20,7 @@ export default defineConfig(async ({ mode }) => {
       if (!supabaseUrl || !supabaseKey) {
         console.warn("Missing Supabase credentials - cannot fetch Sentry token");
       } else {
+        console.log(`Fetching Sentry token from ${supabaseUrl}/functions/v1/get-sentry-token`);
         const response = await fetch(
           `${supabaseUrl}/functions/v1/get-sentry-token`, 
           {
@@ -44,6 +45,14 @@ export default defineConfig(async ({ mode }) => {
     }
   }
   
+  // Verify token is available for Sentry plugin
+  const sentryPluginEnabled = !!sentryAuthToken;
+  if (sentryPluginEnabled) {
+    console.log("Sentry plugin will be enabled - token available");
+  } else {
+    console.warn("Sentry plugin will be disabled - no authentication token available");
+  }
+  
   return {
     server: {
       host: "::",
@@ -53,7 +62,7 @@ export default defineConfig(async ({ mode }) => {
       react(),
       mode === "development" && componentTagger(),
       // Use Sentry plugin in all environments if token is available
-      sentryAuthToken && sentryVitePlugin({
+      sentryPluginEnabled && sentryVitePlugin({
         org: "liammckie",
         project: "javascript-react",
         authToken: sentryAuthToken,

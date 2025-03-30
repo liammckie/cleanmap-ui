@@ -32,40 +32,52 @@ The formSchemaValidator.ts utility is not properly type-casting variables to Zod
 
 ---
 
+## Resolved Issues
+
 ### Sentry Token Configuration
 
 **Status:** Resolved  
 **First Identified:** 2024-06-24  
-**Last Updated:** 2024-06-24  
-**Resolved On:** 2024-06-24  
+**Last Updated:** 2024-06-27  
+**Resolved On:** 2024-06-27  
 **Severity:** Medium  
 
 **Description:**
-Issues with Sentry token persistence and availability during the build process.
+Issues with Sentry token persistence, authentication, and availability during the build process.
+
+**Error Messages:**
+- `401 Unauthorized` when contacting Sentry API
+- Missing or invalid Sentry token during build process
+- Source maps not being uploaded to Sentry
 
 **Root Cause Analysis:**
-The Sentry token was being fetched but not properly cached or made available during the build process, leading to missing source maps in Sentry.
+1. Incorrect organization and project name configuration in vite.config.ts
+2. Authentication token not being properly retrieved or passed to Sentry API
+3. Edge function not properly exposing the token from Supabase secrets
+4. TypeScript errors in the Sentry configuration preventing proper initialization
 
 **Resolution Steps:**
-1. ✅ Implemented token caching in sentryInit.ts to avoid repeated API calls
-2. ✅ Updated the get-sentry-token edge function with better error handling and logging
-3. ✅ Modified vite.config.ts to attempt direct token retrieval during build when needed
-4. ✅ Added a token verification utility to test token availability during development
+1. ✅ Updated DSN to use the correct project key
+2. ✅ Corrected organization slug and project name in all configurations
+3. ✅ Enhanced the edge function with improved error handling and logging
+4. ✅ Added better verification and caching for Sentry token
+5. ✅ Improved TypeScript typing in vite.config.ts to prevent plugin errors
+6. ✅ Updated error boundary component to capture and display Sentry event IDs
+7. ✅ Added session replay capabilities to improve error context
 
 **Related Files:**
 - src/utils/sentryInit.ts
 - supabase/functions/get-sentry-token/index.ts
 - vite.config.ts
+- src/components/ui/error-boundary.tsx
 - src/App.tsx
 
 **Prevention Measures:**
-- Added token verification components in development mode to quickly identify token issues
-- Implemented caching to improve performance and reduce API calls
-- Added comprehensive error logging throughout the token retrieval process
+- Added token verification components in development mode
+- Implemented better error logging throughout the token retrieval process
+- Added documentation on Sentry configuration in the ERROR_LOG.md file
 
 ---
-
-## Resolved Issues
 
 ### Work Order Form Type Inconsistencies
 

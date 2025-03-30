@@ -21,7 +21,13 @@ export const initSentry = async () => {
     // Initialize with basic configuration first - always enabled
     Sentry.init({
       dsn: "https://ffa7539c938a11e1a39a3bf96b87fb99@o4509064558477312.ingest.us.sentry.io/4509064656519168",
-      integrations: [],
+      integrations: [
+        new Sentry.BrowserTracing({
+          // Set sampling based on route changes
+          routingInstrumentation: Sentry.reactRouterV6Instrumentation(history),
+        }),
+        new Sentry.Replay(),
+      ],
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
       tracesSampleRate: 1.0,
       // Enable debug in development
@@ -32,6 +38,13 @@ export const initSentry = async () => {
       environment: process.env.NODE_ENV || 'development',
       // Set release version if available
       release: import.meta.env.VITE_APP_VERSION || 'development',
+      // Set organization
+      org: "liammckie",
+      // Set project
+      projectName: "javascript-react",
+      // Configure session replay
+      replaysSessionSampleRate: 0.1, // Sample 10% of sessions
+      replaysOnErrorSampleRate: 1.0, // Sample 100% of sessions with errors
     });
     
     console.info('Sentry initialized with release:', import.meta.env.VITE_APP_VERSION || 'development');
@@ -67,8 +80,12 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
     console.log('Supabase client available:', !!supabase);
     console.log('Supabase functions available:', !!supabase.functions);
     
+    // Use the full URL instead of relative path
+    const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-sentry-token`;
+    console.log('Calling edge function at:', edgeFunctionUrl);
+    
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-sentry-token`,
+      edgeFunctionUrl,
       {
         method: 'GET',
         headers: {
@@ -78,6 +95,9 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
       }
     );
     
+    // Log response details for debugging
+    console.log('Edge function response status:', response.status);
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Error fetching Sentry token: ${response.status} ${response.statusText}`, errorText);
@@ -85,6 +105,7 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
     }
     
     const data = await response.json();
+    console.log('Edge function response received:', !!data);
     
     if (!data?.token) {
       console.error('No token returned from get-sentry-token function');
@@ -93,7 +114,10 @@ export const getSentryAuthToken = async (): Promise<string | null> => {
     
     // Cache the token for future use
     sentryAuthTokenCache = data.token;
-    console.log('Sentry auth token fetched and cached successfully');
+    // Mask token for logging
+    const maskedToken = sentryAuthTokenCache.substring(0, 4) + "..." + 
+      sentryAuthTokenCache.substring(sentryAuthTokenCache.length - 4);
+    console.log(`Sentry auth token fetched and cached successfully: ${maskedToken}`);
     
     return sentryAuthTokenCache;
   } catch (error) {
