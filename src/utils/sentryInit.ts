@@ -17,10 +17,13 @@ export const initSentry = (): void => {
         integrations: [
           new BrowserTracing({
             routingInstrumentation: reactRouterV6Instrumentation(
-              // Pass empty arrays as these will be populated at runtime
-              () => [], // History object, populated automatically at runtime
-              [] as RouteObject[], // Routes array, populated automatically at runtime
-              {} // Custom options
+              // Using correct arguments for reactRouterV6Instrumentation
+              history => history,
+              [] as RouteObject[],
+              {
+                // Additional options
+                routeFilter: () => true,
+              }
             ),
           }),
         ],

@@ -3,6 +3,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
@@ -33,7 +34,7 @@ export default defineConfig(async ({ mode }) => {
         
         if (response.ok) {
           const responseData = await response.json() as { token?: string };
-          if (responseData && typeof responseData.token === 'string') {
+          if (responseData && responseData.token) {
             sentryAuthToken = responseData.token;
             console.log("Successfully retrieved Sentry token for build");
           }
@@ -61,20 +62,8 @@ export default defineConfig(async ({ mode }) => {
     },
     plugins: [
       react(),
-      // Only enable componentTagger in development mode
-      mode === "development" && {
-        name: 'dev-only-component-tagger',
-        apply: 'serve',
-        // Custom lightweight implementation instead of using lovable-tagger directly
-        transform(code: string, id: string) {
-          if (id.endsWith('.tsx') && id.includes('/components/')) {
-            return code.replace(
-              /export default ([A-Za-z0-9_]+);/g,
-              'export default $1; // Component: $1'
-            );
-          }
-        }
-      },
+      // Enable componentTagger in development mode
+      mode === "development" && componentTagger(),
       // Use Sentry plugin in all environments if token is available
       sentryPluginEnabled && sentryVitePlugin({
         org: "liammckie",
@@ -84,7 +73,7 @@ export default defineConfig(async ({ mode }) => {
           name: `cleanmap-ui@${process.env.GITHUB_SHA?.slice(0, 7) || "dev"}`,
         },
         sourcemaps: {
-          include: ["./dist"],
+          assets: "./dist/**", 
         },
         url: "https://sentry.io/",
         telemetry: false,
