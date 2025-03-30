@@ -1,119 +1,16 @@
-
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
-import { toast } from "@/components/ui/use-toast";
-import React from 'react';
 
-// Export Sentry for use in other files
-export { Sentry };
+const routingInstrumentation = reactRouterV6Instrumentation(); // ✅ fixed
 
-// Initialize Sentry function that can be called from main.tsx
-export const initSentry = (): void => {
-  if (import.meta.env.VITE_SENTRY_DSN) {
-    try {
-      Sentry.init({
-        dsn: import.meta.env.VITE_SENTRY_DSN,
-        integrations: [
-          new BrowserTracing({
-            // Explicitly pass an empty options object if no specific routing configuration is needed
-            routingInstrumentation: reactRouterV6Instrumentation({
-              // Provide minimal required options
-              useEffect: React.useEffect,
-              useLocation: () => {
-                const location = window.location;
-                return {
-                  pathname: location.pathname,
-                  search: location.search,
-                  hash: location.hash,
-                };
-              },
-              routes: [], // Empty routes array
-              matchPath: () => null, // Simple matchPath function
-              // Required router object
-              router: {
-                navigate: () => {},
-                createHref: () => "",
-              }
-            }),
-          }),
-        ],
-        tracesSampleRate: 1.0,
-        environment: import.meta.env.MODE,
-        // Enable debug in development
-        debug: import.meta.env.DEV,
-        // Only send errors in production by default
-        enabled: import.meta.env.PROD,
-      });
-
-      console.log("Sentry initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize Sentry:", error);
-    }
-  } else {
-    console.warn("Sentry DSN not found. Error tracking disabled.");
-  }
-};
-
-// Expose a function to verify the Sentry token for development purposes
-export const verifySentryToken = async (): Promise<boolean> => {
-  if (!import.meta.env.DEV) {
-    return true; // Skip verification in production
-  }
-
-  try {
-    // Get Supabase URL and key from environment
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.warn("Missing Supabase credentials - cannot verify Sentry token");
-      return false;
-    }
-    
-    console.log("Fetching Sentry auth token from edge function...");
-    console.log("Supabase client available:", !!supabaseUrl);
-    console.log("Supabase functions available:", !!supabaseKey);
-    console.log("Calling edge function at:", `${supabaseUrl}/functions/v1/get-sentry-token`);
-    
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/get-sentry-token`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    
-    console.log("Edge function response status:", response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to retrieve Sentry token: ${response.status} ${errorText}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.token) {
-      throw new Error("No token returned");
-    }
-    
-    console.log("Successfully verified Sentry token access");
-    return true;
-  } catch (error) {
-    console.error("Sentry token verification failed:", error);
-    
-    // Show toast notification in development
-    if (import.meta.env.DEV) {
-      toast({
-        title: "Sentry Configuration Issue",
-        description: `Error verifying Sentry token: ${error instanceof Error ? error.message : String(error)}`,
-        variant: "destructive",
-      });
-    }
-    
-    return false;
-  }
-};
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [
+    new BrowserTracing({
+      routingInstrumentation,
+    }),
+  ],
+  tracesSampleRate: 1.0,
+  environment: import.meta.env.MODE,
+});
