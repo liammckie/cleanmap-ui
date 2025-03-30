@@ -4,7 +4,7 @@ import { z } from 'zod'
 /**
  * Work Order Schema
  *
- * This file defines the data structures for work order entities.
+ * This file defines the data structures and validation for work order entities.
  */
 
 /**
@@ -18,15 +18,15 @@ export interface WorkOrder {
   status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled' | 'Overdue' | 'On Hold'
   priority: 'Low' | 'Medium' | 'High'
   category: 'Routine Clean' | 'Ad-hoc Request' | 'Audit'
-  scheduled_start: Date
-  scheduled_end?: Date | null
-  due_date: Date
+  scheduled_start: Date | string
+  scheduled_end?: Date | string | null
+  due_date: Date | string
   actual_duration: number | null
-  completion_timestamp: Date | null
+  completion_timestamp: Date | string | null
   outcome_notes: string | null
   created_by: string | null
-  created_at: Date
-  updated_at: Date
+  created_at: Date | string
+  updated_at: Date | string
   site?: {
     site_name: string
     client_id: string
@@ -54,36 +54,48 @@ export interface WorkOrderNote {
   note: string
   author_id: string | null
   visibility: 'Internal' | 'Client Visible'
-  created_at: Date
-  updated_at: Date
+  created_at: Date | string
+  updated_at: Date | string
 }
 
-// Type guard for WorkOrder status
+// Type guards for runtime type checking
 export function isWorkOrderStatus(value: string): value is WorkOrder['status'] {
   return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'].includes(
     value,
   )
 }
 
-// Type guard for WorkOrder priority
 export function isWorkOrderPriority(value: string): value is WorkOrder['priority'] {
   return ['Low', 'Medium', 'High'].includes(value)
 }
 
-// Type guard for WorkOrder category
 export function isWorkOrderCategory(value: string): value is WorkOrder['category'] {
   return ['Routine Clean', 'Ad-hoc Request', 'Audit'].includes(value)
 }
 
-// Zod schema for run-time validation
+// Constants for enum values to avoid hardcoding throughout the application
+export const WORK_ORDER_STATUSES = [
+  'Scheduled', 
+  'In Progress', 
+  'Completed', 
+  'Cancelled', 
+  'Overdue', 
+  'On Hold'
+] as const
+
+export const WORK_ORDER_PRIORITIES = ['Low', 'Medium', 'High'] as const
+
+export const WORK_ORDER_CATEGORIES = ['Routine Clean', 'Ad-hoc Request', 'Audit'] as const
+
+// Zod schema for run-time validation of complete work order entity
 export const workOrderSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
   site_id: z.string().min(1, 'Site is required'),
-  status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']),
-  priority: z.enum(['Low', 'Medium', 'High']),
-  category: z.enum(['Routine Clean', 'Ad-hoc Request', 'Audit']),
+  status: z.enum(WORK_ORDER_STATUSES),
+  priority: z.enum(WORK_ORDER_PRIORITIES),
+  category: z.enum(WORK_ORDER_CATEGORIES),
   scheduled_start: z.date(),
   scheduled_end: z.date().nullable().optional(),
   due_date: z.date(),
@@ -95,17 +107,44 @@ export const workOrderSchema = z.object({
   updated_at: z.date().optional(),
 })
 
-// Zod schema for work order creation/updates
-export const workOrderFormSchema = workOrderSchema.omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-  created_by: true,
-  scheduled_end: true,
-  completion_timestamp: true,
+// Zod schema for work order form input - used with react-hook-form
+export const workOrderFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  site_id: z.string().min(1, 'Site is required'),
+  client_id: z.string().optional(),
+  status: z.enum(WORK_ORDER_STATUSES),
+  priority: z.enum(WORK_ORDER_PRIORITIES),
+  category: z.enum(WORK_ORDER_CATEGORIES),
+  scheduled_start: z.date({ required_error: 'Scheduled start date is required' }),
+  due_date: z.date({ required_error: 'Due date is required' }),
+  actual_duration: z.number().nullable().optional(),
+  outcome_notes: z.string().nullable().optional(),
 })
 
-// Zod schema for work order notes
+// Type for the form values derived from the schema
+export type WorkOrderFormValues = z.infer<typeof workOrderFormSchema>
+
+// Schema for database operations (create/update)
+export const workOrderDbSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  site_id: z.string().min(1, 'Site is required'),
+  status: z.enum(WORK_ORDER_STATUSES),
+  priority: z.enum(WORK_ORDER_PRIORITIES),
+  category: z.enum(WORK_ORDER_CATEGORIES),
+  scheduled_start: z.string(), // ISO date string for DB
+  scheduled_end: z.string().nullable().optional(),
+  due_date: z.string(), // ISO date string for DB
+  actual_duration: z.number().nullable().optional(),
+  completion_timestamp: z.string().nullable().optional(),
+  outcome_notes: z.string().nullable().optional(),
+  created_by: z.string().nullable().optional(),
+  created_at: z.string().optional(), // ISO date string for DB
+  updated_at: z.string().optional(), // ISO date string for DB
+})
+
+// Schema for work order notes
 export const workOrderNoteSchema = z.object({
   id: z.string().optional(),
   work_order_id: z.string(),

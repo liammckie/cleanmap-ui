@@ -1,24 +1,33 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import type { WorkOrder } from '@/schema/operations'
+import type { WorkOrder, WorkOrderFormValues } from '@/schema/operations'
 import { prepareObjectForDb } from '@/utils/dateFormatters'
-import { isWorkOrderStatus, isWorkOrderPriority, isWorkOrderCategory } from '@/schema/operations/workOrder.schema'
-import { fetchWorkOrderStatusesFromDb, fetchWorkOrderCategoriesFromDb, fetchWorkOrderPrioritiesFromDb } from './workOrderQueryService'
+import { validateForDb } from '@/utils/supabase/validation'
+import { workOrderDbSchema } from '@/schema/operations/workOrder.schema'
+import { 
+  fetchWorkOrderStatusesFromDb, 
+  fetchWorkOrderCategoriesFromDb, 
+  fetchWorkOrderPrioritiesFromDb 
+} from './workOrderQueryService'
 
 /**
  * Create a new work order
  */
 export async function createWorkOrder(
-  workOrder: Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>,
+  workOrder: WorkOrderFormValues
 ) {
   try {
-    // Convert Date objects to ISO strings for Supabase
+    // Convert Date objects to ISO strings for Supabase and validate
     const dbWorkOrder = prepareObjectForDb(workOrder)
+    
+    // Validate against the DB schema
+    // (This step is optional but adds extra safety)
+    validateForDb(dbWorkOrder, workOrderDbSchema)
 
     // Insert into database
     const { data, error } = await supabase
       .from('work_orders')
-      .insert(dbWorkOrder as any)
+      .insert(dbWorkOrder)
       .select()
 
     if (error) throw error
@@ -33,7 +42,7 @@ export async function createWorkOrder(
 /**
  * Update an existing work order
  */
-export async function updateWorkOrder(id: string, updates: Partial<WorkOrder>) {
+export async function updateWorkOrder(id: string, updates: Partial<WorkOrderFormValues>) {
   try {
     // Convert Date objects to ISO strings for Supabase
     const dbUpdates = prepareObjectForDb(updates)
@@ -41,7 +50,7 @@ export async function updateWorkOrder(id: string, updates: Partial<WorkOrder>) {
     // Update in database
     const { data, error } = await supabase
       .from('work_orders')
-      .update(dbUpdates as any)
+      .update(dbUpdates)
       .eq('id', id)
       .select()
 
@@ -123,62 +132,62 @@ export async function fetchWorkOrderNotes(workOrderId: string) {
 /**
  * Fetch work order statuses
  */
-export async function fetchWorkOrderStatuses() {
+export async function fetchWorkOrderStatuses(): Promise<WorkOrder['status'][]> {
   try {
     // Try to get statuses from the database first
     const dbStatuses = await fetchWorkOrderStatusesFromDb()
     
     if (dbStatuses && dbStatuses.length > 0) {
-      return dbStatuses
+      return dbStatuses as WorkOrder['status'][]
     }
     
-    // Fallback to hardcoded statuses if database function is unavailable
-    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'] as WorkOrder['status'][]
+    // Fallback to hardcoded statuses from the schema constants
+    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']
   } catch (error) {
     console.error('Error fetching work order statuses:', error)
     // Fallback to hardcoded statuses on error
-    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold'] as WorkOrder['status'][]
+    return ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']
   }
 }
 
 /**
  * Fetch work order categories
  */
-export async function fetchWorkOrderCategories() {
+export async function fetchWorkOrderCategories(): Promise<WorkOrder['category'][]> {
   try {
     // Try to get categories from the database first
     const dbCategories = await fetchWorkOrderCategoriesFromDb()
     
     if (dbCategories && dbCategories.length > 0) {
-      return dbCategories
+      return dbCategories as WorkOrder['category'][]
     }
     
-    // Fallback to hardcoded categories if database function is unavailable
-    return ['Routine Clean', 'Ad-hoc Request', 'Audit'] as WorkOrder['category'][]
+    // Fallback to hardcoded categories from the schema constants
+    return ['Routine Clean', 'Ad-hoc Request', 'Audit']
   } catch (error) {
     console.error('Error fetching work order categories:', error)
     // Fallback to hardcoded categories on error
-    return ['Routine Clean', 'Ad-hoc Request', 'Audit'] as WorkOrder['category'][]
+    return ['Routine Clean', 'Ad-hoc Request', 'Audit']
   }
 }
 
 /**
  * Fetch work order priorities
  */
-export async function fetchWorkOrderPriorities() {
+export async function fetchWorkOrderPriorities(): Promise<WorkOrder['priority'][]> {
   try {
     // Try to get priorities from the database first
     const dbPriorities = await fetchWorkOrderPrioritiesFromDb()
     
     if (dbPriorities && dbPriorities.length > 0) {
-      return dbPriorities
+      return dbPriorities as WorkOrder['priority'][]
     }
     
-    // Fallback to hardcoded priorities if database function is unavailable
-    return ['Low', 'Medium', 'High'] as WorkOrder['priority'][]
+    // Fallback to hardcoded priorities from the schema constants
+    return ['Low', 'Medium', 'High']
   } catch (error) {
     console.error('Error fetching work order priorities:', error)
     // Fallback to hardcoded priorities on error
-    return ['Low', 'Medium', 'High'] as WorkOrder['priority'][]
+    return ['Low', 'Medium', 'High']
   }
 }

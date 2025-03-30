@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { CalendarIcon, Clock } from 'lucide-react'
+import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import { z } from 'zod'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
@@ -43,24 +42,11 @@ import {
   updateWorkOrder 
 } from '@/services/workOrders'
 import { useToast } from '@/hooks/use-toast'
-import { WorkOrder } from '@/schema/operations/workOrder.schema'
-
-// Work order form schema
-const workOrderFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  site_id: z.string().min(1, 'Site is required'),
-  client_id: z.string().optional(),
-  status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Overdue', 'On Hold']),
-  priority: z.enum(['Low', 'Medium', 'High']),
-  category: z.enum(['Routine Clean', 'Ad-hoc Request', 'Audit']),
-  scheduled_start: z.date({ required_error: 'Scheduled start date is required' }),
-  due_date: z.date({ required_error: 'Due date is required' }),
-  actual_duration: z.number().nullable().optional(),
-  outcome_notes: z.string().nullable().optional(),
-})
-
-type WorkOrderFormValues = z.infer<typeof workOrderFormSchema>
+import { 
+  workOrderFormSchema, 
+  WorkOrder, 
+  type WorkOrderFormValues 
+} from '@/schema/operations/workOrder.schema'
 
 interface WorkOrderFormProps {
   initialData?: Partial<WorkOrder>
@@ -74,7 +60,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
     initialData?.site?.client_id
   )
 
-  // Fix the useQuery call to use a proper queryFn
+  // Fetch all sites if no client is selected
   const { data: allSites } = useQuery({
     queryKey: ['sites'],
     queryFn: () => fetchSites({}),
@@ -129,14 +115,14 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
     try {
       if (initialData?.id) {
         // Update existing work order
-        await updateWorkOrder(initialData.id, values as Partial<WorkOrder>)
+        await updateWorkOrder(initialData.id, values)
         toast({
           title: 'Success',
           description: 'Work order updated successfully',
         })
       } else {
         // Create new work order
-        await createWorkOrder(values as Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>)
+        await createWorkOrder(values)
         toast({
           title: 'Success',
           description: 'Work order created successfully',
@@ -165,6 +151,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Title field */}
           <FormField
             control={form.control}
             name="title"
@@ -179,6 +166,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Site selection field */}
           <FormField
             control={form.control}
             name="site_id"
@@ -208,6 +196,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Category field */}
           <FormField
             control={form.control}
             name="category"
@@ -237,6 +226,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Priority field */}
           <FormField
             control={form.control}
             name="priority"
@@ -266,6 +256,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Status field */}
           <FormField
             control={form.control}
             name="status"
@@ -295,6 +286,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Estimated hours field */}
           <FormField
             control={form.control}
             name="actual_duration"
@@ -317,6 +309,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Scheduled start date field */}
           <FormField
             control={form.control}
             name="scheduled_start"
@@ -357,6 +350,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
             )}
           />
 
+          {/* Due date field */}
           <FormField
             control={form.control}
             name="due_date"
@@ -397,6 +391,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
           />
         </div>
 
+        {/* Description field */}
         <FormField
           control={form.control}
           name="description"
@@ -415,6 +410,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
           )}
         />
 
+        {/* Notes field */}
         <FormField
           control={form.control}
           name="outcome_notes"
@@ -437,6 +433,7 @@ export function WorkOrderForm({ initialData, onSuccess, onCancel }: WorkOrderFor
           )}
         />
 
+        {/* Form buttons */}
         <div className="flex justify-end space-x-4">
           <Button variant="outline" type="button" onClick={onCancel}>
             Cancel

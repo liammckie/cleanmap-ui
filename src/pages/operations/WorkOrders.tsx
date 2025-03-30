@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { ClipboardList, ClipboardEdit } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { fetchWorkOrders, deleteWorkOrder } from '@/services/workOrders'
-import { format } from 'date-fns'
+import { formatWorkOrderDate } from '@/utils/dateHandlers'
 import { StatusBadge, PriorityBadge } from '@/components/operations/workOrder/WorkOrderBadges'
 import { WorkOrderFilters } from '@/components/operations/workOrder/WorkOrderFilters'
 import { WorkOrderDialog } from '@/components/operations/workOrder/WorkOrderDialog'
@@ -194,9 +194,9 @@ const WorkOrdersPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{format(new Date(workOrder.scheduled_start), 'PPp')}</div>
+                        <div>{formatWorkOrderDate(workOrder.scheduled_start, true)}</div>
                         <div className="text-muted-foreground">
-                          Due: {format(new Date(workOrder.due_date), 'PPp')}
+                          Due: {formatWorkOrderDate(workOrder.due_date)}
                         </div>
                       </div>
                     </TableCell>
