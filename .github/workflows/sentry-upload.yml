@@ -1,0 +1,43 @@
+name: Upload Sentry Source Maps from Supabase
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sentry-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Fetch Sentry Token from Supabase
+        id: get_token
+        run: |
+          curl -s -X POST https://predtpiopoxrnijtdclt.supabase.co/functions/v1/get-sentry-token \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            | jq -r '.token' > token.txt
+          echo "SENTRY_AUTH_TOKEN=$(cat token.txt)" >> $GITHUB_ENV
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload sourcemaps to Sentry
+        run: |
+          npx sentry-cli releases new cleanmap-ui@${GITHUB_SHA::7}
+          npx sentry-cli releases files cleanmap-ui@${GITHUB_SHA::7} upload-sourcemaps dist --rewrite --validate --url-prefix "~/"
+          npx sentry-cli releases finalize cleanmap-ui@${GITHUB_SHA::7}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
