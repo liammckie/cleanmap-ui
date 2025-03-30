@@ -1,3 +1,4 @@
+
 /**
  * Documentation Service
  * 
@@ -16,7 +17,7 @@ import {
   generateStructureDocumentation
 } from '@/utils/documentationGenerator';
 
-import { captureBuildError } from '@/utils/errorCapture';
+import { captureBuildError } from '@/utils/buildErrorCapture';
 import { format } from 'date-fns';
 
 // Initialize the documentation system
@@ -230,12 +231,20 @@ export async function generateProjectStructureDocumentation(): Promise<void> {
 
 /**
  * Automatically documents a build error
- * @param error Build error details
+ * @param error Build error details (string or ErrorEntry)
  */
-export function documentBuildError(error: string): void {
+export function documentBuildError(error: string | ErrorEntry): void {
   console.info('Documenting build error');
   
-  // Extract error information
+  // If error is already an ErrorEntry, use it directly
+  if (typeof error !== 'string') {
+    documentError(error).catch(err => {
+      console.error('Failed to document error entry:', err);
+    });
+    return;
+  }
+  
+  // Extract error information from string error message
   const errorInfo = captureBuildError(error);
   
   if (!errorInfo) {

@@ -80,12 +80,13 @@ export function setupConsoleErrorCapture(): void {
 
 /**
  * Simulates capturing build errors for testing
+ * @param mockErrors Optional array of error messages to simulate
  */
-export function simulateBuildErrorCapture(): void {
+export function simulateBuildErrorCapture(mockErrors?: string[]): void {
   console.info('Simulating build error capture');
   
-  // Simulate some build errors
-  const mockErrors = [
+  // Use provided errors or default to these examples
+  const errors = mockErrors || [
     'src/utils/formSchemaValidator.ts:42:5: error TS2345: Argument of type \'unknown\' is not assignable to parameter of type \'ZodTypeAny\'.',
     'src/components/operations/workOrder/WorkOrderForm.tsx:128:23: Type \'Date | undefined\' is not assignable to type \'Date\'.',
     'src/services/workOrders/workOrderService.ts:56:18: Property \'site_id\' is optional in type but required in type.',
@@ -95,7 +96,7 @@ export function simulateBuildErrorCapture(): void {
   // Process each error
   const errorsByFile: Record<string, string[]> = {};
   
-  mockErrors.forEach(error => {
+  errors.forEach(error => {
     // Document the error
     documentBuildError(error);
     

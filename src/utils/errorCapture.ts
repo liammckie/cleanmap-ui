@@ -1,3 +1,4 @@
+
 /**
  * Utility for capturing and logging global errors
  */
@@ -277,9 +278,7 @@ export const captureBuildError = (errorMessage: string, filePath: string): void 
   }
   
   // Document the error
-  documentBuildError(errorEntry).catch(err => {
-    console.error('Failed to document build error:', err);
-  });
+  documentBuildError(errorEntry);
 };
 
 /**
