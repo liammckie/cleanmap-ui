@@ -22,9 +22,9 @@ export const initSentry = (): void => {
               history => history,
               // 2. Routes - empty array that will be populated at runtime
               [] as RouteObject[],
-              // 3. Match path utility function
-              location => {
-                return matchRoutes([] as RouteObject[], location) || [];
+              // 3. Match path utility function - must return a function that accepts Location
+              () => {
+                return (location) => matchRoutes([] as RouteObject[], location) || [];
               },
               // 4. The React Router major version (required parameter)
               6,

@@ -60,7 +60,7 @@ export default defineConfig(async ({ mode }) => {
     return {
       name: 'component-tagger',
       apply: 'serve',
-      transform(code, id) {
+      transform(code: string, id: string) {
         if (id.endsWith('.tsx') && id.includes('/components/')) {
           // Simple component tagging implementation
           return code.replace(
