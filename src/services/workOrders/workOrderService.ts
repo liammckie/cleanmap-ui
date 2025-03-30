@@ -20,6 +20,11 @@ export async function createWorkOrder(
     // Convert Date objects to ISO strings for Supabase and validate
     const dbWorkOrder = prepareObjectForDb(workOrder)
     
+    // Make sure category is set (required by the database)
+    if (!dbWorkOrder.category) {
+      dbWorkOrder.category = 'Routine Clean'
+    }
+    
     // Validate against the DB schema
     // (This step is optional but adds extra safety)
     validateForDb(dbWorkOrder, workOrderDbSchema)
@@ -46,6 +51,15 @@ export async function updateWorkOrder(id: string, updates: Partial<WorkOrderForm
   try {
     // Convert Date objects to ISO strings for Supabase
     const dbUpdates = prepareObjectForDb(updates)
+    
+    // Convert any Date objects in the updates to ISO strings
+    if (dbUpdates.due_date instanceof Date) {
+      dbUpdates.due_date = dbUpdates.due_date.toISOString()
+    }
+    
+    if (dbUpdates.scheduled_start instanceof Date) {
+      dbUpdates.scheduled_start = dbUpdates.scheduled_start.toISOString()
+    }
 
     // Update in database
     const { data, error } = await supabase
