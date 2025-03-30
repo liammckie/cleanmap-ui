@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -44,7 +43,7 @@ const WorkOrdersPage = () => {
     refetch,
   } = useQuery({
     queryKey: ['workOrders', searchTerm, filters],
-    queryFn: () => fetchWorkOrders(searchTerm, filters),
+    queryFn: () => fetchWorkOrders(),
     meta: {
       onError: (err: Error) => {
         console.error('Failed to fetch work orders:', err)

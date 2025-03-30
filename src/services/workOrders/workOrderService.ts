@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { WorkOrderFormValues } from '@/schema/operations/workOrder.schema'
 import { formatDateForDb } from '@/utils/dateUtils'
 import { WORK_ORDER_CATEGORIES } from '@/constants/workOrders'

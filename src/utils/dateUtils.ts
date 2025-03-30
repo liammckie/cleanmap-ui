@@ -38,3 +38,20 @@ export function formatDateTimeForDisplay(datetime: Date | string): string {
 export function parseDbDate(dateString: string): Date {
   return parseISO(dateString)
 }
+
+/**
+ * Formats a date for display in the UI (alias for formatDateForDisplay)
+ * @param date Date object or ISO string
+ * @returns Formatted date string (e.g., "15 Jan 2023")
+ */
+export function formatDate(date: Date | string | undefined | null): string {
+  if (!date) return 'N/A'
+  
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date
+    return format(dateObj, 'dd MMM yyyy')
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'Invalid date'
+  }
+}

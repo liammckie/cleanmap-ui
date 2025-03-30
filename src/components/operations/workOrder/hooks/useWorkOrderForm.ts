@@ -1,103 +1,117 @@
 
-import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useToast } from '@/hooks/use-toast'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { 
+  WorkOrderFormValues, 
+  workOrderSchema 
+} from '@/schema/operations/workOrder.schema'
 import { 
   fetchWorkOrderStatuses, 
   fetchWorkOrderCategories, 
-  fetchWorkOrderPriorities,
-  createWorkOrder,
+  fetchWorkOrderPriorities, 
+  createWorkOrder, 
   updateWorkOrder 
 } from '@/services/workOrders'
 import { fetchSites } from '@/services/sites'
-import { querySitesByClientId } from '@/services/sites/siteQueryService'
-import { 
-  workOrderFormSchema, 
-  WorkOrder, 
-  type WorkOrderFormValues 
-} from '@/schema/operations/workOrder.schema'
+import { useToast } from '@/hooks/use-toast'
 
 interface UseWorkOrderFormProps {
-  initialData?: Partial<WorkOrder>;
-  onSuccess: () => void;
+  initialData?: Partial<WorkOrderFormValues>
+  onSuccess: () => void
 }
 
 export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormProps) {
   const { toast } = useToast()
-  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(
-    initialData?.site?.client_id
-  )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isEditing = !!initialData?.id
 
-  // Fetch all sites if no client is selected
-  const { data: allSites } = useQuery({
+  // Fetch sites for the dropdown
+  const { data: sitesData } = useQuery({
     queryKey: ['sites'],
     queryFn: () => fetchSites({}),
-    enabled: !selectedClientId,
   })
 
-  // Fetch sites filtered by client
-  const { data: clientSites } = useQuery({
-    queryKey: ['sites', selectedClientId],
-    queryFn: () => selectedClientId ? querySitesByClientId(selectedClientId) : [],
-    enabled: !!selectedClientId,
-  })
-
-  // Combine sites data
-  const sites = selectedClientId ? clientSites : allSites
-
-  // Fetch work order metadata
-  const { data: statuses = [] } = useQuery({
+  // Fetch status options
+  const { data: statusesData } = useQuery({
     queryKey: ['workOrderStatuses'],
     queryFn: fetchWorkOrderStatuses,
   })
 
-  const { data: categories = [] } = useQuery({
+  // Fetch category options
+  const { data: categoriesData } = useQuery({
     queryKey: ['workOrderCategories'],
     queryFn: fetchWorkOrderCategories,
   })
 
-  const { data: priorities = [] } = useQuery({
+  // Fetch priority options
+  const { data: prioritiesData } = useQuery({
     queryKey: ['workOrderPriorities'],
     queryFn: fetchWorkOrderPriorities,
   })
 
-  // Initialize form with default values or initial data
+  // Convert query results to arrays
+  const sites = Array.isArray(sitesData) ? sitesData : []
+  const statuses = Array.isArray(statusesData) ? statusesData : []
+  const categories = Array.isArray(categoriesData) ? categoriesData : []
+  const priorities = Array.isArray(prioritiesData) ? prioritiesData : []
+
+  // Initialize the form with default values
   const form = useForm<WorkOrderFormValues>({
-    resolver: zodResolver(workOrderFormSchema),
+    resolver: zodResolver(workOrderSchema),
     defaultValues: {
-      title: initialData?.title || '',
-      description: initialData?.description || '',
-      site_id: initialData?.site_id || '',
-      client_id: initialData?.site?.client_id,
-      status: initialData?.status || 'Scheduled',
-      priority: initialData?.priority || 'Medium',
-      category: initialData?.category || 'Routine Clean',
-      scheduled_start: initialData?.scheduled_start ? new Date(initialData.scheduled_start) : new Date(),
-      due_date: initialData?.due_date ? new Date(initialData.due_date) : new Date(),
-      actual_duration: initialData?.actual_duration || null,
-      outcome_notes: initialData?.outcome_notes || '',
+      title: '',
+      site_id: '',
+      category: 'Routine Clean', // Default category
+      priority: 'Medium', // Default priority
+      status: 'Scheduled', // Default status
+      scheduled_start: new Date(),
+      due_date: new Date(),
+      description: '',
+      ...initialData,
     },
   })
 
-  async function onSubmit(values: WorkOrderFormValues) {
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      // Reset form with initial data
+      form.reset({
+        ...initialData,
+        // Ensure dates are Date objects
+        scheduled_start: initialData.scheduled_start
+          ? new Date(initialData.scheduled_start)
+          : new Date(),
+        due_date: initialData.due_date
+          ? new Date(initialData.due_date)
+          : new Date(),
+      })
+    }
+  }, [initialData, form])
+
+  // Form submission handler
+  const onSubmit = async (data: WorkOrderFormValues) => {
     try {
-      if (initialData?.id) {
+      setIsSubmitting(true)
+
+      if (isEditing && initialData?.id) {
         // Update existing work order
-        await updateWorkOrder(initialData.id, values)
+        await updateWorkOrder(initialData.id, data)
         toast({
-          title: 'Success',
-          description: 'Work order updated successfully',
+          title: 'Work Order Updated',
+          description: 'The work order has been successfully updated.',
         })
       } else {
         // Create new work order
-        await createWorkOrder(values)
+        await createWorkOrder(data)
+        form.reset() // Clear form after successful creation
         toast({
-          title: 'Success',
-          description: 'Work order created successfully',
+          title: 'Work Order Created',
+          description: 'A new work order has been successfully created.',
         })
       }
+
       onSuccess()
     } catch (error) {
       console.error('Error saving work order:', error)
@@ -106,16 +120,10 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
         title: 'Error',
         description: 'Failed to save work order. Please try again.',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
-
-  // Update site when client changes
-  useEffect(() => {
-    if (selectedClientId && form.getValues('site_id')) {
-      // Reset site selection if client changes
-      form.setValue('site_id', '')
-    }
-  }, [selectedClientId, form])
 
   return {
     form,
@@ -123,9 +131,8 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
     statuses,
     categories,
     priorities,
+    isSubmitting,
     onSubmit,
-    selectedClientId,
-    setSelectedClientId,
-    isEditing: !!initialData?.id
+    isEditing,
   }
 }

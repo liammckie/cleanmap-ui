@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Search, FilterX, Calendar } from 'lucide-react'
@@ -19,7 +20,11 @@ import {
 } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { fetchSites } from '@/services/sites'
-import { fetchWorkOrderStatuses, fetchWorkOrderCategories, fetchWorkOrderPriorities } from '@/services/workOrders'
+import { 
+  fetchWorkOrderStatuses, 
+  fetchWorkOrderCategories, 
+  fetchWorkOrderPriorities 
+} from '@/services/workOrders'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface WorkOrderFiltersProps {
@@ -44,7 +49,7 @@ export function WorkOrderFilters({
   setFilters,
   clearFilters,
 }: WorkOrderFiltersProps) {
-  // Fetch filter options - fixed to use a proper queryFn
+  // Fetch filter options
   const { data: sites = [] } = useQuery({
     queryKey: ['sites'],
     queryFn: () => fetchSites({}),
@@ -100,7 +105,7 @@ export function WorkOrderFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-sites">All Sites</SelectItem>
-                  {sites.map((site) => (
+                  {Array.isArray(sites) && sites.map((site) => (
                     <SelectItem key={site.id} value={site.id}>
                       {site.site_name}
                     </SelectItem>
@@ -119,7 +124,7 @@ export function WorkOrderFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-statuses">All Statuses</SelectItem>
-                  {statuses.map((status) => (
+                  {Array.isArray(statuses) && statuses.map((status) => (
                     <SelectItem key={status} value={status}>
                       {status}
                     </SelectItem>
@@ -138,7 +143,7 @@ export function WorkOrderFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-categories">All Categories</SelectItem>
-                  {categories.map((category) => (
+                  {Array.isArray(categories) && categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
@@ -157,7 +162,7 @@ export function WorkOrderFilters({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-priorities">All Priorities</SelectItem>
-                  {priorities.map((priority) => (
+                  {Array.isArray(priorities) && priorities.map((priority) => (
                     <SelectItem key={priority} value={priority}>
                       {priority}
                     </SelectItem>
