@@ -17,12 +17,18 @@ export const initSentry = (): void => {
         integrations: [
           new BrowserTracing({
             routingInstrumentation: reactRouterV6Instrumentation(
-              // Correctly provide the history callback
+              // 1. History callback
               (history) => history,
-              // Provide empty routes array - will be populated at runtime
+              // 2. Routes - empty array that will be populated at runtime
               [] as RouteObject[],
-              // Provide options object with routeFilter
+              // 3. Match path - required for instrumentation
+              (location) => location.pathname,
+              // 4. The React Router major version (required parameter)
+              6,
+              // 5. Common routing components to handle routing instrumentation
               {
+                routes: [] as RouteObject[],
+                // 6. Route filter function (optional parameter)
                 routeFilter: (route) => {
                   // Include all routes by default
                   return true;
