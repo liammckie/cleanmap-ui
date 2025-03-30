@@ -1,4 +1,3 @@
-
 /**
  * Temporary debugging utility for employee data issues
  */
@@ -201,16 +200,20 @@ export const debugEmployeeData = async (): Promise<Employee[]> => {
 
 /**
  * Creates a mock API endpoint for employees in development
+ * Only called when explicitly invoked, not automatically
  */
 export const setupMockEmployeeApi = () => {
+  // Only run in development environment
+  if (process.env.NODE_ENV !== 'development') {
+    console.log('Not in development mode, skipping mock setup');
+    return;
+  }
+  
   console.log('Setting up mock employee API endpoint');
   
-  // Only intercept in development mode or when Vite is disabled
-  const shouldMock = process.env.NODE_ENV === 'development' || 
-                     !document.querySelector('script[src="/src/main.tsx"]');
-  
-  if (!shouldMock) {
-    console.log('Not in development mode, skipping mock setup');
+  // Avoid setting up mock if already set up
+  if ((window as any).__mockEmployeeApiSetup) {
+    console.log('Mock employee API already set up, skipping');
     return;
   }
   
@@ -236,6 +239,9 @@ export const setupMockEmployeeApi = () => {
     // Otherwise use the original fetch
     return originalFetch.apply(this, [input, init]);
   };
+  
+  // Mark as set up to prevent duplicate setup
+  (window as any).__mockEmployeeApiSetup = true;
   
   console.log('Mock employee API endpoint setup complete');
 };

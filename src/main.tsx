@@ -2,8 +2,7 @@
 import { initSentry } from './utils/sentryInit';
 import { captureGlobalErrors } from './utils/errors/globalErrorHandlers';
 import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo';
-import { setupMockEmployeeApi } from './utils/employeeDebug';
-import { setupConsoleErrorCapture, simulateBuildErrorCapture } from './utils/buildErrorCapture';
+import { setupConsoleErrorCapture } from './utils/buildErrorCapture';
 import { setupViteErrorHandler } from './utils/errorHandlers/viteErrorHandler';
 import { renderApp } from './utils/appRenderer';
 import { handleFatalError } from './utils/errorHandlers/renderErrorHandler';
@@ -15,18 +14,8 @@ initSentry();
 // Set up global error capturing
 captureGlobalErrors();
 
-// Set up console error capturing for build errors
+// Set up console error capture for build errors
 setupConsoleErrorCapture();
-
-// Initialize mock API in development mode
-if (process.env.NODE_ENV === 'development') {
-  setupMockEmployeeApi();
-  
-  // In development mode, simulate build error capture for testing purposes
-  setTimeout(() => {
-    simulateBuildErrorCapture();
-  }, 5000);
-}
 
 // Check Vite client compatibility before starting
 console.log('Checking Vite client compatibility:', checkViteClientCompatibility());
