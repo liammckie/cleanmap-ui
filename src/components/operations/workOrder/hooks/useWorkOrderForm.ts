@@ -118,13 +118,18 @@ export function useWorkOrderForm({ initialData, onSuccess }: UseWorkOrderFormPro
           description: 'The work order has been successfully updated.',
         })
       } else {
-        // Ensure site_id is provided and convert dates to strings for API
+        // Ensure site_id and title are provided and convert dates to strings for API
         if (!data.site_id) {
           throw new Error('Site ID is required for work orders');
         }
         
+        if (!data.title) {
+          throw new Error('Title is required for work orders');
+        }
+        
         const createData = {
           ...data,
+          title: data.title, // Explicitly include required field
           site_id: data.site_id, // Explicitly include required field
           description: data.description || '', // Ensure description is not undefined
           scheduled_start: formatISO(data.scheduled_start),

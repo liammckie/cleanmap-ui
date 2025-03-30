@@ -29,8 +29,8 @@ export default defineConfig(async ({ mode }) => {
       
       if (response.ok) {
         const responseData = await response.json();
-        // Fix the unknown type issue by being explicit about the data type
-        sentryAuthToken = responseData.token as string;
+        // Fix the unknown type issue with explicit type assertion
+        sentryAuthToken = (responseData as { token: string }).token;
         console.log("Successfully retrieved Sentry token for build");
       } else {
         console.error("Failed to retrieve Sentry token for build:", await response.text());
