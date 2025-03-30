@@ -3,10 +3,9 @@ import { BrowserTracing } from "@sentry/tracing";
 import { reactRouterV6Instrumentation } from "@sentry/react";
 import { toast } from "@/components/ui/use-toast";
 
-// Export Sentry for use in other files
+// Export Sentry
 export { Sentry };
 
-// Initialize Sentry function
 export const initSentry = (): void => {
   if (import.meta.env.VITE_SENTRY_DSN) {
     try {
@@ -14,7 +13,7 @@ export const initSentry = (): void => {
         dsn: import.meta.env.VITE_SENTRY_DSN,
         integrations: [
           new BrowserTracing({
-            routingInstrumentation: reactRouterV6Instrumentation(), // ✅ FIXED
+            routingInstrumentation: reactRouterV6Instrumentation(), // ✅ do NOT pass args
           }),
         ],
         tracesSampleRate: 1.0,
@@ -22,7 +21,6 @@ export const initSentry = (): void => {
         debug: import.meta.env.DEV,
         enabled: import.meta.env.PROD,
       });
-
       console.log("✅ Sentry initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize Sentry:", error);
@@ -32,7 +30,6 @@ export const initSentry = (): void => {
   }
 };
 
-// Verify Sentry token in DEV using Supabase edge function
 export const verifySentryToken = async (): Promise<boolean> => {
   if (!import.meta.env.DEV) return true;
 
@@ -41,11 +38,9 @@ export const verifySentryToken = async (): Promise<boolean> => {
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.warn("⚠️ Missing Supabase credentials - cannot verify Sentry token");
+      console.warn("⚠️ Missing Supabase credentials");
       return false;
     }
-
-    console.log("🔄 Verifying Sentry token from edge function:", `${supabaseUrl}/functions/v1/get-sentry-token`);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/get-sentry-token`, {
       method: "GET",
@@ -57,23 +52,21 @@ export const verifySentryToken = async (): Promise<boolean> => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to retrieve Sentry token: ${response.status} ${errorText}`);
+      throw new Error(`Sentry token fetch failed: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    if (!data.token) throw new Error("No token returned");
+    if (!data.token) throw new Error("No token returned from Supabase");
 
-    console.log("✅ Successfully verified Sentry token access");
+    console.log("✅ Sentry token verified");
     return true;
   } catch (error) {
     console.error("❌ Sentry token verification failed:", error);
-    if (import.meta.env.DEV) {
-      toast({
-        title: "Sentry Configuration Issue",
-        description: `Error verifying Sentry token: ${error instanceof Error ? error.message : String(error)}`,
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "Sentry Configuration Issue",
+      description: `${error instanceof Error ? error.message : String(error)}`,
+      variant: "destructive",
+    });
     return false;
   }
 };
