@@ -1,23 +1,40 @@
 
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
 /**
- * Safely formats a date to a human-readable string
- * @param date The date value (string, Date, or null/undefined)
- * @param formatString Optional date format string (defaults to 'dd MMM yyyy')
- * @returns A formatted date string or 'N/A' if input is invalid
+ * Formats a date object to ISO string for database storage
+ * @param date Date to format for database
+ * @returns ISO string representation of the date
  */
-export const formatDate = (
-  date: string | Date | undefined | null, 
-  formatString = 'dd MMM yyyy'
-): string => {
-  if (!date) return 'N/A'
-  
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    return format(dateObj, formatString)
-  } catch (error) {
-    console.error('Error formatting date:', error)
-    return 'Invalid date'
-  }
+export function formatDateForDb(date: Date): string {
+  return date.toISOString()
+}
+
+/**
+ * Formats a date for display in the UI
+ * @param date Date object or ISO string
+ * @returns Formatted date string (e.g., "15 Jan 2023")
+ */
+export function formatDateForDisplay(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? parseISO(date) : date
+  return format(dateObj, 'dd MMM yyyy')
+}
+
+/**
+ * Formats a datetime for display in the UI
+ * @param datetime Date object or ISO string
+ * @returns Formatted datetime string (e.g., "15 Jan 2023 2:30 PM")
+ */
+export function formatDateTimeForDisplay(datetime: Date | string): string {
+  const dateObj = typeof datetime === 'string' ? parseISO(datetime) : datetime
+  return format(dateObj, 'dd MMM yyyy h:mm a')
+}
+
+/**
+ * Parses an ISO date string into a Date object
+ * @param dateString ISO date string
+ * @returns Date object
+ */
+export function parseDbDate(dateString: string): Date {
+  return parseISO(dateString)
 }
