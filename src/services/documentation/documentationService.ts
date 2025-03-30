@@ -1,3 +1,4 @@
+
 /**
  * Documentation Service
  * 
@@ -21,7 +22,6 @@ import { validateDocumentationPaths, generatePathValidationReport } from '@/util
 
 import {
   generateServiceDocumentation,
-  generateStructureDocumentation,
   updateDocumentationFile,
   generateServicesIndex,
   generateDocumentationArchive
@@ -126,8 +126,9 @@ export async function createClient(client: Client) {
 
 /**
  * Generates documentation for the project structure
+ * This function calls the imported utility from documentationGenerator
  */
-export async function generateStructureDocumentation(): Promise<void> {
+export async function generateProjectStructure(): Promise<void> {
   console.info('Generating project structure documentation');
   
   // Mock structure object
@@ -168,7 +169,7 @@ export async function generateStructureDocumentation(): Promise<void> {
     }
   ];
   
-  // Generate structure documentation
+  // Use the imported function from documentationGenerator
   const documentation = generateStructureDocumentation(structure);
   updateDocumentationFile(DOCUMENTATION_PATHS.PROJECT_STRUCTURE, documentation);
   
