@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
 import { diagnoseSyntaxError } from './syntaxChecker';
 import { handleRenderError } from './errorHandlers/renderErrorHandler';
+import React from 'react';
 
 /**
  * Renders the application to the DOM
@@ -35,9 +36,11 @@ export const renderApp = (): void => {
     
     // Render the application
     createRoot(rootElement).render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      React.createElement(
+        BrowserRouter,
+        null,
+        React.createElement(App, null)
+      )
     );
     
     console.log('App successfully mounted');
