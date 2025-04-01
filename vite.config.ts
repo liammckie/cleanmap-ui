@@ -76,6 +76,10 @@ export default defineConfig(async ({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      // Add the specific host to allowed hosts
+      allowedHosts: [
+        "22fe514c-de46-4c4f-bd43-e9833b3d4e50.lovableproject.com"
+      ],
     },
     plugins: [
       react(),
