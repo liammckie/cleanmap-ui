@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { Toaster } from '@/components/ui/toaster'
 import { cn } from '@/lib/utils'
 import Header from './Header'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   SidebarProvider,
   Sidebar,
@@ -29,18 +30,21 @@ import {
   UserCog,
   Building2,
   Briefcase,
+  LogOut,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 
 const MainLayout = () => {
   const isMobile = useIsMobile()
   const [pageTitle, setPageTitle] = useState('Dashboard')
   const location = useLocation()
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     // Update page title based on current route
     const path = location.pathname
-    if (path === '/') setPageTitle('Dashboard')
+    if (path === '/dashboard') setPageTitle('Dashboard')
     else if (path.includes('/clients')) setPageTitle('Clients')
     else if (path.includes('/locations')) setPageTitle('Locations')
     else if (path.includes('/schedule')) setPageTitle('Schedule')
@@ -61,19 +65,23 @@ const MainLayout = () => {
 
   // Menu items configuration
   const menuItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/' },
+    { id: 'dashboard', name: 'Dashboard', icon: Activity, path: '/dashboard' },
     { id: 'operations', name: 'Operations', icon: Briefcase, 
       subItems: [
-        { id: 'clients', name: 'Clients', path: '/operations/clients' },
-        { id: 'sites', name: 'Sites', path: '/operations/sites' }, 
-        { id: 'contracts', name: 'Contracts', path: '/operations/contracts' },
-        { id: 'work-orders', name: 'Work Orders', path: '/operations/work-orders' },
+        { id: 'clients', name: 'Clients', path: '/clients' },
+        { id: 'sites', name: 'Sites', path: '/sites' }, 
+        { id: 'contracts', name: 'Contracts', path: '/contracts' },
+        { id: 'work-orders', name: 'Work Orders', path: '/work-orders' },
       ]
     },
     { id: 'locations', name: 'Locations', icon: Map, path: '/locations' },
-    { id: 'hr', name: 'HR', icon: UserCog, path: '/hr/employees' },
+    { id: 'hr', name: 'HR', icon: UserCog, path: '/employees' },
     { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },
   ]
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
@@ -145,14 +153,27 @@ const MainLayout = () => {
           </SidebarContent>
 
           <SidebarFooter>
-            <div className="flex items-center gap-3 px-2 py-2">
-              <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Admin User</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  admin@cleanerp.com
-                </p>
+            <div className="flex flex-col gap-3 px-2 py-2">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {user?.email || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {user?.email || 'user@cleanerp.com'}
+                  </p>
+                </div>
               </div>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start" 
+                size="sm"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </Button>
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -173,7 +194,7 @@ const MainLayout = () => {
         <Toaster />
       </div>
     </SidebarProvider>
-  )
-}
+  );
+};
 
-export default MainLayout
+export default MainLayout;

@@ -1,10 +1,10 @@
 
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Index = () => {
+const PublicRoute = () => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -13,7 +13,11 @@ const Index = () => {
     );
   }
 
-  return <Navigate to={user ? "/dashboard" : "/"} replace />
-}
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-export default Index
+  return <Outlet />;
+};
+
+export default PublicRoute;

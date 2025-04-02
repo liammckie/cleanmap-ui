@@ -1,8 +1,16 @@
 
 import { SentryErrorBoundary } from "@/components/common/SentryErrorBoundary";
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import PublicRoute from '@/components/auth/PublicRoute';
 
-import Index from './pages/Index';
+// Public pages
+import LandingPage from './pages/LandingPage';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+
+// Protected pages
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Locations from './pages/Locations';
@@ -19,22 +27,36 @@ import MainLayout from "@/components/Layout/MainLayout";
 function App() {
   return (
     <SentryErrorBoundary>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/locations" element={<Locations />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/sites" element={<Sites />} />
-          <Route path="/sites/:id" element={<SiteDetails />} />
-          <Route path="/site-list" element={<SiteList />} />
-          <Route path="/create-site" element={<CreateSite />} />
-          <Route path="/work-orders" element={<WorkOrders />} />
-          <Route path="/contracts" element={<Contracts />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route element={<PublicRoute />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/locations" element={<Locations />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/sites" element={<Sites />} />
+              <Route path="/sites/:id" element={<SiteDetails />} />
+              <Route path="/site-list" element={<SiteList />} />
+              <Route path="/create-site" element={<CreateSite />} />
+              <Route path="/work-orders" element={<WorkOrders />} />
+              <Route path="/contracts" element={<Contracts />} />
+            </Route>
+          </Route>
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </SentryErrorBoundary>
   );
 }

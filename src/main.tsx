@@ -1,11 +1,13 @@
 
+import { BrowserRouter } from 'react-router-dom';
 import { initSentry } from './utils/sentryInit';
 import { captureGlobalErrors } from './utils/errors/globalErrorHandlers';
 import { checkViteClientCompatibility, diagnoseViteClientIssues } from './utils/browserInfo';
 import { setupConsoleErrorCapture } from './utils/buildErrorCapture';
 import { setupViteErrorHandler } from './utils/errorHandlers/viteErrorHandler';
-import { renderApp } from './utils/appRenderer';
 import { handleFatalError } from './utils/errorHandlers/renderErrorHandler';
+import { createRoot } from 'react-dom/client';
+import App from './App';
 import './index.css';
 
 // Initialize Sentry right away
@@ -25,6 +27,21 @@ diagnoseViteClientIssues();
 
 // Set up Vite-specific error handler
 setupViteErrorHandler();
+
+// Custom renderApp function
+const renderApp = () => {
+  const container = document.getElementById('root');
+  if (!container) {
+    throw new Error('Root element not found');
+  }
+  
+  const root = createRoot(container);
+  root.render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+};
 
 // Add another safety wrapper to catch very early errors
 try {
